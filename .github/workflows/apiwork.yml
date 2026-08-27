@@ -67,10 +67,10 @@ jobs:
           message: |
             🚀 Backend CI/CD
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Status: ${{ job.status }}
+            저장소: ${{ github.repository }}
+            브랜치: ${{ github.ref_name }}
+            커밋ID: ${{ github.sha }}
+            작성자: ${{ github.actor }}
+            상태: ${{ job.status }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
