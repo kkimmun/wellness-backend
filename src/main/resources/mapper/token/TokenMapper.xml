@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.token.model.dao.TokenMapper">
+
+	<insert id="saveToken"
+			parameterType="com.kh.wellness.token.model.vo.RefreshToken">
+		INSERT INTO
+			TOKEN
+		VALUES (
+			#{memberNo}
+			,#{token}
+			,#{expirationToken}
+		)
+	</insert>
+
+	<delete id="deleteToken">
+		DELETE
+		FROM
+			TOKEN
+		WHERE
+			MEMBER_NO = #{memberNo}
+	</delete>
+
+	<select id="findByToken"
+			parameterType="string"
+			resultType="com.kh.wellness.token.model.vo.RefreshToken">
+		SELECT
+			MEMBER_NO
+			,TOKEN
+			,EXPIRATION_TOKEN
+		FROM
+			TOKEN
+		WHERE
+			TOKEN = #{token}
+	</select>
+
+</mapper>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.wellness.member.model.dao.MemberMapper">
+<select id="countByMemberId" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM
+		WELLNESS_NORMAL_MEMBER
+	WHERE
+		MEMBER_ID = #{memberId}
+</select>
+<insert id="insertMember" parameterType="Member"
+ useGeneratedKeys="true" keyProperty="memberNo" keyColumn="MEMBER_NO">
+	INSERT INTO WELLNESS_MEMBER (
+		MEMBER_NAME
+		,ROLE
+		,SOCIAL_PROVIDER
+		,DEL_YN
+	)
+	VALUES (
+		#{memberName}
+		,#{role}
+		,#{socialProvider}
+		,#{delYn}
+	)
+</insert>
+<insert id="signUpNormalMember">
+	INSERT INTO WELLNESS_NORMAL_MEMBER (
+		MEMBER_NO
+		,MEMBER_ID
+		,MEMBER_PWD
+	)
+	VALUES (
+		#{memberNo}
+		,#{memberId}
+		,#{memberPwd}
+	)
+</insert>
+<select id="memberMoreDetails" parameterType="long" resultType="com.kh.wellness.member.model.dto.MemberRequestDto">
+	SELECT
+		M.MEMBER_NAME
+		,I.IMG_PATH
+		,I.SAVE_NAME
+		,I.DEL_YN
+	FROM
+		WELLNESS_MEMBER M
+	LEFT JOIN
+		MEMBER_IMG I
+	ON
+		M.MEMBER_NO = I.MEMBER_NO
+	AND
+		I.DEL_YN = 'N'
+	WHERE
+		M.MEMBER_NO = #{memberNo}
+</select>
+<update id="userEdit">
+		UPDATE
+			WELLNESS_NORMAL_MEMBER
+		<set>
+			<if test="validedMember.memberPwd != null">
+				MEMBER_PWD = #{validedMember.memberPwd},
+			</if>
+
+			<if test="validedMember.email != null">
+				EMAIL = #{validedMember.email},
+			</if>
+
+			<if test="validedMember.memberName != null">
+				MEMBER_NAME = #{validedMember.memberName},
+			</if>
+
+			EDIT_DATE = SYSDATE
+		</set>
+		WHERE
+			MEMBER_NO = #{memberNo}
+</update>
+<update id="userDelete">
+    UPDATE
+        WELLNESS_MEMBER
+    SET
+        DEL_YN = 'Y'
+        ,DEL_DATE = SYSDATE
+    WHERE
+        MEMBER_NO = #{memberNo}
+    AND
+        DEL_YN = 'N'
+</update>
+<select id="findById"
+		parameterType="long"
+		resultType="com.kh.wellness.member.model.vo.MemberImg">
+	SELECT
+		IMG_NO
+		,MEMBER_NO
+		,IMG_PATH
+		,SAVE_NAME
+		,ORIGINAL_NAME
+		,DEL_YN
+	FROM
+		WELLNESS_MEMBER
+	WHERE
+		MEMBER_NO = #{memberNo}
+	AND
+		DEL_YN = 'N'
+</select>
+</mapper>
