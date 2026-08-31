@@ -7,7 +7,9 @@ import com.kh.wellness.member.model.dto.MemberDto;
 @Mapper
 public interface AuthMapper {
 
-	MemberDto loadUser(Long memberNo);
+	MemberDto loadUserByMemberId(String memberId);
+
+	MemberDto loadUserByMemberNo(Long memberNo);
 	
 }
 

@@ -4,11 +4,11 @@ import java.io.IOException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.kh.wellness.auth.model.service.UserDetailsServiceImpl;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.token.util.JwtUtil;
 
@@ -29,19 +29,24 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailService;
+    private final UserDetailsServiceImpl userDetailService;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request)
+            throws ServletException {
+
         String uri = request.getRequestURI();
-        return uri.equals("/api/auth/login") || uri.equals("/api/auth/refresh");
+
+        return uri.equals("/api/auth/login")
+                || uri.equals("/api/auth/refresh");
     }
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            FilterChain filterChain)
+            throws ServletException, IOException {
 
         String token = null;
 
@@ -56,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        if (token == null) {
+        if (token == null || token.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -67,7 +72,8 @@ public class JwtFilter extends OncePerRequestFilter {
             String memberNo = claims.getSubject();
 
             CustomUserDetails user =
-                    (CustomUserDetails) userDetailService.loadUserByUsername(memberNo);
+                    (CustomUserDetails) userDetailService
+                            .loadUserByMemberNo(Long.valueOf(memberNo));
 
             log.info("로그인한 유저 권한 확인: {}", user.getAuthorities());
 
@@ -79,10 +85,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     );
 
             authentication.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
+                    new WebAuthenticationDetailsSource()
+                            .buildDetails(request)
             );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
 
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

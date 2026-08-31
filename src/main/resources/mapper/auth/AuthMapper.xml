@@ -4,21 +4,36 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.wellness.auth.model.dao.AuthMapper">
-<select id="loadUser" resultType="com.kh.wellness.member.model.dto.MemberDto">
-	SELECT
-		m.MEMBER_NO,
-		n.MEMBER_ID,
-		n.MEMBER_PWD,
-		m.ROLE,
-		m.DEL_YN
-	FROM
-		WELLNESS_MEMBER m
-	JOIN
-		WELLNESS_NORMAL_MEMBER n
-			ON M.MEMBER_NO = N.MEMBER_NO
-	WHERE
-		m.DEL_YN = 'N'
-	AND
-		n.MEMBER_NO = #{memberNo}
+<select id="loadUserByMemberId"
+        resultType="com.kh.wellness.member.model.dto.MemberDto">
+
+    SELECT
+        m.MEMBER_NO,
+        n.MEMBER_ID,
+        n.MEMBER_PWD,
+        m.ROLE,
+        m.DEL_YN
+    FROM WELLNESS_MEMBER m
+    JOIN WELLNESS_NORMAL_MEMBER n
+        ON m.MEMBER_NO = n.MEMBER_NO
+    WHERE m.DEL_YN = 'N'
+      AND n.MEMBER_ID = #{memberId}
+
+</select>
+<select id="loadUserByMemberNo"
+        resultType="com.kh.wellness.member.model.dto.MemberDto">
+
+    SELECT
+        m.MEMBER_NO,
+        n.MEMBER_ID,
+        n.MEMBER_PWD,
+        m.ROLE,
+        m.DEL_YN
+    FROM WELLNESS_MEMBER m
+    JOIN WELLNESS_NORMAL_MEMBER n
+        ON m.MEMBER_NO = n.MEMBER_NO
+    WHERE m.DEL_YN = 'N'
+      AND m.MEMBER_NO = #{memberNo}
+
 </select>
 </mapper>
