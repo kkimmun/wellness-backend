@@ -12,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResponse;
 import com.kh.wellness.auth.model.dto.LoginResult;
+import com.kh.wellness.auth.model.dto.TokenResponse;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.exception.NotFoundException;
+import com.kh.wellness.exception.UnauthorizedException;
 import com.kh.wellness.token.model.service.TokenService;
 
 import lombok.RequiredArgsConstructor;
@@ -55,6 +57,16 @@ public class AuthService {
 		            .refreshToken(tokens.get("refreshToken"))
 		            .build();
 
+	}
+
+	public TokenResponse refresh(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank()) {
+			throw new UnauthorizedException("리프레시 토큰이 없습니다.");
+		}
+
+		Map<String, String> tokens = tokenService.tokenLocation(refreshToken);
+
+		return new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"));
 	}
 
 

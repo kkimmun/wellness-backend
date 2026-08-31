@@ -6,14 +6,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.wellness.auth.model.dto.AccessTokenDto;
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResponse;
 import com.kh.wellness.auth.model.dto.LoginResult;
+import com.kh.wellness.auth.model.dto.TokenResponse;
 import com.kh.wellness.auth.model.service.AuthService;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
@@ -52,7 +55,7 @@ public class AuthController {
 	    )
 	    .httpOnly(true)
 	    .secure(true)
-	    .path("/")
+	    .path("/api/auth/refresh")
 	    .maxAge(Duration.ofDays(5))
 	    .sameSite("Lax")
 	    .build();
@@ -80,7 +83,7 @@ public class AuthController {
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(true)
-                .path("/")
+                .path("/api/auth/refresh")
                 .maxAge(0)
                 .sameSite("Lax")
                 .build();
@@ -88,6 +91,34 @@ public class AuthController {
 		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(ApiResponse.success("로그아웃 성공", null));
+	}
+	
+	@PostMapping("/refresh")
+	public ResponseEntity<Void> refresh(
+	        @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+
+	    TokenResponse res = authService.refresh(refreshToken);
+
+	    ResponseCookie accessCookie = ResponseCookie.from("accessToken", res.getAccessToken())
+			    .httpOnly(true)
+			    .secure(true)
+			    .path("/")
+			    .maxAge(Duration.ofMinutes(30))
+			    .sameSite("Lax")
+			    .build();
+
+	    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", res.getRefreshToken())
+			    .httpOnly(true)
+			    .secure(true)
+			    .path("/api/auth/refresh")
+			    .maxAge(Duration.ofDays(5))
+			    .sameSite("Lax")
+			    .build();
+
+	    return ResponseEntity.ok()
+	            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+	            .build();
 	}
 		
 }
