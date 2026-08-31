@@ -25,7 +25,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		log.info("로그인 시도 중인 ID: {}", username);
-		MemberDto member = authMapper.loadUser(username);
+		
+		Long memberNo = Long.valueOf(username);
+		
+		MemberDto member = authMapper.loadUser(memberNo);
 		 
 		log.info("조회된 정보 : {}", member);
 		

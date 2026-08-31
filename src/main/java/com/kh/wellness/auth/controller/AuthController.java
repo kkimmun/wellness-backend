@@ -1,5 +1,9 @@
 package com.kh.wellness.auth.controller;
 
+import java.time.Duration;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,14 +32,56 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequestDto lrd){
 		LoginResponse res = authService.login(lrd);
 		
-		return ResponseEntity.ok(ApiResponse.success("로그인 성공", res));
+        ResponseCookie accessCookie = ResponseCookie.from(
+                "accessToken",
+                res.getAccessToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(30))
+                .sameSite("Lax")
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from(
+                "refreshToken",
+                res.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofDays(5))
+                .sameSite("Lax")
+                .build();
+		
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+				.header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(ApiResponse.success("로그인 성공", res));
 	}
+	
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomUserDetails userDetails){
 		Long memberNoFromToken = userDetails.getMemberNo();
+		
 		tokenService.logout(memberNoFromToken);
 		
-		return ResponseEntity.status(200).body(ApiResponse.success("로그아웃 성공", null));
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+		
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(ApiResponse.success("로그아웃 성공", null));
 	}
 		
 }

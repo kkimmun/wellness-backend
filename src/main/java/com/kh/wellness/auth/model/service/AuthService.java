@@ -16,10 +16,12 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.token.model.service.TokenService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final TokenService tokenService;
@@ -31,6 +33,7 @@ public class AuthService {
 			auth = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(lrd.getMemberId(), lrd.getMemberPwd()));
 		} catch (AuthenticationException e) {
+			log.error("인증 실패", e);
 			throw new NotFoundException("아이디 또는 비밀번호가 이상합니다");
 		}
 
