@@ -1,6 +1,7 @@
 package com.kh.wellness.admin.cource.model.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +16,7 @@ import com.kh.wellness.admin.cource.model.vo.Course;
 import com.kh.wellness.admin.cource.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
 
@@ -52,12 +54,16 @@ public class AdminCourseService {
     public void saveCourse(AdminCourseRequest request) {
         validateCourseRequest(request, "고정 코스 등록 정보를 확인해주세요.");
         validatePlaces(request);
-
+        validateDuplicatePlace(request.getStartPlaceNo(),
+        					   request.getWaypointPlaceNos(),
+        					   request.getEndPlaceNo());
         Course course = toCourse(request, null);
         int result = adminCourseMapper.insertCourse(course);
         if (result != 1 || course.getCourseNo() == null) {
             throw new InternalServerException("고정 코스 등록 중 오류가 발생했습니다.");
         }
+        
+        
 
         saveWaypoints(course.getCourseNo(), request.getWaypointPlaceNos(),
                 "고정 코스 등록 중 오류가 발생했습니다.");
@@ -215,6 +221,30 @@ public class AdminCourseService {
             if (adminCourseMapper.insertCourseWaypoint(waypoint) != 1) {
                 throw new InternalServerException(errorMessage);
             }
+        }
+    }
+    
+    private void validateDuplicatePlace(
+            Long startPlaceNo,
+            List<Long> waypointPlaceNos,
+            Long endPlaceNo
+    ) {
+        Set<Long> placeNos = new HashSet<>();
+
+        if (!placeNos.add(startPlaceNo)) {
+            throw new ConflictException("코스에 동일한 장소를 중복으로 선택할 수 없습니다.");
+        }
+
+        if (waypointPlaceNos != null) {
+            for (Long waypointPlaceNo : waypointPlaceNos) {
+                if (!placeNos.add(waypointPlaceNo)) {
+                    throw new ConflictException("코스에 동일한 장소를 중복으로 선택할 수 없습니다.");
+                }
+            }
+        }
+
+        if (!placeNos.add(endPlaceNo)) {
+            throw new ConflictException("코스에 동일한 장소를 중복으로 선택할 수 없습니다.");
         }
     }
 }
