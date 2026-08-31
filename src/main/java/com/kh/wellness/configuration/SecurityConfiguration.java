@@ -32,7 +32,7 @@ public class SecurityConfiguration {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
 		return http.formLogin(Customizer.withDefaults())
-				.csrf(AbstractHttpConfigurer::disable)	// "/api/admins/boards/{boardNo}"
+				.csrf(Customizer.withDefaults())	// "/api/admins/boards/{boardNo}"
 				.cors(Customizer.withDefaults()).authorizeHttpRequests(requests ->{
 					
 					// 임시 권한 전부 설정
