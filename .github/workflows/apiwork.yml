@@ -1,9 +1,8 @@
-name: Deploy Spring Boot App
+name: Deploy Spring boot App
 
 on:
   push:
     branches: [main]
-
   pull_request:
     branches: [main]
 
@@ -12,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -30,7 +28,7 @@ jobs:
 
       - name: Verify Build output
         run: |
-          if ! ls build/libs/*.jar 1> /dev/null 2>&1; then
+          if [ ! -f build/libs/*.jar ]; then
             echo "빌드 실패: JAR 파일을 찾을 수 없습니다."
             exit 1
           fi
@@ -57,20 +55,3 @@ jobs:
           script: |
             cd /home/ubuntu/app
             docker compose restart api
-
-      - name: Send Slack Notification
-        if: always()
-        uses: act10ns/slack@v2
-        with:
-          status: ${{ job.status }}
-          channel: "#wellness-cicd"
-          message: |
-            🚀 Backend CI/CD
-
-            저장소: ${{ github.repository }}
-            브랜치: ${{ github.ref_name }}
-            커밋ID: ${{ github.sha }}
-            작성자: ${{ github.actor }}
-            상태: ${{ job.status }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

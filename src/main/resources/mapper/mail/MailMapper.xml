@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.member.model.dao.MailMapper">
+
+	<select id="verifyEmailTime">
+		SELECT
+			COUNT(*)
+		FROM
+			EMAIL_AUTH
+		WHERE
+			EXP_DATE > SYSDATE
+		AND
+			EMAIL_ADDR = #{emailAddr}
+		AND
+			AUTH_YN = 'N'
+	</select>
+
+	<select id="verifyEmailCode">
+		SELECT
+			COUNT(*)
+		FROM
+			EMAIL_AUTH
+		WHERE
+			EMAIL_ADDR = #{emailAddr}
+		AND
+			AUTH_CODE = #{authCode}
+		AND
+			USER_IP = #{userIp}
+		AND
+			EXP_DATE > SYSDATE
+		AND
+			AUTH_YN = 'N'
+	</select>
+
+	<update id="deleteSuccessEmail">
+		UPDATE
+			EMAIL_AUTH
+		SET
+			AUTH_YN = 'Y'
+		WHERE
+			EMAIL_ADDR = #{emailAddr}
+		AND
+			AUTH_CODE = #{authCode}
+		AND
+			USER_IP = #{userIp}
+	</update>
+
+	<delete id="deleteExpiredEmail">
+		DELETE
+		FROM
+			EMAIL_AUTH
+		WHERE
+			EMAIL_ADDR = #{emailAddr}
+	</delete>
+
+	<delete id="authMailCleanup">
+		DELETE
+		FROM
+			EMAIL_AUTH
+		WHERE
+			AUTH_YN = 'Y'
+	</delete>
+
+</mapper>

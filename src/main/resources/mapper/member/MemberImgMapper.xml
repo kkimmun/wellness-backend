@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.member.model.dao.MemberImgMapper">
+
+	<select id="memberImgCount"
+			parameterType="long"
+			resultType="com.kh.wellness.member.model.dto.MemberImgDto">
+		SELECT
+			IMG_NO
+			,MEMBER_NO
+		FROM
+			MEMBER_IMG
+		WHERE
+			MEMBER_NO = #{memberNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<select id="findMaxCount"
+			parameterType="long"
+			resultType="long">
+		SELECT
+			MAX(IMG_NO)
+		FROM
+			MEMBER_IMG
+		WHERE
+			MEMBER_NO = #{memberNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<update id="userImgDeleteList">
+		UPDATE
+			MEMBER_IMG
+		SET
+			DEL_YN = 'Y'
+		WHERE
+			IMG_NO = #{imgNo}
+		AND
+			MEMBER_NO = #{memberNo}
+	</update>
+
+	<insert id="userImgUpload"
+			parameterType="com.kh.wellness.member.model.dto.MemberImgDto">
+		INSERT INTO
+			MEMBER_IMG (
+				MEMBER_NO
+				,ORIGINAL_NAME
+				,SAVE_NAME
+				,IMG_PATH
+			)
+		VALUES (
+			#{memberNo}
+			,#{originalName}
+			,#{saveName}
+			,#{imgPath}
+		)
+	</insert>
+
+	<update id="userImgDelete">
+		UPDATE
+			MEMBER_IMG
+		SET
+			DEL_YN = 'Y'
+		WHERE
+			MEMBER_NO = #{memberNo}
+		AND
+			DEL_YN = 'N'
+	</update>
+
+</mapper>
