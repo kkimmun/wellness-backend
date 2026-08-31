@@ -31,7 +31,7 @@ public class SecurityConfiguration {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
-		return http.formLogin(AbstractHttpConfigurer::disable)
+		return http.formLogin(Customizer.withDefaults())
 				.csrf(AbstractHttpConfigurer::disable)	// "/api/admins/boards/{boardNo}"
 				.cors(Customizer.withDefaults()).authorizeHttpRequests(requests ->{
 					

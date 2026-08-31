@@ -26,15 +26,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
-        log.info("로그인 시도 중인 ID: {}", username);
-
         MemberDto member = authMapper.loadUserByMemberId(username);
 
         if (member == null) {
             throw new UsernameNotFoundException("유저 ID 조회 실패");
         }
-
-        log.info("조회된 정보 : {}", member);
 
         return createUserDetails(member);
     }

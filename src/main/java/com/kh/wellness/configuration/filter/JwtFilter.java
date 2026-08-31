@@ -104,7 +104,14 @@ public class JwtFilter extends OncePerRequestFilter {
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().write("유효하지 않은 토큰");
             return;
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write("유효하지 않은 토큰");
+            return;
         }
+        
+        
 
         filterChain.doFilter(request, response);
     }

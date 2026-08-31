@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResponse;
+import com.kh.wellness.auth.model.dto.LoginResult;
 import com.kh.wellness.auth.model.service.AuthService;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
@@ -29,32 +30,37 @@ public class AuthController {
 	private final TokenService tokenService;
 
 	@PostMapping("/login")
-	public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequestDto lrd){
-		LoginResponse res = authService.login(lrd);
-		
-        ResponseCookie accessCookie = ResponseCookie.from(
-                "accessToken",
-                res.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofMinutes(30))
-                .sameSite("Lax")
-                .build();
+	public ResponseEntity<ApiResponse<LoginResponse>> login(
+	        @Valid @RequestBody LoginRequestDto lrd) {
 
-        ResponseCookie refreshCookie = ResponseCookie.from(
-                "refreshToken",
-                res.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofDays(5))
-                .sameSite("Lax")
-                .build();
-		
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-				.header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(ApiResponse.success("로그인 성공", res));
+	    LoginResult res = authService.login(lrd);
+
+	    ResponseCookie accessCookie = ResponseCookie.from(
+	            "accessToken",
+	            res.getAccessToken()
+	    )
+	    .httpOnly(true)
+	    .secure(true)
+	    .path("/")
+	    .maxAge(Duration.ofMinutes(30))
+	    .sameSite("Lax")
+	    .build();
+
+	    ResponseCookie refreshCookie = ResponseCookie.from(
+	            "refreshToken",
+	            res.getRefreshToken()
+	    )
+	    .httpOnly(true)
+	    .secure(true)
+	    .path("/")
+	    .maxAge(Duration.ofDays(5))
+	    .sameSite("Lax")
+	    .build();
+
+	    return ResponseEntity.ok()
+	            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+	            .body(ApiResponse.success("로그인 성공", res.getUserInfo()));
 	}
 	
 	@PostMapping("/logout")
