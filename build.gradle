@@ -58,3 +58,7 @@ dependencyManagement {
 tasks.named('bootJar') {
     archiveFileName = 'wellness.jar'
 }
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
