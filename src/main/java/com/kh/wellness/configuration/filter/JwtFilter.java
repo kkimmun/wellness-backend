@@ -2,6 +2,7 @@ package com.kh.wellness.configuration.filter;
 
 import java.io.IOException;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -17,7 +18,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,16 +49,14 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = null;
+        
+        log.info("Authorization: {}",
+                request.getHeader(HttpHeaders.AUTHORIZATION));
 
-        Cookie[] cookies = request.getCookies();
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            token = authorization.substring(7);
         }
 
         if (token == null || token.isBlank()) {

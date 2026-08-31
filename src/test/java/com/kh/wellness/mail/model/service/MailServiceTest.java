@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.mail.model.dao.MailMapper;
@@ -38,6 +40,13 @@ class MailServiceTest {
 
 	@InjectMocks
 	private MailService mailService;
+
+	@BeforeEach
+	void setUp() {
+		// @Value 로 주입되는 메일 템플릿 필드는 Spring Context 없이 직접 채운다.
+		ReflectionTestUtils.setField(mailService, "mailSubject", "[Wellness] 회원가입 인증번호입니다.");
+		ReflectionTestUtils.setField(mailService, "mailContext", "인증번호: {authCode}");
+	}
 
 	private MimeMessage newMimeMessage() {
 		return new MimeMessage((Session) null);

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kh.wellness.auth.model.dto.AccessTokenDto;
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResponse;
 import com.kh.wellness.auth.model.dto.LoginResult;
@@ -38,32 +37,21 @@ public class AuthController {
 
 	    LoginResult res = authService.login(lrd);
 
-	    ResponseCookie accessCookie = ResponseCookie.from(
-	            "accessToken",
-	            res.getAccessToken()
-	    )
-	    .httpOnly(true)
-	    .secure(true)
-	    .path("/")
-	    .maxAge(Duration.ofMinutes(30))
-	    .sameSite("Lax")
-	    .build();
-
-	    ResponseCookie refreshCookie = ResponseCookie.from(
-	            "refreshToken",
-	            res.getRefreshToken()
-	    )
-	    .httpOnly(true)
-	    .secure(true)
-	    .path("/api/auth/refresh")
-	    .maxAge(Duration.ofDays(5))
-	    .sameSite("Lax")
-	    .build();
+	    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken",res.getRefreshToken())
+			    .httpOnly(true)
+			    .secure(true)
+			    .path("/api/auth/refresh")
+			    .maxAge(Duration.ofMinutes(60))
+			    .sameSite("Lax")
+			    .build();
+	    
+	    LoginResponse loginResponse = LoginResponse.builder()
+			    .accessToken(res.getAccessToken())
+			    .build();
 
 	    return ResponseEntity.ok()
-	            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
 	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-	            .body(ApiResponse.success("로그인 성공", res.getUserInfo()));
+	            .body(ApiResponse.success("로그인 성공", loginResponse));
 	}
 	
 	@PostMapping("/logout")
@@ -72,23 +60,15 @@ public class AuthController {
 		
 		tokenService.logout(memberNoFromToken);
 		
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
-
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(true)
-                .path("/api/auth/refresh")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+	            .httpOnly(true)
+	            .secure(true)
+	            .path("/api/auth/refresh")
+	            .maxAge(0)
+	            .sameSite("Lax")
+	            .build();
 		
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+		return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(ApiResponse.success("로그아웃 성공", null));
 	}
@@ -99,24 +79,15 @@ public class AuthController {
 
 	    TokenResponse res = authService.refresh(refreshToken);
 
-	    ResponseCookie accessCookie = ResponseCookie.from("accessToken", res.getAccessToken())
-			    .httpOnly(true)
-			    .secure(true)
-			    .path("/")
-			    .maxAge(Duration.ofMinutes(30))
-			    .sameSite("Lax")
-			    .build();
-
 	    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", res.getRefreshToken())
 			    .httpOnly(true)
 			    .secure(true)
 			    .path("/api/auth/refresh")
-			    .maxAge(Duration.ofDays(5))
+			    .maxAge(Duration.ofMinutes(60))
 			    .sameSite("Lax")
 			    .build();
 
 	    return ResponseEntity.ok()
-	            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
 	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
 	            .build();
 	}

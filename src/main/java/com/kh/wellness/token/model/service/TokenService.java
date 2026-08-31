@@ -44,7 +44,7 @@ public class TokenService {
 		RefreshToken refreshToken = RefreshToken.builder()
 										.memberNo(user.getMemberNo())
 										.token(token)
-										.expirationDate(System.currentTimeMillis()+ (1000L * 60 * 60 * 24 * 5)) // 5일로 고정
+										.expirationDate(System.currentTimeMillis() + (1000L * 60 * 60)) // 60분
 										.build();
 		tokenMapper.saveToken(refreshToken);
 	}

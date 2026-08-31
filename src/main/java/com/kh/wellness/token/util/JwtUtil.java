@@ -38,7 +38,7 @@ public class JwtUtil {
 		return Jwts.builder()
 				.subject(String.valueOf(user.getMemberNo()))
 				.issuedAt(new Date())
-		       .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(30))))
+		       .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(15))))
 		       //.claim("memberNo", user.getMemberNo())
 		       .signWith(key)
 		       .compact();
@@ -48,7 +48,7 @@ public class JwtUtil {
 		return  Jwts.builder()
 				.subject(String.valueOf(user.getMemberNo()))
 				.issuedAt(new Date())
-				.expiration(Date.from(Instant.now().plus(Duration.ofDays(5))))
+				.expiration(Date.from(Instant.now().plus(Duration.ofMinutes(60))))
 				// .claim("memberNo", user.getMemberNo())
 				.signWith(key)
 				.compact();

@@ -24,8 +24,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResult;
+import com.kh.wellness.auth.model.dto.TokenResponse;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.exception.NotFoundException;
+import com.kh.wellness.exception.UnauthorizedException;
 import com.kh.wellness.token.model.service.TokenService;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,8 +56,10 @@ class AuthServiceTest {
 				.build();
 	}
 
+	// ---------- login ----------
+
 	@Test
-	@DisplayName("로그인 성공 시 인증된 사용자 정보와 발급된 토큰을 담아 반환한다")
+	@DisplayName("로그인 성공 시 응답 바디로 내려줄 액세스 토큰과 쿠키로 내려줄 리프레시 토큰, 사용자 정보를 반환한다")
 	void login_success() {
 		LoginRequestDto request = new LoginRequestDto("test@wellness.com", "rawPwd");
 
@@ -86,5 +90,39 @@ class AuthServiceTest {
 				.hasMessage("아이디 또는 비밀번호가 이상합니다");
 
 		verify(tokenService, never()).getTokens(any());
+	}
+
+	// ---------- refresh ----------
+
+	@Test
+	@DisplayName("유효한 리프레시 토큰으로 갱신 시 재발급된 액세스/리프레시 토큰을 반환한다")
+	void refresh_success() {
+		when(tokenService.tokenLocation("RT"))
+				.thenReturn(Map.of("accessToken", "NEW_AT", "refreshToken", "NEW_RT"));
+
+		TokenResponse result = authService.refresh("RT");
+
+		assertThat(result.getAccessToken()).isEqualTo("NEW_AT");
+		assertThat(result.getRefreshToken()).isEqualTo("NEW_RT");
+	}
+
+	@Test
+	@DisplayName("리프레시 토큰이 null 이면 UnauthorizedException 을 던지고 토큰을 갱신하지 않는다")
+	void refresh_nullToken() {
+		assertThatThrownBy(() -> authService.refresh(null))
+				.isInstanceOf(UnauthorizedException.class)
+				.hasMessage("리프레시 토큰이 없습니다.");
+
+		verify(tokenService, never()).tokenLocation(any());
+	}
+
+	@Test
+	@DisplayName("리프레시 토큰이 공백이면 UnauthorizedException 을 던지고 토큰을 갱신하지 않는다")
+	void refresh_blankToken() {
+		assertThatThrownBy(() -> authService.refresh("   "))
+				.isInstanceOf(UnauthorizedException.class)
+				.hasMessage("리프레시 토큰이 없습니다.");
+
+		verify(tokenService, never()).tokenLocation(any());
 	}
 }
