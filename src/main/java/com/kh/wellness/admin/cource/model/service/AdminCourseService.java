@@ -52,7 +52,6 @@ public class AdminCourseService {
 
     @Transactional
     public void saveCourse(AdminCourseRequest request) {
-        validateCourseRequest(request, "고정 코스 등록 정보를 확인해주세요.");
         validatePlaces(request);
         validateDuplicatePlace(request.getStartPlaceNo(),
         					   request.getWaypointPlaceNos(),
@@ -73,8 +72,10 @@ public class AdminCourseService {
     public void updateCourse(Long courseNo, AdminCourseRequest request) {
         validateCourseNo(courseNo);
         validateCourseExists(courseNo);
-        validateCourseRequest(request, "고정 코스 수정 정보를 확인해주세요.");
         validatePlaces(request);
+        validateDuplicatePlace(request.getStartPlaceNo(),
+                               request.getWaypointPlaceNos(),
+                               request.getEndPlaceNo());
 
         int result = adminCourseMapper.updateCourse(toCourse(request, courseNo));
         if (result != 1) {
@@ -150,34 +151,6 @@ public class AdminCourseService {
         if (adminCourseMapper.countCourseByNo(courseNo) == 0) {
             throw new NotFoundException("고정 코스를 찾을 수 없습니다.");
         }
-    }
-
-    private void validateCourseRequest(AdminCourseRequest request, String message) {
-        if (request == null
-                || request.getCourseName() == null
-                || request.getCourseName().isBlank()
-                || request.getCourseName().trim().length() > 100
-                || request.getEstimatedTime() == null
-                || request.getEstimatedTime() <= 0
-                || request.getDescription() == null
-                || request.getDescription().isBlank()
-                || request.getDescription().trim().length() > 500
-                || request.getStartPlaceNo() == null
-                || request.getStartPlaceNo() <= 0
-                || request.getEndPlaceNo() == null
-                || request.getEndPlaceNo() <= 0
-                || hasInvalidWaypoints(request.getWaypointPlaceNos())) {
-            throw new BadRequestException(message);
-        }
-    }
-
-    private boolean hasInvalidWaypoints(List<Long> waypointPlaceNos) {
-        if (waypointPlaceNos == null) {
-            return false;
-        }
-        return waypointPlaceNos.size() > 3
-                || waypointPlaceNos.stream()
-                        .anyMatch(placeNo -> placeNo == null || placeNo <= 0);
     }
 
     private void validatePlaces(AdminCourseRequest request) {

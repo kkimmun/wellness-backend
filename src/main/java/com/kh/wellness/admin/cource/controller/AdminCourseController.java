@@ -30,51 +30,39 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminCourseController {
 
-    private final AdminCourseService adminCourseService;
+	private final AdminCourseService adminCourseService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<AdminCourseListResponse>>> getCourses(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String active) {
-        PageResponse<AdminCourseListResponse> courses =
-                adminCourseService.getCourses(page, keyword, active);
-        return ResponseEntity.ok(
-                ApiResponse.success("고정 코스 목록 조회 성공", courses));
-    }
+	@GetMapping
+	public ResponseEntity<ApiResponse<PageResponse<AdminCourseListResponse>>> getCourses(
+			@RequestParam(defaultValue = "1") int page, @RequestParam(required = false) String keyword,
+			@RequestParam(required = false) String active) {
+		PageResponse<AdminCourseListResponse> courses = adminCourseService.getCourses(page, keyword, active);
+		return ResponseEntity.ok(ApiResponse.success("고정 코스 목록 조회 성공", courses));
+	}
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Void>> saveCourse(
-            @Valid @RequestBody AdminCourseRequest request) {
-        adminCourseService.saveCourse(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.created("고정 코스 등록 성공", null));
-    }
+	@PostMapping
+	public ResponseEntity<ApiResponse<Void>> saveCourse(@Valid @RequestBody AdminCourseRequest request) {
+		adminCourseService.saveCourse(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created("고정 코스 등록 성공", null));
+	}
 
-    @PutMapping("/{courseNo}")
-    public ResponseEntity<ApiResponse<Void>> updateCourse(
-            @PathVariable Long courseNo,
-            @Valid @RequestBody AdminCourseRequest request) {
-        adminCourseService.updateCourse(courseNo, request);
-        return ResponseEntity.ok(
-                ApiResponse.success("고정 코스 수정 성공", null));
-    }
+	@PutMapping("/{courseNo}")
+	public ResponseEntity<ApiResponse<Void>> updateCourse(@PathVariable Long courseNo,
+			@Valid @RequestBody AdminCourseRequest request) {
+		adminCourseService.updateCourse(courseNo, request);
+		return ResponseEntity.ok(ApiResponse.success("고정 코스 수정 성공", null));
+	}
 
-    @DeleteMapping("/{courseNo}")
-    public ResponseEntity<ApiResponse<Void>> deleteCourse(
-            @PathVariable Long courseNo) {
-        adminCourseService.deleteCourse(courseNo);
-        return ResponseEntity.ok(
-                ApiResponse.success("고정 코스 삭제 성공", null));
-    }
+	@DeleteMapping("/{courseNo}")
+	public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long courseNo) {
+		adminCourseService.deleteCourse(courseNo);
+		return ResponseEntity.ok(ApiResponse.success("고정 코스 삭제 성공", null));
+	}
 
-    @PatchMapping("/{courseNo}/status")
-    public ResponseEntity<ApiResponse<Void>> updateCourseStatus(
-            @PathVariable Long courseNo,
-            @Valid @RequestBody CourseStatusRequest request) {
-        adminCourseService.updateCourseStatus(courseNo, request.getActive());
-        return ResponseEntity.ok(
-                ApiResponse.success("고정 코스 상태 변경 성공", null));
-    }
+	@PatchMapping("/{courseNo}/status")
+	public ResponseEntity<ApiResponse<Void>> updateCourseStatus(@PathVariable Long courseNo,
+			@Valid @RequestBody CourseStatusRequest request) {
+		adminCourseService.updateCourseStatus(courseNo, request.getActive());
+		return ResponseEntity.ok(ApiResponse.success("고정 코스 상태 변경 성공", null));
+	}
 }

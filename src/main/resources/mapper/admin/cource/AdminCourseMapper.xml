@@ -46,14 +46,14 @@
             PLACE
         WHERE
             PLACE_NO IN
-            <foreach collection="placeNos" item="placeNo" open="(" separator="," close=")">
+            <foreach collection="list" item="placeNo" open="(" separator="," close=")">
                 #{placeNo}
             </foreach>
     </select>
 
     <insert id="insertCourse"
             useGeneratedKeys="true"
-            keyProperty="course.courseNo"
+            keyProperty="courseNo"
             keyColumn="COURSE_NO">
         INSERT INTO COURSE (
             START_PLACE,
@@ -62,11 +62,11 @@
             ESTIMATED_TIME,
             DESCRIPTION
         ) VALUES (
-            #{course.startPlace},
-            #{course.endPlace},
-            #{course.courseName},
-            #{course.estimatedTime},
-            #{course.description}
+            #{startPlace},
+            #{endPlace},
+            #{courseName},
+            #{estimatedTime},
+            #{description}
         )
     </insert>
 
@@ -76,9 +76,9 @@
             PLACE_NO,
             WAYPOINT_SEQUENCE
         ) VALUES (
-            #{waypoint.courseNo},
-            #{waypoint.placeNo},
-            #{waypoint.waypointSequence}
+            #{courseNo},
+            #{placeNo},
+            #{waypointSequence}
         )
     </insert>
 
@@ -88,29 +88,29 @@
         FROM
             COURSE
         WHERE
-            COURSE_NO = #{courseNo}
+            COURSE_NO = #{_parameter}
     </select>
 
     <update id="updateCourse">
         UPDATE COURSE
         SET
-            START_PLACE = #{course.startPlace},
-            END_PLACE = #{course.endPlace},
-            COURSE_NAME = #{course.courseName},
-            ESTIMATED_TIME = #{course.estimatedTime},
-            DESCRIPTION = #{course.description}
+            START_PLACE = #{startPlace},
+            END_PLACE = #{endPlace},
+            COURSE_NAME = #{courseName},
+            ESTIMATED_TIME = #{estimatedTime},
+            DESCRIPTION = #{description}
         WHERE
-            COURSE_NO = #{course.courseNo}
+            COURSE_NO = #{courseNo}
     </update>
 
     <delete id="deleteCourseWaypoints">
         DELETE FROM COURSE_WAYPOINT
-        WHERE COURSE_NO = #{courseNo}
+        WHERE COURSE_NO = #{_parameter}
     </delete>
 
     <delete id="deleteCourse">
         DELETE FROM COURSE
-        WHERE COURSE_NO = #{courseNo}
+        WHERE COURSE_NO = #{_parameter}
     </delete>
 
     <update id="updateCourseStatus">

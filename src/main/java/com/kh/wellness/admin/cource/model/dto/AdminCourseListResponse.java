@@ -11,9 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AdminCourseListResponse {
 
-    private Long courseNo;
-    private String courseName;
-    private Integer estimatedTime;
-    private String description;
-    private String createdDate;
+	private Long courseNo;
+	private String courseName;
+	private Integer estimatedTime;
+	private String description;
+	private String createdDate;
 }

@@ -27,6 +27,7 @@ import com.kh.wellness.admin.cource.model.vo.Course;
 import com.kh.wellness.admin.cource.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.exception.NotFoundException;
 
 @ExtendWith(MockitoExtension.class)
@@ -116,6 +117,19 @@ class AdminCourseServiceTest {
         order.verify(adminCourseMapper).deleteCourseWaypoints(101L);
         order.verify(adminCourseMapper, org.mockito.Mockito.times(2))
                 .insertCourseWaypoint(any(CourseWaypoint.class));
+    }
+
+    @Test
+    void updateCourseRejectsDuplicatePlace() {
+        AdminCourseRequest request = request(List.of(1L));
+        when(adminCourseMapper.countCourseByNo(101L)).thenReturn(1);
+        when(adminCourseMapper.countExistingPlaces(anyList())).thenReturn(2);
+
+        assertThatThrownBy(() -> adminCourseService.updateCourse(101L, request))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("코스에 동일한 장소를 중복으로 선택할 수 없습니다.");
+
+        verify(adminCourseMapper, never()).updateCourse(any(Course.class));
     }
 
     @Test
