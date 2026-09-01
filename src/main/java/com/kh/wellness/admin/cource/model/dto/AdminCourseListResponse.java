@@ -12,7 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdminCourseListResponse {
-
 	private Long courseNo;
 	private String courseName;
 	private Integer estimatedTime;

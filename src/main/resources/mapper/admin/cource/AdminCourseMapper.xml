@@ -22,7 +22,8 @@
             COURSE_NAME,
             ESTIMATED_TIME,
             DESCRIPTION,
-            CREATED_DATE
+            CREATED_DATE,
+            ACTIVE
         FROM
             COURSE
         <include refid="courseFilters" />

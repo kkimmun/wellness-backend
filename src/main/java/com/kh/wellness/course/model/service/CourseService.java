@@ -40,4 +40,9 @@ public class CourseService {
 
         return new PageResponse<>(courses, totalElements, page, PAGE_SIZE);
     }
+    
+    public Void getCourse(Long courseNo) {
+    	
+    	return null;
+    }
 }
