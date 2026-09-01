@@ -9,6 +9,7 @@ import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseListRow;
+import com.kh.wellness.course.model.dto.CourseResponse;
 import com.kh.wellness.exception.BadRequestException;
 
 import lombok.RequiredArgsConstructor;
@@ -41,8 +42,24 @@ public class CourseService {
         return new PageResponse<>(courses, totalElements, page, PAGE_SIZE);
     }
     
-    public Void getCourse(Long courseNo) {
-    	
-    	return null;
+    
+    
+    public CourseResponse getCourse(Long courseNo) {
+    	validateCourseNo(courseNo);
+    	CourseResponse course = courseMapper.selectByCourseNo(courseNo);
+    	existsCourse(course);
+    	return course;
+    }
+    
+    private void validateCourseNo(Long courseNo) {
+        if (courseNo == null || courseNo <= 0) {
+            throw new BadRequestException("올바르지 않은 고정 코스 번호입니다.");
+        }
+    }
+    
+    private void existsCourse(CourseResponse course) {
+    	if(course == null) {
+    		throw new BadRequestException("존재하지 않는 코스 번호입니다.");
+    	}
     }
 }

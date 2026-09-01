@@ -40,5 +40,22 @@
         WHERE
             C.ACTIVE = 'Y'
     </select>
+    
+    <select id="selectByCourseNo" 
+    	    resultType="com.kh.wellness.course.model.dto.CourseResponse">
+    	SELECT
+    	       COURSE_NO
+    	     , START_PLACE
+    	     , END_PLACE
+    	     , COURSE_NAME
+    	     , ESTIMATED_TIME
+    	     , DESCRIPTION
+          FROM
+               COURSE
+         WHERE
+               ACTIVE = 'Y'
+           AND
+               COURSE_NO = #{courseNo}
+   	</select>
 
 </mapper>

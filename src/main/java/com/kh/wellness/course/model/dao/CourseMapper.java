@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kh.wellness.course.model.dto.CourseListRow;
+import com.kh.wellness.course.model.dto.CourseResponse;
 
 @Mapper
 public interface CourseMapper {
@@ -15,4 +16,6 @@ public interface CourseMapper {
             @Param("size") int size);
 
     long countActiveCourses();
+    
+    CourseResponse selectByCourseNo(Long courseNo);
 }
