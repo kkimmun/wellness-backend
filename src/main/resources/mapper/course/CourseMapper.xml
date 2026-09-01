@@ -66,9 +66,9 @@
    		     , W.PLACE_NO
    		     , W.WAYPOINT_SEQUENCE
    		     , P.PLACE_NAME
-   		     , P.xAxis
-   		     , P.yAxis
-   		     , PI.IMG_PATH || PI.SAVE_NAME AS imageUrl
+   		     , P.X_AXIS
+   		     , P.Y_AXIS
+   		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
    		  FROM
    		       COURSE C
    		  JOIN
