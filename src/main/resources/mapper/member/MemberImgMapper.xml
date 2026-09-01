@@ -6,9 +6,7 @@
 
 <mapper namespace="com.kh.wellness.member.model.dao.MemberImgMapper">
 
-	<select id="memberImgCount"
-			parameterType="long"
-			resultType="com.kh.wellness.member.model.dto.MemberImgDto">
+	<select id="memberImgCount" parameterType="long" resultType="MemberImgDto">
 		SELECT
 			IMG_NO
 			,MEMBER_NO
@@ -45,7 +43,7 @@
 	</update>
 
 	<insert id="userImgUpload"
-			parameterType="com.kh.wellness.member.model.dto.MemberImgDto">
+			parameterType="MemberImgDto">
 		INSERT INTO
 			MEMBER_IMG (
 				MEMBER_NO

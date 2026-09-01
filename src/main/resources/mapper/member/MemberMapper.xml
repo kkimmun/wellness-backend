@@ -12,8 +12,7 @@
 	WHERE
 		MEMBER_ID = #{memberId}
 </select>
-<insert id="insertMember" parameterType="Member"
- useGeneratedKeys="true" keyProperty="memberNo" keyColumn="MEMBER_NO">
+<insert id="insertMember" parameterType="Member" useGeneratedKeys="true" keyProperty="memberNo" keyColumn="MEMBER_NO">
 	INSERT INTO WELLNESS_MEMBER (
 		MEMBER_NAME
 		,ROLE
@@ -39,7 +38,7 @@
 		,#{memberPwd}
 	)
 </insert>
-<select id="memberMoreDetails" parameterType="long" resultType="com.kh.wellness.member.model.dto.MemberRequestDto">
+<select id="memberMoreDetails" parameterType="long" resultType="Member">
 	SELECT
 		M.MEMBER_NAME
 		,I.IMG_PATH
@@ -88,9 +87,7 @@
     AND
         DEL_YN = 'N'
 </update>
-<select id="findById"
-		parameterType="long"
-		resultType="com.kh.wellness.member.model.vo.MemberImg">
+<select id="findById" parameterType="long" resultType="com.kh.wellness.member.model.vo.MemberImg">
 	SELECT
 		IMG_NO
 		,MEMBER_NO

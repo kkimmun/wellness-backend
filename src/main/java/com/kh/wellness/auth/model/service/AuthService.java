@@ -56,7 +56,6 @@ public class AuthService {
 		            .accessToken(tokens.get("accessToken"))
 		            .refreshToken(tokens.get("refreshToken"))
 		            .build();
-
 	}
 
 	public TokenResponse refresh(String refreshToken) {

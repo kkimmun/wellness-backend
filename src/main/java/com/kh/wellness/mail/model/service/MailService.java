@@ -29,10 +29,10 @@ public class MailService {
 
     private final JavaMailSender sender;
 
-    @Value("${mail-template.signup.subject}")
+    @Value("${mail.signup.subject}")
     private String mailSubject;
 
-    @Value("${mail-template.signup.context}")
+    @Value("${mail.signup.context}")
     private String mailContext;
 
     private final SecureRandom random = new SecureRandom();
@@ -44,12 +44,12 @@ public class MailService {
         MimeMessage message = sender.createMimeMessage();
 
         MimeMessageHelper helper =
-                new MimeMessageHelper(message, false, "UTF-8");
+                new MimeMessageHelper(message, true, "UTF-8");
 
         String context = mailContext.replace("{authCode}", authCode);
 
         helper.setSubject(mailSubject);
-        helper.setText(context);
+        helper.setText(context, true);
         helper.setTo(emailDto.getEmailAddr());
 
         sender.send(message);
