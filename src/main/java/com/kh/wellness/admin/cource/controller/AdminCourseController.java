@@ -34,8 +34,8 @@ public class AdminCourseController {
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<PageResponse<AdminCourseListResponse>>> getCourses(
-			@RequestParam(defaultValue = "1") int page, @RequestParam(required = false) String keyword,
-			@RequestParam(required = false) String active) {
+			@RequestParam(name="page", defaultValue = "1") int page, @RequestParam(name="keyword", required = false) String keyword,
+			@RequestParam(name="active", required = false) String active) {
 		PageResponse<AdminCourseListResponse> courses = adminCourseService.getCourses(page, keyword, active);
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 목록 조회 성공", courses));
 	}

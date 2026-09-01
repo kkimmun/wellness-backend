@@ -24,13 +24,13 @@ public class CourseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<CourseListResponse>>> getCourses(
-            @RequestParam(defaultValue = "1") int page) {
+            @RequestParam(name="page", defaultValue = "1") int page) {
         return ResponseEntity.ok(
                 ApiResponse.success("고정 코스 목록 조회 성공", courseService.getCourses(page)));
     }
     
     @GetMapping("/{courseNo}")
-    public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable Long courseNo){
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable(name="courseNo") Long courseNo){
     	return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", courseService.getCourse(courseNo)));
     }
 }
