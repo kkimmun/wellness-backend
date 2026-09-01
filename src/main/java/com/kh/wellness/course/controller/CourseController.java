@@ -33,9 +33,4 @@ public class CourseController {
     public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable Long courseNo){
     	return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", courseService.getCourse(courseNo)));
     }
-    
-    @GetMapping("/{courseNo}/route")
-    public ResponseEntity<ApiResponse<Void>> getRoute(){
-    	return ResponseEntity.ok(ApiResponse.success("코스 경로 상세 조회", null));
-    }
 }
