@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dto.CourseListResponse;
+import com.kh.wellness.course.model.dto.CourseResponse;
 import com.kh.wellness.course.model.service.CourseService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,15 +24,13 @@ public class CourseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<CourseListResponse>>> getCourses(
-            @RequestParam(defaultValue = "1") int page) {
-        PageResponse<CourseListResponse> courses = courseService.getCourses(page);
+            @RequestParam(name="page", defaultValue = "1") int page) {
         return ResponseEntity.ok(
-                ApiResponse.success("고정 코스 목록 조회 성공", courses));
+                ApiResponse.success("고정 코스 목록 조회 성공", courseService.getCourses(page)));
     }
     
     @GetMapping("/{courseNo}")
-    public ResponseEntity<ApiResponse<Void>> getCourse(@PathVariable Long courseNo){
-    	// service호출
-    	return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", null));
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable(name="courseNo") Long courseNo){
+    	return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", courseService.getCourse(courseNo)));
     }
 }

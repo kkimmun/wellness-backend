@@ -5,7 +5,7 @@
 <mapper namespace="com.kh.wellness.course.model.dao.CourseMapper">
 
     <select id="selectActiveCourses"
-            resultType="com.kh.wellness.course.model.dto.CourseListRow">
+            resultType="CourseListRow">
         SELECT
             C.COURSE_NO,
             C.COURSE_NAME,
@@ -39,6 +39,55 @@
             ON END_PLACE.PLACE_NO = C.END_PLACE
         WHERE
             C.ACTIVE = 'Y'
+    </select>
+    
+    <select id="selectByCourseNo"
+            resultType="CourseResponse">
+        SELECT
+               COURSE_NO
+             , START_PLACE
+             , END_PLACE
+             , COURSE_NAME
+             , ESTIMATED_TIME
+             , DESCRIPTION
+          FROM
+               COURSE
+         WHERE
+               ACTIVE = 'Y'
+           AND
+               COURSE_NO = #{courseNo}
+    </select>
+
+    <select id="selectWaypointBycourseNo"
+            resultType="WaypointDto">
+        SELECT
+               W.WAYPOINT_NO
+             , W.COURSE_NO
+             , W.PLACE_NO
+             , W.WAYPOINT_SEQUENCE
+             , P.PLACE_NAME
+             , P.X_AXIS
+             , P.Y_AXIS
+             , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
+          FROM
+               COURSE C
+          JOIN
+               COURSE_WAYPOINT W ON C.COURSE_NO = W.COURSE_NO
+          JOIN
+               PLACE P ON W.PLACE_NO = P.PLACE_NO
+          LEFT
+          JOIN
+               PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO
+                           AND PI.IMG_ORDER = 1
+         WHERE
+               W.COURSE_NO = #{courseNo}
+           AND
+               C.ACTIVE = 'Y'
+           AND
+               P.DEL_YN = 'N'
+         ORDER
+            BY
+               W.WAYPOINT_SEQUENCE ASC
     </select>
 
 </mapper>

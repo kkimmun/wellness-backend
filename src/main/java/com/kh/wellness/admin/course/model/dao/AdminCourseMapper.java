@@ -1,13 +1,14 @@
-package com.kh.wellness.admin.cource.model.dao;
+package com.kh.wellness.admin.course.model.dao;
 
 import java.util.List;
+
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse;
-import com.kh.wellness.admin.cource.model.vo.Course;
-import com.kh.wellness.admin.cource.model.vo.CourseWaypoint;
+import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.vo.Course;
+import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 
 @Mapper
 public interface AdminCourseMapper {

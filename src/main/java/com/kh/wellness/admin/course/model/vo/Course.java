@@ -1,16 +1,11 @@
-package com.kh.wellness.admin.cource.model.vo;
+package com.kh.wellness.admin.course.model.vo;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Value;
 
-@Getter
-@Setter
+
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 public class Course {
 
     private Long courseNo;
