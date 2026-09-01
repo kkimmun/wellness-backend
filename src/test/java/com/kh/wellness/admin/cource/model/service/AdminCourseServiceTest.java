@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.kh.wellness.admin.cource.model.dao.AdminCourseMapper;
 import com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse;
@@ -65,12 +67,20 @@ class AdminCourseServiceTest {
     @Test
     void saveCourseValidatesPlacesAndStoresWaypointSequence() {
         AdminCourseRequest request = request(List.of(5L, 8L, 12L));
-        when(adminCourseMapper.countExistingPlaces(anyList())).thenReturn(5);
-        when(adminCourseMapper.insertCourse(any(Course.class))).thenAnswer(invocation -> {
-            Course course = invocation.getArgument(0);
-            course.setCourseNo(101L);
-            return 1;
-        });
+
+        when(adminCourseMapper.countExistingPlaces(anyList()))
+                .thenReturn(5);
+
+        when(adminCourseMapper.insertCourse(any(Course.class)))
+                .thenAnswer(invocation -> {
+                    Course course = invocation.getArgument(0);
+
+                    // DB의 generated key가 설정되는 상황을 테스트에서 재현
+                    ReflectionTestUtils.setField(course, "courseNo", 101L);
+
+                    return 1;
+                });
+
         when(adminCourseMapper.insertCourseWaypoint(any(CourseWaypoint.class)))
                 .thenReturn(1);
 
@@ -78,11 +88,14 @@ class AdminCourseServiceTest {
 
         ArgumentCaptor<CourseWaypoint> waypointCaptor =
                 ArgumentCaptor.forClass(CourseWaypoint.class);
-        verify(adminCourseMapper, org.mockito.Mockito.times(3))
+
+        verify(adminCourseMapper, times(3))
                 .insertCourseWaypoint(waypointCaptor.capture());
+
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getPlaceNo)
                 .containsExactly(5L, 8L, 12L);
+
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getWaypointSequence)
                 .containsExactly(1, 2, 3);
