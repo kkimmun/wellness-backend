@@ -10,6 +10,7 @@ import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseListRow;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.exception.BadRequestException;
 
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,12 @@ public class CourseService {
     	validateCourseNo(courseNo);
     	CourseResponse course = courseMapper.selectByCourseNo(courseNo);
     	existsCourse(course);
+    	course.setPlaces(getWaypoint(courseNo));
     	return course;
+    }
+    
+    private List<WaypointDto> getWaypoint(Long courseNo) {
+    	return courseMapper.selectWaypointBycourseNo(courseNo);
     }
     
     private void validateCourseNo(Long courseNo) {

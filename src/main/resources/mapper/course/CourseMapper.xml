@@ -57,5 +57,36 @@
            AND
                COURSE_NO = #{courseNo}
    	</select>
+   	
+   	<select id="selectWaypointBycourseNo"
+   			resultType="com.kh.wellness.course.model.dto.WaypointDto">
+   		SELECT
+   		       W.WAYPOINT_NO
+   		     , W.COURSE_NO
+   		     , W.PLACE_NO
+   		     , W.WAYPOINT_SEQUENCE
+   		     , P.PLACE_NAME
+   		     , P.xAxis
+   		     , P.yAxis
+   		     , PI.IMG_PATH || PI.SAVE_NAME AS imageUrl
+   		  FROM
+   		       COURSE C
+   		  JOIN
+   		       COURSE_WAYPOINT W ON C.COURSE_NO = W.COURSE_NO
+   		  JOIN
+   		       PLACE P ON W.PLACE_NO = P.PLACE_NO
+   		  LEFT
+   		  JOIN
+   		       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO
+   		 WHERE
+   		       W.COURSE_NO = #{courseNo}
+   		   AND
+   		       C.ACTIVE = 'Y'
+   		   AND
+   		       P.DEL_YN = 'N'
+   		 ORDER
+   		    BY
+   		       W.WAYPOINT_SEQUENCE ASC
+    	</select>
 
 </mapper>

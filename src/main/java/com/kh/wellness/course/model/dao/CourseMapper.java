@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.kh.wellness.course.model.dto.CourseListRow;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.WaypointDto;
 
 @Mapper
 public interface CourseMapper {
@@ -18,4 +19,8 @@ public interface CourseMapper {
     long countActiveCourses();
     
     CourseResponse selectByCourseNo(Long courseNo);
+
+	List<WaypointDto> selectWaypointBycourseNo(Long courseNo);
+    
+    
 }

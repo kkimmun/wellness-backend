@@ -29,10 +29,10 @@ public class MailService {
 
     private final JavaMailSender sender;
 
-    @Value("${mail-template.signup.subject}")
+    @Value("${mail.signup.subject}")
     private String mailSubject;
 
-    @Value("${mail-template.signup.context}")
+    @Value("${mail.signup.context}")
     private String mailContext;
 
     private final SecureRandom random = new SecureRandom();
