@@ -10,6 +10,6 @@ public interface AuthMapper {
 	MemberDto loadUserByMemberId(String memberId);
 
 	MemberDto loadUserByMemberNo(Long memberNo);
-	
+
 }
 

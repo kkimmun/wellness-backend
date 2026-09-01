@@ -44,12 +44,12 @@ public class MailService {
         MimeMessage message = sender.createMimeMessage();
 
         MimeMessageHelper helper =
-                new MimeMessageHelper(message, false, "UTF-8");
+                new MimeMessageHelper(message, true, "UTF-8");
 
         String context = mailContext.replace("{authCode}", authCode);
 
         helper.setSubject(mailSubject);
-        helper.setText(context);
+        helper.setText(context, true);
         helper.setTo(emailDto.getEmailAddr());
 
         sender.send(message);
