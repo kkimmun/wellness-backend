@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.wellness.admin.place.model.dao.AdminPlaceMapper">
+
+	<select id="countPlaces" resultType="long">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE
+	</select>
+
+	<select id="selectPlaces" resultType="AdminPlaceListResponse">
+		SELECT
+			P.PLACE_NO
+			,TO_CHAR(P.CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+			,P.PLACE_NAME
+			,T.TYPE
+			,P.PHONE_NUMBER
+			,P.DEL_YN
+		FROM
+			PLACE P
+		LEFT JOIN
+			TYPE_DETAIL TD
+		ON
+			P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+		LEFT JOIN
+			TYPE T
+		ON
+			TD.TYPE_NO = T.TYPE_NO
+		ORDER BY
+			P.PLACE_NO DESC
+		OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+	</select>
+
+</mapper>

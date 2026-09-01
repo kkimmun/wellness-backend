@@ -4,7 +4,7 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.wellness.auth.model.dao.AuthMapper">
-<select id="loadUserByMemberId" resultType="com.kh.wellness.member.model.dto.MemberDto">
+<select id="loadUserByMemberId" resultType="MemberDto">
 
     SELECT
         m.MEMBER_NO,
@@ -19,7 +19,7 @@
       AND n.MEMBER_ID = #{memberId}
 
 </select>
-<select id="loadUserByMemberNo" resultType="com.kh.wellness.member.model.dto.MemberDto">
+<select id="loadUserByMemberNo" resultType="MemberDto">
     SELECT
         m.MEMBER_NO,
         n.MEMBER_ID,

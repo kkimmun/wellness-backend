@@ -1,15 +1,19 @@
 package com.kh.wellness.configuration.filter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.kh.wellness.auth.model.service.UserDetailsServiceImpl;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.token.util.JwtUtil;
 
@@ -29,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsServiceImpl userDetailService;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request)
@@ -68,10 +71,12 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parseJwt(token);
 
             String memberNo = claims.getSubject();
+            String role = claims.get("role", String.class);
 
-            CustomUserDetails user =
-                    (CustomUserDetails) userDetailService
-                            .loadUserByMemberNo(Long.valueOf(memberNo));
+            CustomUserDetails user = CustomUserDetails.builder()
+                    .memberNo(Long.valueOf(memberNo))
+                    .authorities(resolveAuthorities(role))
+                    .build();
 
             log.info("로그인한 유저 권한 확인: {}", user.getAuthorities());
 
@@ -112,5 +117,13 @@ public class JwtFilter extends OncePerRequestFilter {
         
 
         filterChain.doFilter(request, response);
+    }
+
+    // 페이로드의 role claim 을 Spring Security 권한으로 변환한다. (hasRole('ADMIN') 매칭을 위해 ROLE_ 접두어 부여)
+    private Collection<? extends GrantedAuthority> resolveAuthorities(String role) {
+        if (role == null || role.isBlank()) {
+            return Collections.emptyList();
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 }

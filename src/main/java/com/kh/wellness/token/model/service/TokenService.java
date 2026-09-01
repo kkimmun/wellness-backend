@@ -1,7 +1,9 @@
 package com.kh.wellness.token.model.service;
 
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,10 +66,14 @@ public class TokenService {
 		Claims claims = tokenUtil.parseJwt(token.getToken());
 
 		Long memberNo = Long.valueOf(claims.getSubject());
+		String role = claims.get("role", String.class);
 
-		
-		CustomUserDetails user = CustomUserDetails.builder().memberNo(memberNo).build();
-		return createTokens(user);
+		CustomUserDetails.CustomUserDetailsBuilder userBuilder = CustomUserDetails.builder()
+				.memberNo(memberNo);
+		if (role != null && !role.isBlank()) {
+			userBuilder.authorities(List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+		}
+		return createTokens(userBuilder.build());
 	}
 	
 	
