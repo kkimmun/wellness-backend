@@ -22,7 +22,7 @@
             COURSE_NAME,
             ESTIMATED_TIME,
             DESCRIPTION,
-            TO_CHAR(CREATE_DATE, 'YYYY-MM-DD') AS CREATED_DATE
+            CREATED_DATE
         FROM
             COURSE
         <include refid="courseFilters" />

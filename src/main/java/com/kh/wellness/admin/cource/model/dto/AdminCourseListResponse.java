@@ -1,5 +1,7 @@
 package com.kh.wellness.admin.cource.model.dto;
 
+import java.sql.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,5 +17,5 @@ public class AdminCourseListResponse {
 	private String courseName;
 	private Integer estimatedTime;
 	private String description;
-	private String createdDate;
+	private Date createdDate;
 }

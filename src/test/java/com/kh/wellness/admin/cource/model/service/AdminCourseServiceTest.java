@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +47,7 @@ class AdminCourseServiceTest {
     @Test
     void getCoursesAppliesFiltersAndPagination() {
         AdminCourseListResponse row = new AdminCourseListResponse(
-                101L, "김포 힐링 코스", 180, "설명", "2026-08-20");
+                101L, "김포 힐링 코스", 180, "설명", Date.valueOf("2026-08-20"));
         when(adminCourseMapper.countCourses("힐링", "Y")).thenReturn(1L);
         when(adminCourseMapper.selectCourses("힐링", "Y", 10L, 10))
                 .thenReturn(List.of(row));
