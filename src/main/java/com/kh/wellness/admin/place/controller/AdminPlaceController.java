@@ -57,8 +57,6 @@ public class AdminPlaceController {
 			@Valid @ModelAttribute AdminPlaceCreateRequest request,
 			@RequestParam(name = "imageFiles", required = false) List<MultipartFile> imageFiles) {
 
-		// 이미지 파일은 @ModelAttribute 바인딩에 의존하지 않고 명시적으로 받는다.
-		log.info("장소 등록 - 수신 이미지 {}장", imageFiles == null ? 0 : imageFiles.size());
 		request.setImageFiles(imageFiles);
 		adminPlaceService.savePlace(request);
 

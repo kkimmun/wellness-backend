@@ -16,5 +16,7 @@ public class AdminPlaceDetailResponse {
 	private String createDate;
 	private String placeName;
 	private String placeDescription;
+	private Double xAxis;
+	private Double yAxis;
 	private List<PlaceImageResponse> placeImages;
 }

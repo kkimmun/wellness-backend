@@ -71,10 +71,10 @@ public class FileService {
 
         String contentType = file.getContentType();
         
-        /* MIME 타입 체크
+        // MIME 타입 체크
         if (contentType == null || !contentType.startsWith("image/")) {
         	return false;
-        } */
+        } 
 
         // 확장자 체크
         String extension = getExtension(file).toLowerCase();

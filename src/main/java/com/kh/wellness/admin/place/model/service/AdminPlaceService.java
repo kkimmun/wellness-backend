@@ -65,7 +65,6 @@ public class AdminPlaceService {
 		return place;
 	}
 
-	// 관리자 장소 등록 (PLACE 1건 + PLACE_IMG N건, 한 트랜잭션)
 	@Transactional
 	public void savePlace(AdminPlaceCreateRequest request) {
 		if (adminPlaceMapper.countTypeDetailByNo(request.getTypeDetailNo()) == 0) {
