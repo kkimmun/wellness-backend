@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <settings>
+        <setting name="jdbcTypeForNull" value="VARCHAR"/>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="logImpl" value="org.apache.ibatis.logging.stdout.StdOutImpl"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="Member" type="com.kh.wellness.member.model.vo.Member"/>
+        <typeAlias alias="MemberDto" type="com.kh.wellness.member.model.dto.MemberDto"/>
+        <typeAlias alias="MemberImgDto" type="com.kh.wellness.member.model.dto.MemberImgDto"/>
+        <typeAlias alias="RefreshToken" type="com.kh.wellness.token.model.vo.RefreshToken"/>
+        <typeAlias alias="CourseListRow" type="com.kh.wellness.course.model.dto.CourseListRow"/>
+        <typeAlias alias="CourseResponse" type="com.kh.wellness.course.model.dto.CourseResponse"/>
+        <typeAlias alias="WaypointDto" type="com.kh.wellness.course.model.dto.WaypointDto"/>
+        <typeAlias alias="AdminCourseListResponse" type="com.kh.wellness.admin.course.model.dto.AdminCourseListResponse"/>
+        <typeAlias alias="AdminPlaceListResponse" type="com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse"/>
+        <typeAlias alias="Place" type="com.kh.wellness.route.model.vo.Place"/>
+    </typeAliases>
+</configuration>

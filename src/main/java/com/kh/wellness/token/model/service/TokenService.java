@@ -1,7 +1,9 @@
 package com.kh.wellness.token.model.service;
 
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +46,7 @@ public class TokenService {
 		RefreshToken refreshToken = RefreshToken.builder()
 										.memberNo(user.getMemberNo())
 										.token(token)
-										.expirationToken(System.currentTimeMillis()+ (1000L * 60 * 60 * 24 * 5)) // 5일로 고정
+										.expirationDate(System.currentTimeMillis() + (1000L * 60 * 60)) // 60분
 										.build();
 		tokenMapper.saveToken(refreshToken);
 	}
@@ -58,16 +60,20 @@ public class TokenService {
 	
 	public Map<String, String> tokenLocation(String refreshToken){
 		RefreshToken token = tokenMapper.findByToken(refreshToken);
-		if(token == null || token.getExpirationToken() < System.currentTimeMillis()) {
+		if(token == null || token.getExpirationDate() < System.currentTimeMillis()) {
 			throw new UnauthorizedException("유효하지 않은 토큰입니다.");
 		}
 		Claims claims = tokenUtil.parseJwt(token.getToken());
 
 		Long memberNo = Long.valueOf(claims.getSubject());
+		String role = claims.get("role", String.class);
 
-		
-		CustomUserDetails user = CustomUserDetails.builder().memberNo(memberNo).build();
-		return createTokens(user);
+		CustomUserDetails.CustomUserDetailsBuilder userBuilder = CustomUserDetails.builder()
+				.memberNo(memberNo);
+		if (role != null && !role.isBlank()) {
+			userBuilder.authorities(List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+		}
+		return createTokens(userBuilder.build());
 	}
 	
 	

@@ -7,13 +7,13 @@
 <mapper namespace="com.kh.wellness.token.model.dao.TokenMapper">
 
 	<insert id="saveToken"
-			parameterType="com.kh.wellness.token.model.vo.RefreshToken">
+			parameterType="RefreshToken">
 		INSERT INTO
 			TOKEN
 		VALUES (
 			#{memberNo}
 			,#{token}
-			,#{expirationToken}
+			,#{expirationDate}
 		)
 	</insert>
 
@@ -25,13 +25,11 @@
 			MEMBER_NO = #{memberNo}
 	</delete>
 
-	<select id="findByToken"
-			parameterType="string"
-			resultType="com.kh.wellness.token.model.vo.RefreshToken">
+	<select id="findByToken" parameterType="string" resultType="RefreshToken">
 		SELECT
 			MEMBER_NO
 			,TOKEN
-			,EXPIRATION_TOKEN
+			,EXPIRATION_DATE
 		FROM
 			TOKEN
 		WHERE

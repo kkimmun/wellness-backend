@@ -19,26 +19,44 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
-	
-	private final AuthMapper authMapper;
 
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		log.info("로그인 시도 중인 ID: {}", username);
-		MemberDto member = authMapper.loadUser(username);
-		 
-		log.info("조회된 정보 : {}", member);
-		
-		if(member == null) {
-			throw new UsernameNotFoundException("유저 ID 조회 실패");
-		}
-		
-		return CustomUserDetails.builder().memberNo(member.getMemberNo())
-											.username(member.getMemberId())
-											.password(member.getMemberPwd())
-											.authorities(Collections.singletonList(new SimpleGrantedAuthority(member.getRole())))
-											.status(member.getDelYn())
-											.build();
-	}
+    private final AuthMapper authMapper;
 
+    @Override
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+
+        MemberDto member = authMapper.loadUserByMemberId(username);
+
+        if (member == null) {
+            throw new UsernameNotFoundException("유저 ID 조회 실패");
+        }
+
+        return createUserDetails(member);
+    }
+
+    public UserDetails loadUserByMemberNo(Long memberNo)
+            throws UsernameNotFoundException {
+
+        MemberDto member = authMapper.loadUserByMemberNo(memberNo);
+
+        if (member == null) {
+            throw new UsernameNotFoundException("유저 조회 실패");
+        }
+
+        return createUserDetails(member);
+    }
+
+    private CustomUserDetails createUserDetails(MemberDto member) {
+
+        return CustomUserDetails.builder()
+                .memberNo(member.getMemberNo())
+                .username(member.getMemberId())
+                .password(member.getMemberPwd())
+                .authorities(Collections.singletonList(
+                        new SimpleGrantedAuthority(member.getRole())
+                ))
+                .status(member.getDelYn())
+                .build();
+    }
 }

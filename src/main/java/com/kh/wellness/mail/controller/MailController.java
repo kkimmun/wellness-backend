@@ -19,9 +19,9 @@ public class MailController {
 	private final MailService mailService;
 		
 	@PostMapping("/auth")
-	public ResponseEntity<String> sendAuthMail(){			
+	public ResponseEntity<String> sendAuthMail(@RequestBody AuthMailDto emailDto){			
 		try {
-			mailService.sendAuthMail();	
+			mailService.sendAuthMail(emailDto);	
 			return ResponseEntity.ok("난수 메일 발송 성공");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -30,9 +30,9 @@ public class MailController {
 	}
 	
 	@PostMapping("/auth/resend")
-	public ResponseEntity<String> resendAuthMail(@RequestBody AuthMailDto email){			
+	public ResponseEntity<String> resendAuthMail(@RequestBody AuthMailDto emailDto){			
 		try {
-			mailService.resendAuthMail(email);	
+			mailService.resendAuthMail(emailDto);	
 			return ResponseEntity.ok("난수 메일 발송 성공");
 		} catch (Exception e) {
 			e.printStackTrace();

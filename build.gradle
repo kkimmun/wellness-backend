@@ -12,6 +12,10 @@ java {
 	}
 }
 
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs += '-parameters'
+}
+
 repositories {
 	mavenCentral()
 }
@@ -57,4 +61,8 @@ dependencyManagement {
 
 tasks.named('bootJar') {
     archiveFileName = 'wellness.jar'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
 }
