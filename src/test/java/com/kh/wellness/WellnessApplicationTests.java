@@ -18,7 +18,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"JWT_SECRET=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=",
 		"KAKAO_REST_API_KEY=test-key",
 		"spring.config.import=classpath:templates/mail/mail-template.yml",
-		"mybatis.config-location=classpath:mybatis-config.xml"
+		"mybatis.configuration.jdbc-type-for-null=VARCHAR",
+		"mybatis.configuration.map-underscore-to-camel-case=true",
+		"mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl",
+		"mybatis.mapper-locations=classpath:mapper/**/*.xml",
+		"mybatis.type-aliases-package=com.kh.wellness.member.model.vo,com.kh.wellness.token.model.vo,com.kh.wellness.member.model.dto,com.kh.wellness.admin.place.model.dto,com.kh.wellness.admin.course.model.dto,com.kh.wellness.course.model.dto,com.kh.wellness.route.model.vo"
 })
 class WellnessApplicationTests {
 
