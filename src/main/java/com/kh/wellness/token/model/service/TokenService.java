@@ -63,6 +63,7 @@ public class TokenService {
 		if(token == null || token.getExpirationDate() < System.currentTimeMillis()) {
 			throw new UnauthorizedException("유효하지 않은 토큰입니다.");
 		}
+		
 		Claims claims = tokenUtil.parseJwt(token.getToken());
 
 		Long memberNo = Long.valueOf(claims.getSubject());

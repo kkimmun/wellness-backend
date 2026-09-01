@@ -46,7 +46,7 @@ public class FileService {
 
         } catch (Exception e) {
             log.error("파일 저장 실패", e);
-            throw new RuntimeException("이미지 파일 저장에 실패했습니다.");
+            throw new BadRequestException("이미지 파일 저장에 실패했습니다.");
         }
     }
 	
@@ -64,13 +64,17 @@ public class FileService {
         if (file == null || file.isEmpty()) {
             return false;
         }
+        
+       // log.info("파일명 = {}", file.getOriginalFilename());
+       // log.info("Content-Type = {}", file.getContentType());
+       // log.info("Size = {}", file.getSize());
 
         String contentType = file.getContentType();
         
-        // MIME 타입 체크
+        /* MIME 타입 체크
         if (contentType == null || !contentType.startsWith("image/")) {
         	return false;
-        }
+        } */
 
         // 확장자 체크
         String extension = getExtension(file).toLowerCase();

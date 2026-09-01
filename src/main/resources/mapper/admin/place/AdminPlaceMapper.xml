@@ -35,4 +35,91 @@
 		OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
 	</select>
 
+	<select id="selectPlaceDetail" resultType="AdminPlaceDetailResponse">
+		SELECT
+			TO_CHAR(CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+			,PLACE_NAME
+			,PLACE_DESCRIPTION
+		FROM
+			PLACE
+		WHERE
+			PLACE_NO = #{placeNo}
+	</select>
+
+	<select id="selectPlaceImages" resultType="PlaceImageResponse">
+		SELECT
+			IMG_ORDER
+			,IMG_PATH
+			,ORIGINAL_NAME
+			,SAVE_NAME
+		FROM
+			PLACE_IMG
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+		ORDER BY
+			IMG_ORDER
+	</select>
+
+	<select id="countTypeDetailByNo" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			TYPE_DETAIL
+		WHERE
+			TYPE_DETAIL_NO = #{typeDetailNo}
+	</select>
+
+	<insert id="insertPlace"
+			useGeneratedKeys="true"
+			keyProperty="placeNo"
+			keyColumn="PLACE_NO">
+		INSERT INTO
+			PLACE (
+				TYPE_DETAIL_NO
+				,PLACE_NAME
+				,PLACE_DESCRIPTION
+				,ADDR
+				,X_AXIS
+				,Y_AXIS
+				,VIEW_COUNT
+				,DEL_YN
+				,CREATE_DATE
+			)
+		VALUES (
+			#{typeDetailNo}
+			,#{placeName}
+			,#{placeDescription}
+			,#{addr}
+			,#{xAxis}
+			,#{yAxis}
+			,#{viewCount}
+			,'N'
+			,SYSDATE
+		)
+	</insert>
+
+	<insert id="insertPlaceImg">
+		INSERT INTO
+			PLACE_IMG (
+				PLACE_NO
+				,ORIGINAL_NAME
+				,SAVE_NAME
+				,IMG_PATH
+				,IMG_ORDER
+				,DEL_YN
+				,CREATE_DATE
+			)
+		VALUES (
+			#{placeNo}
+			,#{originalName}
+			,#{saveName}
+			,#{imgPath}
+			,#{imgOrder}
+			,'N'
+			,SYSDATE
+		)
+	</insert>
+
 </mapper>
