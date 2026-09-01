@@ -12,5 +12,5 @@ public interface AdminPlaceMapper {
 
 	long countPlaces();
 
-	List<AdminPlaceListResponse> selectPlaces(@Param("offset") int offset, @Param("size") int size);
+	List<AdminPlaceListResponse> selectPlaces(@Param("offset") Long offset, @Param("size") int size);
 }
