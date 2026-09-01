@@ -10,6 +10,7 @@
         SELECT
                 PLACE_NO,
                 PLACE_NAME,
+                TRIM(ADDR || ' ' || NVL(ADDR_DETAIL, '')) AS ADDRESS,
                 X_AXIS,
                 Y_AXIS
         FROM

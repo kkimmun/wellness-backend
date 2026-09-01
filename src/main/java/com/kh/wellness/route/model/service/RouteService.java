@@ -404,6 +404,7 @@ public class RouteService {
         return PlaceResponse.builder()
                 .placeNo(place.getPlaceNo())
                 .placeName(place.getPlaceName())
+                .address(place.getAddress())
                 .xAxis(place.getXAxis())
                 .yAxis(place.getYAxis())
                 .build();

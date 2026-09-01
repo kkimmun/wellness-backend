@@ -69,6 +69,15 @@ class RouteControllerTest {
     }
 
     @Test
+    void 검색어가_공백이면_서비스를_호출하지_않고_400을_반환한다() throws Exception {
+        mockMvc.perform(get("/api/routes/origins")
+                        .queryParam("query", "   "))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(routeService);
+    }
+
+    @Test
     void 출발지와_도착지_장소번호를_길찾기_요청으로_전달한다() throws Exception {
         RouteResponse response = RouteResponse.builder()
                 .transportType(TransportType.CAR)

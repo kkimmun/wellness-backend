@@ -51,12 +51,14 @@ class RouteServiceTest {
         origin = Place.builder()
                 .placeNo(1L)
                 .placeName("김포국제공항")
+                .address("서울 강서구 하늘길 38")
                 .xAxis(126.9)
                 .yAxis(37.5)
                 .build();
         destination = Place.builder()
                 .placeNo(10L)
                 .placeName("김포아트빌리지")
+                .address("경기 김포시 모담공원로 170")
                 .xAxis(127.1)
                 .yAxis(37.6)
                 .build();
@@ -96,7 +98,9 @@ class RouteServiceTest {
         assertThat(response.getTransportType()).isEqualTo(TransportType.CAR);
         assertThat(response.getSelectedOption()).isEqualTo("MIN_DISTANCE");
         assertThat(response.getOrigin().getPlaceNo()).isEqualTo(1L);
+        assertThat(response.getOrigin().getAddress()).isEqualTo("서울 강서구 하늘길 38");
         assertThat(response.getDestination().getPlaceNo()).isEqualTo(10L);
+        assertThat(response.getDestination().getAddress()).isEqualTo("경기 김포시 모담공원로 170");
         assertThat(response.getRoutes()).hasSize(1);
         assertThat(response.getRoutes().getFirst().getTotalDistance()).isEqualTo(1200);
         assertThat(response.getRoutes().getFirst().getPath()).hasSize(2);

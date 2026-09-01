@@ -15,6 +15,7 @@ public class PlaceResponse {
 
     private Long placeNo;
     private String placeName;
+    private String address;
 
     private Double xAxis;
 
