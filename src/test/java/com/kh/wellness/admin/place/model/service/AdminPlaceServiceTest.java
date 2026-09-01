@@ -2,6 +2,7 @@ package com.kh.wellness.admin.place.model.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +33,7 @@ class AdminPlaceServiceTest {
 	@DisplayName("장소가 존재하면 조회 결과와 페이징 정보를 담아 반환한다")
 	void getPlaces_returnsPagedContent() {
 		when(adminPlaceMapper.countPlaces()).thenReturn(1L);
-		when(adminPlaceMapper.selectPlaces(0, 10))
+		when(adminPlaceMapper.selectPlaces(0L, 10))
 				.thenReturn(List.of(new AdminPlaceListResponse()));
 
 		PageResponse<AdminPlaceListResponse> result = adminPlaceService.getPlaces(1);
@@ -40,7 +41,7 @@ class AdminPlaceServiceTest {
 		assertThat(result.getContent()).hasSize(1);
 		assertThat(result.getTotalElements()).isEqualTo(1);
 		assertThat(result.getTotalPages()).isEqualTo(1);
-		assertThat(result.getCurrentPage()).isZero();
+		assertThat(result.getCurrentPage()).isEqualTo(1);
 		assertThat(result.getSize()).isEqualTo(10);
 	}
 
@@ -54,21 +55,21 @@ class AdminPlaceServiceTest {
 		assertThat(result.getContent()).isEmpty();
 		assertThat(result.getTotalElements()).isZero();
 		assertThat(result.getTotalPages()).isZero();
-		assertThat(result.getCurrentPage()).isZero();
-		verify(adminPlaceMapper, never()).selectPlaces(anyInt(), anyInt());
+		assertThat(result.getCurrentPage()).isEqualTo(1);
+		verify(adminPlaceMapper, never()).selectPlaces(anyLong(), anyInt());
 	}
 
 	@Test
 	@DisplayName("page 파라미터를 1-base 로 받아 0-base offset 으로 변환한다")
 	void getPlaces_convertsPageToZeroBasedOffset() {
 		when(adminPlaceMapper.countPlaces()).thenReturn(25L);
-		when(adminPlaceMapper.selectPlaces(10, 10))
+		when(adminPlaceMapper.selectPlaces(10L, 10))
 				.thenReturn(List.of(new AdminPlaceListResponse()));
 
 		PageResponse<AdminPlaceListResponse> result = adminPlaceService.getPlaces(2);
 
-		assertThat(result.getCurrentPage()).isEqualTo(1);
+		assertThat(result.getCurrentPage()).isEqualTo(2);
 		assertThat(result.getTotalPages()).isEqualTo(3);
-		verify(adminPlaceMapper).selectPlaces(10, 10);
+		verify(adminPlaceMapper).selectPlaces(10L, 10);
 	}
 }

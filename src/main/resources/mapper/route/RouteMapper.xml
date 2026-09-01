@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.route.model.dao.RouteMapper">
+
+    <select id="findPlaceByNo"
+            parameterType="long"
+            resultType="Place">
+        SELECT
+                PLACE_NO,
+                PLACE_NAME,
+                X_AXIS,
+                Y_AXIS
+        FROM
+                PLACE
+        WHERE
+                PLACE_NO = #{placeNo}
+        AND
+                DEL_YN = 'N'
+    </select>
+
+    <select id="findPlacesByQuery"
+            resultType="Place">
+        SELECT
+                PLACE_NO,
+                PLACE_NAME,
+                TRIM(ADDR || ' ' || NVL(ADDR_DETAIL, '')) AS ADDRESS,
+                X_AXIS,
+                Y_AXIS
+        FROM
+                PLACE
+        WHERE
+                DEL_YN = 'N'
+        AND
+                INSTR(UPPER(PLACE_NAME), UPPER(#{query})) > 0
+        ORDER BY
+                CASE
+                    WHEN UPPER(PLACE_NAME) = UPPER(#{query}) THEN 0
+                    WHEN INSTR(UPPER(PLACE_NAME), UPPER(#{query})) = 1 THEN 1
+                    ELSE 2
+                END,
+                PLACE_NAME,
+                PLACE_NO
+        FETCH FIRST 15 ROWS ONLY
+    </select>
+
+</mapper>
