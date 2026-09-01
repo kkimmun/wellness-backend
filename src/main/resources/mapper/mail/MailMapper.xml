@@ -4,13 +4,13 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.kh.wellness.member.model.dao.MailMapper">
+<mapper namespace="com.kh.wellness.mail.model.dao.MailMapper">
 
 	<select id="verifyEmailTime">
 		SELECT
 			COUNT(*)
 		FROM
-			EMAIL_AUTH
+			AUTH_EMAIL
 		WHERE
 			EXP_DATE > SYSDATE
 		AND
@@ -23,13 +23,11 @@
 		SELECT
 			COUNT(*)
 		FROM
-			EMAIL_AUTH
+			AUTH_EMAIL
 		WHERE
 			EMAIL_ADDR = #{emailAddr}
 		AND
 			AUTH_CODE = #{authCode}
-		AND
-			USER_IP = #{userIp}
 		AND
 			EXP_DATE > SYSDATE
 		AND
@@ -38,21 +36,19 @@
 
 	<update id="deleteSuccessEmail">
 		UPDATE
-			EMAIL_AUTH
+			AUTH_EMAIL
 		SET
 			AUTH_YN = 'Y'
 		WHERE
 			EMAIL_ADDR = #{emailAddr}
 		AND
 			AUTH_CODE = #{authCode}
-		AND
-			USER_IP = #{userIp}
 	</update>
 
 	<delete id="deleteExpiredEmail">
 		DELETE
 		FROM
-			EMAIL_AUTH
+			AUTH_EMAIL
 		WHERE
 			EMAIL_ADDR = #{emailAddr}
 	</delete>
@@ -60,9 +56,25 @@
 	<delete id="authMailCleanup">
 		DELETE
 		FROM
-			EMAIL_AUTH
+			AUTH_EMAIL
 		WHERE
 			AUTH_YN = 'Y'
 	</delete>
+	<insert id="saveAuthMailCode" >
+	INSERT
+		INTO
+		AUTH_EMAIL(
+			EMAIL_ADDR
+			,AUTH_CODE
+			,EXP_DATE
+			,AUTH_YN
+		)
+		VALUES(
+			#{emailAddr}
+			,#{authCode}
+			,SYSDATE + (3 / (24 * 60))
+			,#{authYn}
+		)
+	</insert>
 
 </mapper>

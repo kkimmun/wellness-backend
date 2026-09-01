@@ -18,5 +18,4 @@ public class LoginResponse {
 	private String memberId;
 	private String role;
 	private String accessToken;
-	private String refreshToken;
 }
