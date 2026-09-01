@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.admin.cource.model.dao.AdminCourseMapper">
+
+    <sql id="courseFilters">
+        <where>
+            <if test="keyword != null">
+                COURSE_NAME LIKE '%' || #{keyword} || '%'
+            </if>
+            <if test="active != null">
+                AND ACTIVE = #{active}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectCourses"
+            resultType="com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse">
+        SELECT
+            COURSE_NO,
+            COURSE_NAME,
+            ESTIMATED_TIME,
+            DESCRIPTION,
+            CREATED_DATE,
+            ACTIVE
+        FROM
+            COURSE
+        <include refid="courseFilters" />
+        ORDER BY
+            COURSE_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="countCourses" resultType="long">
+        SELECT
+            COUNT(*)
+        FROM
+            COURSE
+        <include refid="courseFilters" />
+    </select>
+
+    <select id="countExistingPlaces" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            PLACE
+        WHERE
+            PLACE_NO IN
+            <foreach collection="list" item="placeNo" open="(" separator="," close=")">
+                #{placeNo}
+            </foreach>
+    </select>
+
+    <insert id="insertCourse"
+            useGeneratedKeys="true"
+            keyProperty="courseNo"
+            keyColumn="COURSE_NO">
+        INSERT INTO COURSE (
+            START_PLACE,
+            END_PLACE,
+            COURSE_NAME,
+            ESTIMATED_TIME,
+            DESCRIPTION
+        ) VALUES (
+            #{startPlace},
+            #{endPlace},
+            #{courseName},
+            #{estimatedTime},
+            #{description}
+        )
+    </insert>
+
+    <insert id="insertCourseWaypoint">
+        INSERT INTO COURSE_WAYPOINT (
+            COURSE_NO,
+            PLACE_NO,
+            WAYPOINT_SEQUENCE
+        ) VALUES (
+            #{courseNo},
+            #{placeNo},
+            #{waypointSequence}
+        )
+    </insert>
+
+    <select id="countCourseByNo" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            COURSE
+        WHERE
+            COURSE_NO = #{_parameter}
+    </select>
+
+    <update id="updateCourse">
+        UPDATE COURSE
+        SET
+            START_PLACE = #{startPlace},
+            END_PLACE = #{endPlace},
+            COURSE_NAME = #{courseName},
+            ESTIMATED_TIME = #{estimatedTime},
+            DESCRIPTION = #{description}
+        WHERE
+            COURSE_NO = #{courseNo}
+    </update>
+
+    <delete id="deleteCourseWaypoints">
+        DELETE FROM COURSE_WAYPOINT
+        WHERE COURSE_NO = #{_parameter}
+    </delete>
+
+    <delete id="deleteCourse">
+        DELETE FROM COURSE
+        WHERE COURSE_NO = #{_parameter}
+    </delete>
+
+    <update id="updateCourseStatus">
+        UPDATE COURSE
+        SET ACTIVE = #{active}
+        WHERE COURSE_NO = #{courseNo}
+    </update>
+
+</mapper>
