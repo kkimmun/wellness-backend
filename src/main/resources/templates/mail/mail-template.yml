@@ -1,0 +1,11 @@
+mail:
+  signup:
+    subject: "[Wellness] 회원가입 인증번호입니다."
+    context: |
+      안녕하세요.
+
+      Wellness 회원가입 인증번호입니다.
+
+      인증번호: {authCode}
+
+      인증번호는 3분간 유효합니다.

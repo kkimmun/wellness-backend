@@ -31,6 +31,7 @@ bin/
 *.iws
 *.iml
 *.ipr
+*.md
 
 out/
 .vscode/

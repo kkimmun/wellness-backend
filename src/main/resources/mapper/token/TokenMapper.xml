@@ -13,7 +13,7 @@
 		VALUES (
 			#{memberNo}
 			,#{token}
-			,#{expirationToken}
+			,#{expirationDate}
 		)
 	</insert>
 
@@ -31,7 +31,7 @@
 		SELECT
 			MEMBER_NO
 			,TOKEN
-			,EXPIRATION_TOKEN
+			,EXPIRATION_DATE
 		FROM
 			TOKEN
 		WHERE
