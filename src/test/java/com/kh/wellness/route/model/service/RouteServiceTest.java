@@ -126,7 +126,7 @@ class RouteServiceTest {
     }
 
     @Test
-    void 대중교통은_그룹을_나누고_최소도보_후_소요시간으로_정렬한다() throws Exception {
+    void 대중교통은_선택한_정렬조건으로_전체_경로를_정렬한다() throws Exception {
         RouteSearchRequest request = request("PUBLIC_TRANSIT", null);
         request.setSortType("MIN_WALK");
         stubRoutePlaces();
@@ -163,7 +163,17 @@ class RouteServiceTest {
                                 "transfers": 1,
                                 "fare": {"value": 1650}
                               },
-                              "steps": []
+                              "steps": [{
+                                "properties": {
+                                  "type": "WALKING",
+                                  "guidance": "300m 걷기",
+                                  "distance": 300,
+                                  "time": 240,
+                                  "stops": [],
+                                  "vehicles": []
+                                },
+                                "path": {"points": [[126.9, 37.5]]}
+                              }]
                             },
                             {
                               "properties": {
@@ -193,9 +203,10 @@ class RouteServiceTest {
 
         assertThat(response.getRoutes())
                 .extracting(route -> route.getRouteType())
-                .containsExactly("SUBWAY", "BUS", "BUS");
-        assertThat(response.getRoutes().get(1).getWalkingDistance()).isEqualTo(100);
-        assertThat(response.getRoutes().get(2).getWalkingDistance()).isEqualTo(200);
+                .containsExactly("BUS", "BUS", "SUBWAY");
+        assertThat(response.getRoutes())
+                .extracting(route -> route.getWalkingDistance())
+                .containsExactly(100, 200, 300);
     }
 
     @Test
@@ -349,6 +360,59 @@ class RouteServiceTest {
         assertThat(response.getWaypoints())
                 .extracting(waypoint -> waypoint.getPlaceName())
                 .containsExactly("첫 번째 경유지", "두 번째 경유지");
+    }
+
+    @Test
+    void 경유지가_출발지와_같은_장소번호이면_거부한다() {
+        RouteSearchRequest request = request("WALK", "SHORTEST");
+        request.setWaypointPlaceNos(List.of(1L));
+        stubRoutePlaces();
+
+        assertThatThrownBy(() -> routeService.findRoutes(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("출발지, 도착지, 경유지는 서로 다른 장소여야 합니다.");
+
+        verifyNoInteractions(kakaoRouteClient);
+    }
+
+    @Test
+    void 경유지가_도착지와_같은_좌표이면_거부한다() {
+        RouteSearchRequest request = request("WALK", "SHORTEST");
+        request.setWaypointPlaceNos(List.of(15L));
+        Place waypoint = Place.builder()
+                .placeNo(15L)
+                .placeName("도착지와 좌표가 같은 경유지")
+                .xAxis(destination.getXAxis())
+                .yAxis(destination.getYAxis())
+                .build();
+        stubRoutePlaces();
+        when(routeMapper.findPlaceByNo(15L)).thenReturn(waypoint);
+
+        assertThatThrownBy(() -> routeService.findRoutes(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("출발지, 도착지, 경유지는 서로 다른 장소여야 합니다.");
+
+        verifyNoInteractions(kakaoRouteClient);
+    }
+
+    @Test
+    void 같은_경유지_장소번호를_중복으로_입력하면_거부한다() {
+        RouteSearchRequest request = request("WALK", "SHORTEST");
+        request.setWaypointPlaceNos(List.of(15L, 15L));
+        Place waypoint = Place.builder()
+                .placeNo(15L)
+                .placeName("중복 경유지")
+                .xAxis(126.93)
+                .yAxis(37.53)
+                .build();
+        stubRoutePlaces();
+        when(routeMapper.findPlaceByNo(15L)).thenReturn(waypoint);
+
+        assertThatThrownBy(() -> routeService.findRoutes(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("출발지, 도착지, 경유지는 서로 다른 장소여야 합니다.");
+
+        verifyNoInteractions(kakaoRouteClient);
     }
 
     @Test

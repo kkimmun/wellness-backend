@@ -59,14 +59,11 @@ public class RouteService {
                 "지정 도착지"
         );
 
-        if (sameCoordinates(origin, destination)) {
-            throw new BadRequestException("출발지와 도착지가 같습니다.");
-        }
-
         List<Place> waypoints = resolveWaypoints(
                 request.getWaypointPlaceNos(),
                 transportType
         );
+        validateDistinctRoutePoints(origin, destination, waypoints);
 
         return switch (transportType) {
             case CAR -> findCarRoutes(request, origin, destination);
@@ -332,19 +329,11 @@ public class RouteService {
                     .build());
         }
 
-        List<RouteResultResponse> sortedRoutes = new ArrayList<>();
-        for (TransitType transitType : TransitType.values()) {
-            if (selectedType != null && transitType != selectedType) {
-                continue;
-            }
-
-            mappedRoutes.stream()
-                    .filter(route -> transitType.name().equals(route.getRouteType()))
-                    .sorted(transitComparator(sortType))
-                    .forEach(sortedRoutes::add);
-        }
-
-        return sortedRoutes;
+        return mappedRoutes.stream()
+                .filter(route -> selectedType == null
+                        || selectedType.name().equals(route.getRouteType()))
+                .sorted(transitComparator(sortType))
+                .toList();
     }
 
     private RouteResultResponse mapKakaoMapRoute(JsonNode response, String routeType) {
@@ -495,9 +484,41 @@ public class RouteService {
                 .build();
     }
 
-    private boolean sameCoordinates(Place origin, Place destination) {
-        return Double.compare(origin.getXAxis(), destination.getXAxis()) == 0
-                && Double.compare(origin.getYAxis(), destination.getYAxis()) == 0;
+    private void validateDistinctRoutePoints(
+            Place origin,
+            Place destination,
+            List<Place> waypoints) {
+        if (samePlace(origin, destination)) {
+            throw new BadRequestException("출발지와 도착지가 같습니다.");
+        }
+
+        List<Place> routePoints = new ArrayList<>(waypoints.size() + 2);
+        routePoints.add(origin);
+        routePoints.addAll(waypoints);
+        routePoints.add(destination);
+
+        for (int firstIndex = 0; firstIndex < routePoints.size(); firstIndex++) {
+            for (int secondIndex = firstIndex + 1;
+                    secondIndex < routePoints.size();
+                    secondIndex++) {
+                if (samePlace(routePoints.get(firstIndex), routePoints.get(secondIndex))) {
+                    throw new BadRequestException(
+                            "출발지, 도착지, 경유지는 서로 다른 장소여야 합니다."
+                    );
+                }
+            }
+        }
+    }
+
+    private boolean samePlace(Place first, Place second) {
+        if (first.getPlaceNo() != null
+                && second.getPlaceNo() != null
+                && first.getPlaceNo().equals(second.getPlaceNo())) {
+            return true;
+        }
+
+        return Double.compare(first.getXAxis(), second.getXAxis()) == 0
+                && Double.compare(first.getYAxis(), second.getYAxis()) == 0;
     }
 
     private void validateCoordinates(Place place, String type) {
