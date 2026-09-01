@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.cource.model.dto;
+package com.kh.wellness.admin.course.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

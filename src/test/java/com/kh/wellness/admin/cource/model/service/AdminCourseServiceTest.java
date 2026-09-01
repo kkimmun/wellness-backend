@@ -23,11 +23,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.kh.wellness.admin.cource.model.dao.AdminCourseMapper;
-import com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse;
-import com.kh.wellness.admin.cource.model.dto.AdminCourseRequest;
-import com.kh.wellness.admin.cource.model.vo.Course;
-import com.kh.wellness.admin.cource.model.vo.CourseWaypoint;
+import com.kh.wellness.admin.course.model.dao.AdminCourseMapper;
+import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
+import com.kh.wellness.admin.course.model.service.AdminCourseService;
+import com.kh.wellness.admin.course.model.vo.Course;
+import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;

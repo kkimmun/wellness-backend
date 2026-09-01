@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.cource.model.vo;
+package com.kh.wellness.admin.course.model.vo;
 
 import lombok.Builder;
 import lombok.Value;

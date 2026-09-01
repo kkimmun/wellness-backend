@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.cource.controller;
+package com.kh.wellness.admin.course.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse;
-import com.kh.wellness.admin.cource.model.dto.AdminCourseRequest;
-import com.kh.wellness.admin.cource.model.dto.CourseStatusRequest;
-import com.kh.wellness.admin.cource.model.service.AdminCourseService;
+import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
+import com.kh.wellness.admin.course.model.dto.CourseStatusRequest;
+import com.kh.wellness.admin.course.model.service.AdminCourseService;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 

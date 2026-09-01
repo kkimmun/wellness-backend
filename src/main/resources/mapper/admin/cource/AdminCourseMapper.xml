@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.kh.wellness.admin.cource.model.dao.AdminCourseMapper">
+<mapper namespace="com.kh.wellness.admin.course.model.dao.AdminCourseMapper">
 
     <sql id="courseFilters">
         <where>
@@ -16,7 +16,7 @@
     </sql>
 
     <select id="selectCourses"
-            resultType="com.kh.wellness.admin.cource.model.dto.AdminCourseListResponse">
+            resultType="AdminCourseListResponse">
         SELECT
             COURSE_NO,
             COURSE_NAME,
