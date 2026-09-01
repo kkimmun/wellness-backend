@@ -84,6 +84,8 @@
    		       C.ACTIVE = 'Y'
    		   AND
    		       P.DEL_YN = 'N'
+   		   AND
+   		       PI.IMG_ORDER = 1
    		 ORDER
    		    BY
    		       W.WAYPOINT_SEQUENCE ASC
