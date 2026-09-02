@@ -2,9 +2,11 @@ package com.kh.wellness.exception.controller;
 
 import java.util.List;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,6 +46,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(ApiResponse.badRequest(e.getMessage(), null));
+    }
+
+    // @Valid ModelAttribute 검증 실패
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ApiResponse<List<String>>> handleBindException(
+            BindException e) {
+        List<String> messages = e.getAllErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .toList();
+
+        return ResponseEntity
+                .badRequest()
+                .body(ApiResponse.badRequest("올바른 형식이 아닙니다.", messages));
     }
 
     // 401 Unauthorized
