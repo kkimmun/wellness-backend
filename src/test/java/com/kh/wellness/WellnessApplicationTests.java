@@ -22,7 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"mybatis.configuration.map-underscore-to-camel-case=true",
 		"mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl",
 		"mybatis.mapper-locations=classpath:mapper/**/*.xml",
-		"mybatis.type-aliases-package=com.kh.wellness.member.model.vo,com.kh.wellness.token.model.vo,com.kh.wellness.member.model.dto,com.kh.wellness.admin.place.model.dto,com.kh.wellness.admin.course.model.dto,com.kh.wellness.course.model.dto,com.kh.wellness.route.model.vo"
+		"mybatis.type-aliases-package=com.kh.wellness.member.model.vo,com.kh.wellness.token.model.vo,com.kh.wellness.member.model.dto,com.kh.wellness.admin.place.model.dto,com.kh.wellness.admin.course.model.dto,com.kh.wellness.course.model.dto,com.kh.wellness.course.model.enums,com.kh.wellness.route.model.vo"
 })
 class WellnessApplicationTests {
 
