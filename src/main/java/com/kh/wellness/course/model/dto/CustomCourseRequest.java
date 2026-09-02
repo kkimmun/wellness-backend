@@ -14,11 +14,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WaypointsRequest {
+@Getter
+@Setter
+public class CustomCourseRequest {
 	@Positive(message = "올바른 도착 장소를 선택해야 합니다.")
 	private Long endPlaceNo;
     @DecimalMin(value = "-180.0", message = "출발지 경도는 -180 이상이어야 합니다.")
@@ -30,8 +30,5 @@ public class WaypointsRequest {
     @Size(max=5, message="태그는 최대 5개까지 선택할 수 있습니다.")
     @NotNull(message="하나 이상의 태그를 선택해주세요.")
     private List<CourseTag>tags;
-    @NotNull(message = "소요시간을 선택해야 합니다.")
-    @Positive(message = "소요시간은 0보다 커야 합니다.")
-    private int estimatedTime;
     private List<Long> waypoints;
 }
