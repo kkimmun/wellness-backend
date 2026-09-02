@@ -1,11 +1,12 @@
 package com.kh.wellness.course.model.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
@@ -14,8 +15,14 @@ import com.kh.wellness.course.model.dto.CourseResponse;
 import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
+import com.kh.wellness.course.model.enums.CourseTag;
 import com.kh.wellness.exception.BadRequestException;
-import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.route.model.dto.CoordinateResponse;
+import com.kh.wellness.route.model.dto.PlaceCandidate;
+import com.kh.wellness.route.model.dto.RouteResponse;
+import com.kh.wellness.route.model.dto.RouteResultResponse;
+import com.kh.wellness.route.model.dto.RouteSearchRequest;
+import com.kh.wellness.route.model.service.RouteService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CourseService {
 
+	private final RouteService routeService;
+	
     private static final int PAGE_SIZE = 5;
 
     private final CourseMapper courseMapper;
-    private final PlaceService placeService;
+    
 
     public PageResponse<CourseListResponse> getCourses(int page) {
         if (page < 1) {
@@ -79,15 +88,23 @@ public class CourseService {
 
 
 
-	public List<PlaceDto> getWaypoints(@Valid WaypointsRequest request) {
+	public List<PlaceCandidate> getWaypoints(@Valid WaypointsRequest request) {
 		
 		//태그 1개 이상 포함되는 관광지 모두 조회
 		//List<PlaceDto>places resultMap 써서 placeDto에 list담기
-		List<PlaceDto>places = courseMapper.selectByTags(request.getTags()); //1단계 성공
+		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
 		
 		//거리별 필터링
 		//출발지/도착지 경로받아서, 그 경로로부터 2km이상이면 제외
-		Place endPlace = placeService.selectByPlace(request.getEndPlaceNo( ));
+		RouteSearchRequest routeRequest = new RouteSearchRequest();
+		routeRequest.setStartX(request.getStartX());
+		routeRequest.setStartY(request.getStartY());
+		routeRequest.setEndPlaceNo(request.getEndPlaceNo());
+		routeRequest.setTransportType("WALK");
+		routeRequest.setRouteOption("BROAD_FIRST");
+		RouteResponse res = routeService.findRoutes(routeRequest);
+		List<RouteResultResponse> routes = res.getRoutes();
+		List<CoordinateResponse> path = routes.get(0).getPath();
 		
 		//거리별 점수  -> placeDto에 점수필드를 준다면? 어떨까.
 		// 500m 이하 1
@@ -95,7 +112,40 @@ public class CourseService {
 		// 1.5km 이하 0.5
 		// 2km 이하 0.2
 		// x0.3해서 필드에 +
+		List<PlaceCandidate> candidates = new ArrayList<>();
+
+		for (PlaceDto place : places) {
+		    double distance = getMinDistanceFromPath(place, path);
+		    if (distance > 2000) {
+		        continue;
+		    }
+
+		    double distanceScore = calculateDistanceScore(distance);
+		    double tagScore = calculateTagScore(place, request.getTags());
+
+		    double totalScore =
+		            tagScore * 0.7
+		            + distanceScore * 0.3;
+		    
+		    candidates.add(
+		            PlaceCandidate.builder()
+		                    .place(place)
+		                    .placeName(place.getPlaceName())
+		                    .imageUrl(place.getImageUrl())
+		                    .tags(place.getTags())
+		                    .distance(distance)
+		                    .distanceScore(distanceScore)
+		                    .tagScore(Math.round(tagScore * 100.0) / 100.0)
+		                    .totalScore(Math.round(totalScore * 100.0) / 100.0)
+		                    .build()
+		    );
+		}
 		
+		candidates.sort(
+			    Comparator.comparingDouble(PlaceCandidate::getTotalScore)
+			              .reversed());
+		return candidates;
+
 		//태그별 점수
 		//태그 최대 5개 받기
 		
@@ -119,7 +169,87 @@ public class CourseService {
 		
 		//숫자를 높은 순서대로 나열하고
 		//점수 순서대로 10개 앞단으로 보낸다.
-		return null;
 	}
+	
+	//경로로부터 거리필터 로직
+	private double getMinDistanceFromPath(
+	        PlaceDto place,
+	        List<CoordinateResponse> path
+	) {
+
+	    double minDistance = Double.MAX_VALUE;
+
+	    for (CoordinateResponse coordinate : path) {
+
+	        double distance = calculateDistance(
+	                place.getYAxis(),
+	                place.getXAxis(),
+	                coordinate.getYAxis(),
+	                coordinate.getXAxis()
+	        );
+
+	        minDistance = Math.min(minDistance, distance);
+	    }
+
+	    return minDistance;
+	}
+	
+	// 실제 거리 계산
+	private double calculateDistance(
+	        double lat1,
+	        double lon1,
+	        double lat2,
+	        double lon2
+	) {
+
+	    final double EARTH_RADIUS = 6371000;
+
+	    double latDistance = Math.toRadians(lat2 - lat1);
+	    double lonDistance = Math.toRadians(lon2 - lon1);
+
+	    double a =
+	            Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+	            + Math.cos(Math.toRadians(lat1))
+	            * Math.cos(Math.toRadians(lat2))
+	            * Math.sin(lonDistance / 2)
+	            * Math.sin(lonDistance / 2);
+
+	    double c = 2 * Math.atan2(
+	            Math.sqrt(a),
+	            Math.sqrt(1 - a)
+	    );
+
+	    return EARTH_RADIUS * c;
+	}
+	
+	//거리 점수 로직
+	private double calculateDistanceScore(double distance) {
+
+	    if (distance <= 500) {
+	        return 1.0;
+	    } else if (distance <= 1000) {
+	        return 0.7;
+	    } else if (distance <= 1500) {
+	        return 0.5;
+	    } else if (distance <= 2000) {
+	        return 0.2;
+	    }
+
+	    return 0;
+	}
+	
+	//태그 점수 로직
+	private double calculateTagScore(
+	        PlaceDto place,
+	        List<CourseTag> requestTags
+	) {
+
+	    long matchedCount = requestTags.stream()
+	            .filter(place.getTags()::contains)
+	            .count();
+
+	    return (double) matchedCount / requestTags.size();
+	}
+	
 
 }

@@ -15,9 +15,9 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseResponse;
-import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
+import com.kh.wellness.route.model.dto.PlaceCandidate;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class CourseController {
     }
     
     @PostMapping("/waypoints")
-    public ResponseEntity<ApiResponse<List<PlaceDto>>> getWaypoints(@Valid @RequestBody WaypointsRequest request) {
+    public ResponseEntity<ApiResponse<List<PlaceCandidate>>> getWaypoints(@Valid @RequestBody WaypointsRequest request) {
     	return ResponseEntity.ok(ApiResponse.success("중간 코스 추천 성공", courseService.getWaypoints(request)));
     }
 }

@@ -24,7 +24,7 @@ public interface CourseMapper {
 
 	List<WaypointDto> selectWaypointBycourseNo(Long courseNo);
 
-	List<PlaceDto> selectByTags(List<CourseTag> tags);
+	List<PlaceDto> selectByTags(@Param(value="tags") List<CourseTag> tags);
     
     
 }

@@ -5,7 +5,7 @@
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
 	<select id="selectByPlaceNo"
-	        resultType="Place">
+	        resultType="com.kh.wellness.admin.place.model.vo.Place">
 		SELECT 
 		       PLACE_NO
 		     , PLACE_NAME
