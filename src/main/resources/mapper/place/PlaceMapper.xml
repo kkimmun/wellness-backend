@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
+
+	<select id="selectByPlaceNo"
+	        resultType="Place">
+		SELECT 
+		       PLACE_NO
+		     , PLACE_NAME
+		     , PLACE_DESCRIPTION
+		     , ADDR
+		     , X_AXIS
+		     , Y_AXIS
+		  FROM
+		       PLACE
+		 WHERE
+		       PLACE_NO = #{placeNo}
+	</select>
+
+</mapper>

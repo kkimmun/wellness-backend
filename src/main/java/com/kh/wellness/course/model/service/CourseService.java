@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
@@ -14,6 +15,7 @@ import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.place.model.service.PlaceService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class CourseService {
     private static final int PAGE_SIZE = 5;
 
     private final CourseMapper courseMapper;
+    private final PlaceService placeService;
 
     public PageResponse<CourseListResponse> getCourses(int page) {
         if (page < 1) {
@@ -80,10 +83,11 @@ public class CourseService {
 		
 		//태그 1개 이상 포함되는 관광지 모두 조회
 		//List<PlaceDto>places resultMap 써서 placeDto에 list담기
-		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
+		List<PlaceDto>places = courseMapper.selectByTags(request.getTags()); //1단계 성공
 		
 		//거리별 필터링
 		//출발지/도착지 경로받아서, 그 경로로부터 2km이상이면 제외
+		Place endPlace = placeService.selectByPlace(request.getEndPlaceNo( ));
 		
 		//거리별 점수  -> placeDto에 점수필드를 준다면? 어떨까.
 		// 500m 이하 1
