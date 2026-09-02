@@ -17,6 +17,7 @@ import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.enums.CourseTag;
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
 import com.kh.wellness.route.model.dto.PlaceCandidate;
 import com.kh.wellness.route.model.dto.RouteResponse;
@@ -88,7 +89,6 @@ public class CourseService {
 
 
 	public List<PlaceCandidate> getWaypoints(WaypointsRequest request) {
-		
 		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
 	
 		RouteSearchRequest routeRequest = new RouteSearchRequest();
@@ -99,6 +99,9 @@ public class CourseService {
 		routeRequest.setRouteOption("BROAD_FIRST");
 		RouteResponse res = routeService.findRoutes(routeRequest);
 		List<RouteResultResponse> routes = res.getRoutes();
+		if(routes.isEmpty()) {
+			throw new InternalServerException("잠시 후에 다시 시도해주세요.");
+		}
 		List<CoordinateResponse> path = routes.get(0).getPath();
 		
 		List<PlaceCandidate> candidates = new ArrayList<>();

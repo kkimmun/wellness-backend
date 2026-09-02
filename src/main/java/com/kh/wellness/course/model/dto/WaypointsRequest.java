@@ -28,6 +28,7 @@ public class WaypointsRequest {
     @DecimalMax(value = "90.0", message = "출발지 위도는 90 이하여야 합니다.")
     private Double startY;
     @Size(max=5, message="태그는 최대 5개까지 선택할 수 있습니다.")
+    @NotNull(message="하나 이상의 태그를 선택해주세요.")
     private List<CourseTag>tags;
     @NotNull(message = "소요시간을 선택해야 합니다.")
     @Positive(message = "소요시간은 0보다 커야 합니다.")
