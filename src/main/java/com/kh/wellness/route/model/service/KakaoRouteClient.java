@@ -23,7 +23,7 @@ public class KakaoRouteClient {
     private final RestClient kakaoMapClient;
     private final RestClient kakaoMobilityClient;
 
-    public KakaoRouteClient(@Value("${KAKAO_REST_API_KEY}") String restApiKey) {
+    public KakaoRouteClient(@Value("${kakao.rest-api-key}") String restApiKey) {
         String authorization = "KakaoAK " + restApiKey;
 
         this.kakaoMapClient = RestClient.builder()
