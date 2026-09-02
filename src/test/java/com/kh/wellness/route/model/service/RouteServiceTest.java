@@ -22,8 +22,10 @@ import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
+import com.kh.wellness.route.model.dto.MapPlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
+import com.kh.wellness.route.model.vo.MapPlace;
 import com.kh.wellness.route.model.vo.Place;
 import com.kh.wellness.route.model.vo.TransportType;
 
@@ -62,6 +64,34 @@ class RouteServiceTest {
                 .xAxis(127.1)
                 .yAxis(37.6)
                 .build();
+    }
+
+    @Test
+    void 지도_핀은_DB의_삭제되지_않은_장소_조회결과를_반환한다() {
+        when(routeMapper.findMapPlaces()).thenReturn(List.of(
+                MapPlace.builder()
+                        .placeNo(7L)
+                        .placeName("김포장릉")
+                        .placeDescription("김포의 조선 왕릉")
+                        .addr("경기도 김포시 장릉로 79")
+                        .addrDetail("풍무동 666-3")
+                        .phone("031-984-2897")
+                        .type("관광지")
+                        .viewCount(12L)
+                        .xAxis(126.7109331831)
+                        .yAxis(37.61085802)
+                        .build()
+        ));
+
+        List<MapPlaceResponse> response = routeService.findMapPlaces();
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).getPlaceNo()).isEqualTo(7L);
+        assertThat(response.get(0).getPlaceName()).isEqualTo("김포장릉");
+        assertThat(response.get(0).getXAxis()).isEqualTo(126.7109331831);
+        assertThat(response.get(0).getYAxis()).isEqualTo(37.61085802);
+        verify(routeMapper).findMapPlaces();
+        verifyNoInteractions(kakaoRouteClient);
     }
 
     @Test
@@ -211,6 +241,84 @@ class RouteServiceTest {
         assertThat(response.getRoutes())
                 .extracting(route -> route.getWalkingDistance())
                 .containsExactly(100, 200, 300);
+    }
+
+    @Test
+    void 대중교통_단계는_승하차_방향_차량종류와_환승여부를_구조화한다() throws Exception {
+        RouteSearchRequest request = request("PUBLIC_TRANSIT", null);
+        request.setSortType("MIN_TIME");
+        stubRoutePlaces();
+        when(kakaoRouteClient.findPublicTransitRoutes(126.9, 37.5, 127.1, 37.6))
+                .thenReturn(json("""
+                        {
+                          "status": "OK",
+                          "routes": [{
+                            "properties": {
+                              "type": "BUS_AND_SUBWAY",
+                              "totalDistance": 5000,
+                              "totalTime": 900,
+                              "transfers": 1,
+                              "fare": {"value": 1750}
+                            },
+                            "steps": [
+                              {
+                                "properties": {
+                                  "type": "BUS",
+                                  "guidance": "좌석 800 (통진성당 > 구래역)",
+                                  "distance": 2000,
+                                  "time": 300,
+                                  "stops": [
+                                    {"name": "통진성당"},
+                                    {"name": "마송"},
+                                    {"name": "구래역"}
+                                  ],
+                                  "vehicles": [{"name": "800", "type": "좌석"}]
+                                },
+                                "path": {"points": [[126.9, 37.5], [127.0, 37.55]]}
+                              },
+                              {
+                                "properties": {
+                                  "type": "WALKING",
+                                  "guidance": "구래역 1번 출구로 이동",
+                                  "distance": 150,
+                                  "time": 180,
+                                  "stops": [{"name": "구래역"}, {"name": "구래"}],
+                                  "vehicles": []
+                                },
+                                "path": {"points": [[127.0, 37.55], [127.01, 37.56]]}
+                              },
+                              {
+                                "properties": {
+                                  "type": "SUBWAY",
+                                  "guidance": "김포골드 (구래 > 사우)",
+                                  "distance": 2850,
+                                  "time": 420,
+                                  "stops": [{"name": "구래"}, {"name": "사우"}],
+                                  "vehicles": [{"name": "김포골드", "type": "지하철"}]
+                                },
+                                "path": {"points": [[127.01, 37.56], [127.1, 37.6]]}
+                              }
+                            ]
+                          }]
+                        }
+                        """));
+
+        RouteResponse response = routeService.findRoutes(request);
+
+        var busStep = response.getRoutes().getFirst().getSteps().getFirst();
+        assertThat(busStep.getVehicleNames()).containsExactly("800");
+        assertThat(busStep.getVehicleTypes()).containsExactly("좌석");
+        assertThat(busStep.getBoardingPlace()).isEqualTo("통진성당");
+        assertThat(busStep.getAlightingPlace()).isEqualTo("구래역");
+        assertThat(busStep.getDirection()).isEqualTo("구래역 방면");
+        assertThat(busStep.getStopCount()).isEqualTo(2);
+        assertThat(busStep.getTransfer()).isFalse();
+
+        var walkingStep = response.getRoutes().getFirst().getSteps().get(1);
+        assertThat(walkingStep.getTransfer()).isTrue();
+        assertThat(walkingStep.getBoardingPlace()).isEqualTo("구래역");
+        assertThat(walkingStep.getAlightingPlace()).isEqualTo("구래");
+        assertThat(walkingStep.getDirection()).isNull();
     }
 
     @Test
