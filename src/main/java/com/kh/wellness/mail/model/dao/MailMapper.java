@@ -23,4 +23,6 @@ public interface MailMapper {
 	void verifyExpiredEmail(AuthMailDto email);
 
 	int authMailCleanup();
+
+	int checkEmailDuplicate(AuthMailDto email);
 }
