@@ -24,7 +24,6 @@ import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.service.RouteService;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -88,14 +87,10 @@ public class CourseService {
 
 
 
-	public List<PlaceCandidate> getWaypoints(@Valid WaypointsRequest request) {
+	public List<PlaceCandidate> getWaypoints(WaypointsRequest request) {
 		
-		//태그 1개 이상 포함되는 관광지 모두 조회
-		//List<PlaceDto>places resultMap 써서 placeDto에 list담기
 		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
-		
-		//거리별 필터링
-		//출발지/도착지 경로받아서, 그 경로로부터 2km이상이면 제외
+	
 		RouteSearchRequest routeRequest = new RouteSearchRequest();
 		routeRequest.setStartX(request.getStartX());
 		routeRequest.setStartY(request.getStartY());
@@ -106,12 +101,6 @@ public class CourseService {
 		List<RouteResultResponse> routes = res.getRoutes();
 		List<CoordinateResponse> path = routes.get(0).getPath();
 		
-		//거리별 점수  -> placeDto에 점수필드를 준다면? 어떨까.
-		// 500m 이하 1
-		// 1km 이하 0.7
-		// 1.5km 이하 0.5
-		// 2km 이하 0.2
-		// x0.3해서 필드에 +
 		List<PlaceCandidate> candidates = new ArrayList<>();
 
 		for (PlaceDto place : places) {
@@ -146,32 +135,8 @@ public class CourseService {
 			              .reversed());
 		return candidates;
 
-		//태그별 점수
-		//태그 최대 5개 받기
-		
-		
-		//list size 계산해서 분모값으로 넣는다. ex 3
-		//태그가 포함되는 개수에 따라 점수를 채워준다.
-		
-		// RecommnededPlaceDto에 담아서 점수 계산을한다.
-		// 왜 나누었는가? PlaceDto는 장소 자체의 속성을 저장하는 곳이기 때문에 의미상
-		// 새로운 Dto를 만들어서 관리하는게 맞다고 판단했다.
-		
-		// 1/4 => 0.25
-		// 2/4 => 0.5
-		// 3/4 => 0.75
-		// 4/4 => 1
-		
-		// 1/3 => 0.33
-		// 2/3 => 0.67
-		// 3/3 => 1
-		// x0.7해서 필드에 +
-		
-		//숫자를 높은 순서대로 나열하고
-		//점수 순서대로 10개 앞단으로 보낸다.
 	}
 	
-	//경로로부터 거리필터 로직
 	private double getMinDistanceFromPath(
 	        PlaceDto place,
 	        List<CoordinateResponse> path
@@ -193,8 +158,7 @@ public class CourseService {
 
 	    return minDistance;
 	}
-	
-	// 실제 거리 계산
+
 	private double calculateDistance(
 	        double lat1,
 	        double lon1,
@@ -222,7 +186,6 @@ public class CourseService {
 	    return EARTH_RADIUS * c;
 	}
 	
-	//거리 점수 로직
 	private double calculateDistanceScore(double distance) {
 
 	    if (distance <= 500) {
@@ -238,7 +201,6 @@ public class CourseService {
 	    return 0;
 	}
 	
-	//태그 점수 로직
 	private double calculateTagScore(
 	        PlaceDto place,
 	        List<CourseTag> requestTags
