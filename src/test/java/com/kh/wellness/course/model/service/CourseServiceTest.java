@@ -1,7 +1,11 @@
 package com.kh.wellness.course.model.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -9,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +28,11 @@ import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.enums.CourseTag;
+import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.route.model.dto.RouteResponse;
+import com.kh.wellness.route.model.dto.RouteResultResponse;
+import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.service.RouteService;
 
 @ExtendWith(MockitoExtension.class)
@@ -115,5 +124,101 @@ class CourseServiceTest {
         assertThat(result.getDescription()).contains("\n");
         assertThat(result.getPlaces()).containsExactly(waypoint);
         assertThat(result.getEndPlace()).isEqualTo(30L);
+    }
+
+    @Test
+    void getRecommendedRouteComparesEveryWaypointOrder() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L));
+        RouteResponse longerRoute = routeResponse(12_034);
+        RouteResponse shorterRoute = routeResponse(9_500);
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenAnswer(invocation -> {
+                    RouteSearchRequest candidate = invocation.getArgument(0);
+                    return candidate.getWaypointPlaceNos().equals(List.of(10L, 15L))
+                            ? longerRoute
+                            : shorterRoute;
+                });
+
+        RouteResponse result = courseService.getRecommendedRoute(request);
+
+        assertThat(result).isSameAs(shorterRoute);
+        assertThat(request.getWaypointPlaceNos()).containsExactly(10L, 15L);
+        ArgumentCaptor<RouteSearchRequest> captor =
+                ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService, times(2)).findRoutes(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(RouteSearchRequest::getWaypointPlaceNos)
+                .containsExactlyInAnyOrder(List.of(10L, 15L), List.of(15L, 10L));
+    }
+
+    @Test
+    void getRecommendedRouteContinuesWhenOneOrderHasNoRoute() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L));
+        RouteResponse availableRoute = routeResponse(10_000);
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenAnswer(invocation -> {
+                    RouteSearchRequest candidate = invocation.getArgument(0);
+                    if (candidate.getWaypointPlaceNos().equals(List.of(10L, 15L))) {
+                        throw new NotFoundException("경로를 찾을 수 없습니다.");
+                    }
+                    return availableRoute;
+                });
+
+        RouteResponse result = courseService.getRecommendedRoute(request);
+
+        assertThat(result).isSameAs(availableRoute);
+        verify(routeService, times(2)).findRoutes(any(RouteSearchRequest.class));
+    }
+
+    @Test
+    void getRecommendedRouteThrowsWhenEveryOrderHasNoRoute() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L));
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenThrow(new NotFoundException("경로를 찾을 수 없습니다."));
+
+        assertThatThrownBy(() -> courseService.getRecommendedRoute(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("순례길 코스 경로를 찾을 수 없습니다.");
+
+        verify(routeService, times(2)).findRoutes(any(RouteSearchRequest.class));
+    }
+
+    @Test
+    void getRecommendedRouteRejectsMissingPlaceBeforeRouteLookup() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L));
+        when(placeService.selectByPlaceNo(any(Long.class)))
+                .thenAnswer(invocation -> {
+                    Long placeNo = invocation.getArgument(0);
+                    if (placeNo.equals(15L)) {
+                        throw new NotFoundException("존재하지 않는 관광지입니다.");
+                    }
+                    return null;
+                });
+
+        assertThatThrownBy(() -> courseService.getRecommendedRoute(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("선택한 관광지 정보를 찾을 수 없습니다.");
+
+        verifyNoInteractions(routeService);
+    }
+
+    private RouteSearchRequest routeRequest(List<Long> waypointPlaceNos) {
+        RouteSearchRequest request = new RouteSearchRequest();
+        request.setStartX(126.7156);
+        request.setStartY(37.6152);
+        request.setEndPlaceNo(25L);
+        request.setTransportType("WALK");
+        request.setRouteOption("SHORTEST");
+        request.setWaypointPlaceNos(waypointPlaceNos);
+        return request;
+    }
+
+    private RouteResponse routeResponse(int totalDistance) {
+        return RouteResponse.builder()
+                .routes(List.of(RouteResultResponse.builder()
+                        .totalDistance(totalDistance)
+                        .totalTime(13_200)
+                        .build()))
+                .build();
     }
 }
