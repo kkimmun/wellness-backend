@@ -16,6 +16,6 @@ public class AdminCourseListResponse {
 	private String courseName;
 	private Integer estimatedTime;
 	private String description;
-	private Date createdDate;
+	private Date createDate;
 	private String active;
 }

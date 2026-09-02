@@ -57,7 +57,7 @@ class AdminPlaceServiceTest {
 		assertThat(result.getCurrentPage()).isZero();
 		verify(adminPlaceMapper, never()).selectPlaces(anyInt(), anyInt());
 	}
-
+ 
 	@Test
 	@DisplayName("page 파라미터를 1-base 로 받아 0-base offset 으로 변환한다")
 	void getPlaces_convertsPageToZeroBasedOffset() {

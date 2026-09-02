@@ -47,20 +47,20 @@ public class AdminCourseController {
 	}
 
 	@PutMapping("/{courseNo}")
-	public ResponseEntity<ApiResponse<Void>> updateCourse(@PathVariable Long courseNo,
+	public ResponseEntity<ApiResponse<Void>> updateCourse(@PathVariable(name="courseNo") Long courseNo,
 			@Valid @RequestBody AdminCourseRequest request) {
 		adminCourseService.updateCourse(courseNo, request);
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 수정 성공", null));
 	}
 
 	@DeleteMapping("/{courseNo}")
-	public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long courseNo) {
+	public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable(name="courseNo") Long courseNo) {
 		adminCourseService.deleteCourse(courseNo);
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 삭제 성공", null));
 	}
 
 	@PatchMapping("/{courseNo}/status")
-	public ResponseEntity<ApiResponse<Void>> updateCourseStatus(@PathVariable Long courseNo,
+	public ResponseEntity<ApiResponse<Void>> updateCourseStatus(@PathVariable(name="courseNo") Long courseNo,
 			@Valid @RequestBody CourseStatusRequest request) {
 		adminCourseService.updateCourseStatus(courseNo, request.getActive());
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 상태 변경 성공", null));

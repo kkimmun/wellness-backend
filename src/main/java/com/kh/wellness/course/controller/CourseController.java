@@ -1,8 +1,12 @@
 package com.kh.wellness.course.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,8 +15,11 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.PlaceDto;
+import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,5 +39,10 @@ public class CourseController {
     @GetMapping("/{courseNo}")
     public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable(name="courseNo") Long courseNo){
     	return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", courseService.getCourse(courseNo)));
+    }
+    
+    @PostMapping("/waypoints")
+    public ResponseEntity<ApiResponse<List<PlaceDto>>> getWaypoints(@Valid @RequestBody WaypointsRequest request) {
+    	return ResponseEntity.ok(ApiResponse.success("중간 코스 추천 성공", courseService.getWaypoints(request)));
     }
 }
