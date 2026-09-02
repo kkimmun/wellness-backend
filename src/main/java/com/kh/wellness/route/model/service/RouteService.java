@@ -13,12 +13,14 @@ import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
+import com.kh.wellness.route.model.dto.MapPlaceResponse;
 import com.kh.wellness.route.model.dto.OriginSearchResponse;
 import com.kh.wellness.route.model.dto.PlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.dto.RouteStepResponse;
+import com.kh.wellness.route.model.vo.MapPlace;
 import com.kh.wellness.route.model.vo.Place;
 import com.kh.wellness.route.model.vo.RouteOption;
 import com.kh.wellness.route.model.vo.TransitSortType;
@@ -88,6 +90,28 @@ public class RouteService {
                         .yAxis(place.getYAxis())
                         .build())
                 .toList();
+    }
+
+    public List<MapPlaceResponse> findMapPlaces() {
+        return routeMapper.findMapPlaces()
+                .stream()
+                .map(this::toMapPlaceResponse)
+                .toList();
+    }
+
+    private MapPlaceResponse toMapPlaceResponse(MapPlace place) {
+        return MapPlaceResponse.builder()
+                .placeNo(place.getPlaceNo())
+                .placeName(place.getPlaceName())
+                .placeDescription(place.getPlaceDescription())
+                .addr(place.getAddr())
+                .addrDetail(place.getAddrDetail())
+                .phone(place.getPhone())
+                .type(place.getType())
+                .viewCount(place.getViewCount())
+                .xAxis(place.getXAxis())
+                .yAxis(place.getYAxis())
+                .build();
     }
 
     private RouteResponse findCarRoutes(
@@ -297,13 +321,16 @@ public class RouteService {
             List<CoordinateResponse> path = new ArrayList<>();
             int walkingDistance = 0;
 
-            for (JsonNode step : route.path("steps")) {
+            JsonNode routeSteps = route.path("steps");
+            for (int stepIndex = 0; stepIndex < routeSteps.size(); stepIndex++) {
+                JsonNode step = routeSteps.get(stepIndex);
                 JsonNode stepProperties = step.path("properties");
                 String stepType = stepProperties.path("type").asString();
                 if ("WALKING".equalsIgnoreCase(stepType)) {
                     walkingDistance += stepProperties.path("distance").asInt();
                 }
 
+                List<String> stopNames = mapNames(stepProperties.path("stops"), "name");
                 List<CoordinateResponse> stepPath = mapPointCoordinates(step.path("path").path("points"));
                 path.addAll(stepPath);
                 steps.add(RouteStepResponse.builder()
@@ -311,8 +338,15 @@ public class RouteService {
                         .guidance(stepProperties.path("guidance").asString())
                         .distance(stepProperties.path("distance").asInt())
                         .time(stepProperties.path("time").asInt())
-                        .stopNames(mapNames(stepProperties.path("stops"), "name"))
+                        .stopNames(stopNames)
                         .vehicleNames(mapNames(stepProperties.path("vehicles"), "name"))
+                        // 대중교통 상세 안내용: 승하차·방향·정류장 수를 별도 필드로 정규화한다.
+                        .vehicleTypes(mapNames(stepProperties.path("vehicles"), "type"))
+                        .boardingPlace(firstName(stopNames))
+                        .alightingPlace(lastName(stopNames))
+                        .direction(transitDirection(stepType, stopNames))
+                        .stopCount(transitStopCount(stepType, stopNames))
+                        .transfer(isTransferWalkingStep(routeSteps, stepIndex, stepType))
                         .path(stepPath)
                         .build());
             }
@@ -556,6 +590,47 @@ public class RouteService {
             names.add(value.path(fieldName).asString());
         }
         return names;
+    }
+
+    private String firstName(List<String> names) {
+        return names.isEmpty() ? null : names.getFirst();
+    }
+
+    private String lastName(List<String> names) {
+        return names.isEmpty() ? null : names.getLast();
+    }
+
+    private String transitDirection(String stepType, List<String> stopNames) {
+        if (!isTransitStep(stepType) || stopNames.isEmpty()) {
+            return null;
+        }
+        return stopNames.getLast() + " 방면";
+    }
+
+    private Integer transitStopCount(String stepType, List<String> stopNames) {
+        if (!isTransitStep(stepType)) {
+            return null;
+        }
+        return Math.max(0, stopNames.size() - 1);
+    }
+
+    private boolean isTransferWalkingStep(JsonNode routeSteps, int stepIndex, String stepType) {
+        if (!"WALKING".equalsIgnoreCase(stepType)
+                || stepIndex == 0
+                || stepIndex >= routeSteps.size() - 1) {
+            return false;
+        }
+
+        String previousType = routeSteps.get(stepIndex - 1)
+                .path("properties").path("type").asString();
+        String nextType = routeSteps.get(stepIndex + 1)
+                .path("properties").path("type").asString();
+        return isTransitStep(previousType) && isTransitStep(nextType);
+    }
+
+    private boolean isTransitStep(String stepType) {
+        return "BUS".equalsIgnoreCase(stepType)
+                || "SUBWAY".equalsIgnoreCase(stepType);
     }
 
     private Comparator<RouteResultResponse> transitComparator(TransitSortType sortType) {

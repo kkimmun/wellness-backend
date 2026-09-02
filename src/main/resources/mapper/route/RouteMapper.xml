@@ -46,4 +46,33 @@
         FETCH FIRST 15 ROWS ONLY
     </select>
 
+    <select id="findMapPlaces"
+            resultType="MapPlace">
+        SELECT
+                P.PLACE_NO,
+                P.PLACE_NAME,
+                P.PLACE_DESCRIPTION,
+                P.ADDR,
+                P.ADDR_DETAIL,
+                P.PHONE_NUMBER AS PHONE,
+                T.TYPE,
+                P.VIEW_COUNT,
+                P.X_AXIS,
+                P.Y_AXIS
+        FROM
+                PLACE P
+        LEFT JOIN
+                TYPE_DETAIL TD
+        ON
+                P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN
+                TYPE T
+        ON
+                TD.TYPE_NO = T.TYPE_NO
+        WHERE
+                P.DEL_YN = 'N'
+        ORDER BY
+                P.PLACE_NO
+    </select>
+
 </mapper>
