@@ -64,6 +64,13 @@ public class MailService {
     }
 
     public void sendAuthMail(AuthMailDto email) throws MessagingException {
+
+        int checkEmail = mailMapper.checkEmailDuplicate(email);
+        
+        if(checkEmail > 0) {
+        	throw new BadRequestException("이미 인증메일이 발송되었습니다.");
+        }
+        
         AuthMail mailEntity = mailTemplate(email);
 
         int result = mailMapper.saveAuthMailCode(mailEntity);

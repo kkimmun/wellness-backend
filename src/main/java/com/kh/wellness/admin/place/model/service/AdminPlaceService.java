@@ -11,6 +11,7 @@ import com.kh.wellness.admin.place.model.dao.AdminPlaceMapper;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceCreateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
 import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
 import com.kh.wellness.common.page.PageResponse;
@@ -85,10 +86,77 @@ public class AdminPlaceService {
 			throw new InternalServerException("장소 등록에 실패했습니다.");
 		}
 
-		savePlaceImages(place.getPlaceNo(), request.getImageFiles());
+		uploadPlaceImages(place.getPlaceNo(), request.getImageFiles(), 1);
 	}
 
-	private void savePlaceImages(Long placeNo, List<MultipartFile> imageFiles) {
+	// 관리자 장소 수정 (PATCH - 보낸 필드만 수정, 이미지는 부분 편집)
+	@Transactional
+	public void updatePlace(Long placeNo, AdminPlaceUpdateRequest request, List<Long> deleteImgNos,
+			List<MultipartFile> imageFiles) {
+
+		if (adminPlaceMapper.countActivePlace(placeNo) == 0) {
+			throw new NotFoundException("해당 장소가 존재하지 않습니다.");
+		}
+
+		if (request.getTypeDetailNo() != null
+				&& adminPlaceMapper.countTypeDetailByNo(request.getTypeDetailNo()) == 0) {
+			throw new BadRequestException("존재하지 않는 분류입니다.");
+		}
+
+		normalizeUpdateRequest(request);
+		if (request.hasFieldToUpdate() && adminPlaceMapper.updatePlace(placeNo, request) != 1) {
+			throw new InternalServerException("장소 수정에 실패했습니다.");
+		}
+
+		// ① 지정된 기존 이미지 소프트삭제 (다른 장소/이미 삭제된 IMG_NO 는 WHERE 조건에서 무시됨)
+		if (deleteImgNos != null && !deleteImgNos.isEmpty()) {
+			adminPlaceMapper.softDeletePlaceImages(placeNo, deleteImgNos);
+		}
+
+		// ② 신규 이미지는 남아있는 이미지 뒤 순번으로 업로드
+		int startOrder = adminPlaceMapper.selectMaxImgOrder(placeNo) + 1;
+		uploadPlaceImages(placeNo, imageFiles, startOrder);
+
+		// ③ 활성 이미지 IMG_ORDER 를 1..N 으로 재정렬 (유지 이미지가 앞, 신규가 뒤)
+		reorderPlaceImages(placeNo);
+	}
+
+	// 관리자 장소 일괄 삭제 (소프트) - 이미 삭제된 대상은 WHERE 조건에서 제외되어 카운트에 안 잡힘
+	@Transactional
+	public int deletePlaces(List<Long> placeNos) {
+		return adminPlaceMapper.softDeletePlaces(placeNos);
+	}
+
+	// 관리자 장소 일괄 복구 - 이미 활성인 대상은 WHERE 조건에서 제외되어 카운트에 안 잡힘
+	@Transactional
+	public int restorePlaces(List<Long> placeNos) {
+		return adminPlaceMapper.restorePlaces(placeNos);
+	}
+
+	private void normalizeUpdateRequest(AdminPlaceUpdateRequest request) {
+		if (request.getPlaceName() != null) {
+			request.setPlaceName(request.getPlaceName().trim());
+		}
+		if (request.getPlaceDescription() != null) {
+			request.setPlaceDescription(request.getPlaceDescription().trim());
+		}
+		if (request.getAddr() != null) {
+			request.setAddr(request.getAddr().trim());
+		}
+	}
+
+	private void reorderPlaceImages(Long placeNo) {
+		List<PlaceImg> activeImages = adminPlaceMapper.selectPlaceImgList(placeNo);
+		for (int index = 0; index < activeImages.size(); index++) {
+			int order = index + 1;
+			PlaceImg image = activeImages.get(index);
+			if (!Integer.valueOf(order).equals(image.getImgOrder())) {
+				adminPlaceMapper.updatePlaceImgOrder(image.getImgNo(), order);
+			}
+		}
+	}
+
+	private void uploadPlaceImages(Long placeNo, List<MultipartFile> imageFiles, int startOrder) {
 		if (imageFiles == null || imageFiles.isEmpty()) {
 			return;
 		}
@@ -98,8 +166,6 @@ public class AdminPlaceService {
 		try {
 			for (int index = 0; index < imageFiles.size(); index++) {
 				MultipartFile file = imageFiles.get(index);
-				log.info("장소 이미지[{}] filename={}, contentType={}, size={}, empty={}",
-						index, file.getOriginalFilename(), file.getContentType(), file.getSize(), file.isEmpty());
 				FileSaveResult stored = fileService.store(file, PLACE_IMAGE_DIRECTORY);
 				uploadedKeys.add(PLACE_IMAGE_DIRECTORY + "/" + stored.getSaveName());
 
@@ -108,7 +174,7 @@ public class AdminPlaceService {
 						.originalName(file.getOriginalFilename())
 						.saveName(stored.getSaveName())
 						.imgPath(stored.getImgPath())
-						.imgOrder(index + 1)
+						.imgOrder(startOrder + index)
 						.build();
 
 				if (adminPlaceMapper.insertPlaceImg(placeImg) != 1) {

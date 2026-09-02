@@ -70,7 +70,7 @@ public class FileService {
        // log.info("Size = {}", file.getSize());
 
         String contentType = file.getContentType();
-        
+                
         // MIME 타입 체크
         if (contentType == null || !contentType.startsWith("image/")) {
         	return false;

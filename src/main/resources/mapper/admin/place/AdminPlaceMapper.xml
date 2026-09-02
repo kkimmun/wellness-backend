@@ -124,4 +124,117 @@
 		)
 	</insert>
 
+	<select id="countActivePlace" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<update id="updatePlace">
+		UPDATE
+			PLACE
+		<set>
+			<if test="req.typeDetailNo != null">TYPE_DETAIL_NO = #{req.typeDetailNo},</if>
+			<if test="req.placeName != null">PLACE_NAME = #{req.placeName},</if>
+			<if test="req.placeDescription != null">PLACE_DESCRIPTION = #{req.placeDescription},</if>
+			<if test="req.addr != null">ADDR = #{req.addr},</if>
+			<if test="req.xAxis != null">X_AXIS = #{req.xAxis},</if>
+			<if test="req.yAxis != null">Y_AXIS = #{req.yAxis},</if>
+		</set>
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</update>
+
+	<update id="softDeletePlaceImages">
+		UPDATE
+			PLACE_IMG
+		SET
+			DEL_YN = 'Y'
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+		AND
+			IMG_NO IN
+			<foreach collection="imgNos" item="imgNo" open="(" separator="," close=")">
+				#{imgNo}
+			</foreach>
+	</update>
+
+	<select id="selectMaxImgOrder" resultType="int">
+		SELECT
+			NVL(MAX(IMG_ORDER), 0)
+		FROM
+			PLACE_IMG
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<select id="selectPlaceImgList" resultType="com.kh.wellness.admin.place.model.vo.PlaceImg">
+		SELECT
+			IMG_NO
+			,PLACE_NO
+			,ORIGINAL_NAME
+			,SAVE_NAME
+			,IMG_PATH
+			,IMG_ORDER
+		FROM
+			PLACE_IMG
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+		ORDER BY
+			IMG_ORDER
+			,IMG_NO
+	</select>
+
+	<update id="updatePlaceImgOrder">
+		UPDATE
+			PLACE_IMG
+		SET
+			IMG_ORDER = #{imgOrder}
+		WHERE
+			IMG_NO = #{imgNo}
+	</update>
+
+	<update id="softDeletePlaces">
+		UPDATE
+			PLACE
+		SET
+			DEL_YN = 'Y'
+			,DELETE_DATE = SYSDATE
+		WHERE
+			DEL_YN = 'N'
+		AND
+			PLACE_NO IN
+			<foreach collection="placeNos" item="placeNo" open="(" separator="," close=")">
+				#{placeNo}
+			</foreach>
+	</update>
+
+	<update id="restorePlaces">
+		UPDATE
+			PLACE
+		SET
+			DEL_YN = 'N'
+			,DELETE_DATE = NULL
+		WHERE
+			DEL_YN = 'Y'
+		AND
+			PLACE_NO IN
+			<foreach collection="placeNos" item="placeNo" open="(" separator="," close=")">
+				#{placeNo}
+			</foreach>
+	</update>
+
 </mapper>
