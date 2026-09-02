@@ -1,4 +1,4 @@
-package com.kh.wellness;
+	package com.kh.wellness;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"AWS_REGION=ap-northeast-2",
 		"S3_BUCKET=test-bucket",
 		"JWT_SECRET=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=",
-		"KAKAO_REST_API_KEY=test-key",
+		"kakao.rest-api-key=test-key",
 		"spring.config.import=classpath:templates/mail/mail-template.yml",
 		"mybatis.configuration.jdbc-type-for-null=VARCHAR",
 		"mybatis.configuration.map-underscore-to-camel-case=true",
