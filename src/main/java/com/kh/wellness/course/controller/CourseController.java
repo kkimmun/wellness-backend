@@ -15,6 +15,7 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.route.model.dto.PlaceCandidate;
@@ -44,5 +45,10 @@ public class CourseController {
     @PostMapping("/waypoints")
     public ResponseEntity<ApiResponse<List<PlaceCandidate>>> getWaypoints(@Valid @RequestBody WaypointsRequest request) {
     	return ResponseEntity.ok(ApiResponse.success("중간 코스 추천 성공", courseService.getWaypoints(request)));
+    }
+    
+    @PostMapping("/descriptions")
+    public ResponseEntity<ApiResponse<CourseResponse>> getCustomCourse(@Valid @RequestBody CustomCourseRequest request) { 
+    	return ResponseEntity.ok(ApiResponse.success("코스 안내 성공", courseService.getCustomCourse(request)));
     }
 }

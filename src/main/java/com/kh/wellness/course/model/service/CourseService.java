@@ -7,17 +7,21 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.wellness.ai.model.dto.CourseContent;
+import com.kh.wellness.ai.model.service.OllamaClient;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseListRow;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.enums.CourseTag;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
+import com.kh.wellness.place.model.service.PlaceService;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
 import com.kh.wellness.route.model.dto.PlaceCandidate;
 import com.kh.wellness.route.model.dto.RouteResponse;
@@ -25,6 +29,7 @@ import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.service.RouteService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +44,8 @@ public class CourseService {
     private static final int PAGE_SIZE = 5;
 
     private final CourseMapper courseMapper;
+    private final PlaceService placeService;
+    private final OllamaClient ollamaClient;
     
 
     public PageResponse<CourseListResponse> getCourses(int page) {
@@ -61,15 +68,38 @@ public class CourseService {
     }
     
     
-    
     public CourseResponse getCourse(Long courseNo) {
-    	validateCourseNo(courseNo);
-    	CourseResponse course = courseMapper.selectByCourseNo(courseNo);
-    	existsCourse(course);
-    	course.setPlaces(getWaypoint(courseNo));
-    	return course;
+        validateCourseNo(courseNo);
+        CourseResponse course = courseMapper.selectByCourseNo(courseNo);
+        existsCourse(course);
+        course.setEndPlaceImg(placeService.selectByPlaceNo(course.getEndPlace()).getImageUrl());
+        course.setWaypoints(getWaypoint(courseNo));
+        return course;
     }
     
+	public CourseResponse getCustomCourse(@Valid CustomCourseRequest request) {
+		List<PlaceDto> places = new ArrayList<>();
+		List<Long> waypointNos = request.getWaypoints() == null ? List.of() : request.getWaypoints();
+		for (Long placeNo : waypointNos) {
+			places.add(placeService.selectByPlaceNo(placeNo));
+		}
+		PlaceDto endPlace = placeService.selectByPlaceNo(request.getEndPlaceNo());
+
+		List<String> placeNames = places.stream()
+				.map(PlaceDto::getPlaceName)
+				.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+		placeNames.add(endPlace.getPlaceName());
+		CourseContent content = ollamaClient.generateCourseContent(placeNames, request.getTags());
+
+		return CourseResponse.builder()
+				.courseName(content.getCourseName())
+				.description(content.getDescription())
+				.endPlace(endPlace.getPlaceNo())
+				.endPlaceImg(endPlace.getImageUrl())
+				.places(places)
+				.build();
+	}
+
     private List<WaypointDto> getWaypoint(Long courseNo) {
     	return courseMapper.selectWaypointBycourseNo(courseNo);
     }
@@ -139,7 +169,7 @@ public class CourseService {
 		return candidates;
 
 	}
-	
+
 	private double getMinDistanceFromPath(
 	        PlaceDto place,
 	        List<CoordinateResponse> path
@@ -215,6 +245,5 @@ public class CourseService {
 
 	    return (double) matchedCount / requestTags.size();
 	}
-	
 
 }

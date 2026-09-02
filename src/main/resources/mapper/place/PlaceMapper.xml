@@ -5,18 +5,24 @@
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
 	<select id="selectByPlaceNo"
-	        resultType="com.kh.wellness.admin.place.model.vo.Place">
+	        resultType="PlaceDto">
 		SELECT 
-		       PLACE_NO
-		     , PLACE_NAME
-		     , PLACE_DESCRIPTION
-		     , ADDR
-		     , X_AXIS
-		     , Y_AXIS
+		       P.PLACE_NO
+		     , P.PLACE_NAME
+		     , P.PLACE_DESCRIPTION
+		     , P.ADDR
+		     , P.X_AXIS
+		     , P.Y_AXIS
+		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
 		  FROM
-		       PLACE
+		       PLACE P
+		  LEFT
+		  JOIN
+		       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO
+		   AND
+		       PI.IMG_ORDER = 1
 		 WHERE
-		       PLACE_NO = #{placeNo}
+		       P.PLACE_NO = #{placeNo}
 	</select>
 
 </mapper>

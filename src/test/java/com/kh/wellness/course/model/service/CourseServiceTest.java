@@ -12,24 +12,37 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.kh.wellness.ai.model.dto.CourseContent;
+import com.kh.wellness.ai.model.service.OllamaClient;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseListRow;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.CustomCourseRequest;
+import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
+import com.kh.wellness.course.model.enums.CourseTag;
+import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.route.model.service.RouteService;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
     @Mock
     private CourseMapper courseMapper;
+    @Mock
+    private RouteService routeService;
+    @Mock
+    private PlaceService placeService;
+    @Mock
+    private OllamaClient ollamaClient;
 
     private CourseService courseService;
 
     @BeforeEach
     void setUp() {
-        courseService = new CourseService(courseMapper);
+        courseService = new CourseService(routeService, courseMapper, placeService, ollamaClient);
     }
 
     @Test
@@ -44,7 +57,7 @@ class CourseServiceTest {
                 210,
                 "자연과 휴식을 중심으로 구성한 힐링 순례 코스입니다.");
         when(courseMapper.countActiveCourses()).thenReturn(1L);
-        when(courseMapper.selectActiveCourses(0L, 10)).thenReturn(List.of(row));
+        when(courseMapper.selectActiveCourses(0L, 5)).thenReturn(List.of(row));
 
         PageResponse<CourseListResponse> result = courseService.getCourses(1);
 
@@ -54,7 +67,7 @@ class CourseServiceTest {
         assertThat(course.getStartPlace().getPlaceName()).isEqualTo("김포시청");
         assertThat(course.getEndPlace().getPlaceNo()).isEqualTo(101L);
         assertThat(course.getEndPlace().getPlaceName()).isEqualTo("문수산성 사찰");
-        verify(courseMapper).selectActiveCourses(0L, 10);
+        verify(courseMapper).selectActiveCourses(0L, 5);
     }
 
     @Test
@@ -69,13 +82,38 @@ class CourseServiceTest {
                 .build();
         WaypointDto waypoint = new WaypointDto(
                 100L, 1L, 20L, 1, "중간 관광지", 126.1, 37.1, null);
+        PlaceDto endPlace = PlaceDto.builder().placeNo(30L).imageUrl("end.jpg").build();
         when(courseMapper.selectByCourseNo(1L)).thenReturn(course);
         when(courseMapper.selectWaypointBycourseNo(1L)).thenReturn(List.of(waypoint));
+        when(placeService.selectByPlaceNo(30L)).thenReturn(endPlace);
 
         CourseResponse result = courseService.getCourse(1L);
 
-        assertThat(result.getPlaces()).containsExactly(waypoint);
-        assertThat(result.getPlaces().getFirst().getImageUrl()).isNull();
+        assertThat(result.getWaypoints()).containsExactly(waypoint);
+        assertThat(result.getEndPlaceImg()).isEqualTo("end.jpg");
         verify(courseMapper).selectWaypointBycourseNo(1L);
+    }
+
+    @Test
+    void getCustomCourseUsesOllamaContent() {
+        CustomCourseRequest request = new CustomCourseRequest(
+                30L, 126.1, 37.1, List.of(CourseTag.힐링), List.of(20L));
+        PlaceDto waypoint = PlaceDto.builder().placeNo(20L).placeName("애기봉").build();
+        PlaceDto endPlace = PlaceDto.builder()
+                .placeNo(30L).placeName("문수산성").imageUrl("end.jpg").build();
+        CourseContent content = new CourseContent(
+                "김포 마음쉼길", "애기봉에서 여유를 느껴보세요.\n문수산성에서 자연과 역사를 만납니다.");
+
+        when(placeService.selectByPlaceNo(20L)).thenReturn(waypoint);
+        when(placeService.selectByPlaceNo(30L)).thenReturn(endPlace);
+        when(ollamaClient.generateCourseContent(
+                List.of("애기봉", "문수산성"), List.of(CourseTag.힐링))).thenReturn(content);
+
+        CourseResponse result = courseService.getCustomCourse(request);
+
+        assertThat(result.getCourseName()).isEqualTo("김포 마음쉼길");
+        assertThat(result.getDescription()).contains("\n");
+        assertThat(result.getPlaces()).containsExactly(waypoint);
+        assertThat(result.getEndPlace()).isEqualTo(30L);
     }
 }

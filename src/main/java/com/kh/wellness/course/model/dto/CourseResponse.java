@@ -15,9 +15,11 @@ import lombok.Setter;
 @Builder
 public class CourseResponse {
 	private Long courseNo;
-	private List<WaypointDto>places;
+	private List<WaypointDto>waypoints;
+	private List<PlaceDto>places;
 	private Long startPlace;
 	private Long endPlace;
+	private String endPlaceImg;
 	private String courseName;
 	private int estimatedTime;
 	private String description;
