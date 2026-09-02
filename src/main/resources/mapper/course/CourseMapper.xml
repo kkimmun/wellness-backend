@@ -89,5 +89,52 @@
             BY
                W.WAYPOINT_SEQUENCE ASC
     </select>
+    
+	<resultMap id="placeResultMap" type="PlaceDto">
+	
+	    <id property="placeNo" column="PLACE_NO"/>
+
+	    <result property="placeName" column="PLACE_NAME"/>
+	    <result property="xAxis" column="X_AXIS"/>
+	    <result property="yAxis" column="Y_AXIS"/>
+	    <result property="imageUrl" column="IMAGE_URL"/>
+	
+	    <collection property="tags"
+	                ofType="CourseTag">
+	        <result column="TAG_CONTENT"/>
+	    </collection>
+	
+	</resultMap>
+    
+    <select id="selectByTags"
+            resultMap="placeResultMap">
+    	SELECT
+    	       P.PLACE_NO
+    	     , P.PLACE_NAME
+    	     , P.X_AXIS
+    	     , P.Y_AXIS
+    	     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
+    	     , T.TAG_CONTENT
+    	  FROM 
+    	       PLACE P
+    	  JOIN
+    	       PLACE_TAG PT ON P.PLACE_NO = PT.PLACE_NO
+    	  JOIN
+    	       TAG T ON PT.TAG_NO = T.TAG_NO
+    	  LEFT
+    	  JOIN
+    	       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO AND PI.IMG_ORDER = 1
+    	 WHERE
+    	       P.DEL_YN = 'N'
+    	   AND
+    	       T.TAG_CONTENT IN
+    	       <foreach collection="tags"
+    	                item="tag"
+    	                open="("
+    	                separator=","
+    	                close=")">
+    	       		#{tag}
+    	       </foreach>
+    </select>
 
 </mapper>

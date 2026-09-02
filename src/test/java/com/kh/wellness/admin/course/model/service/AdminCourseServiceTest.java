@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.cource.model.service;
+package com.kh.wellness.admin.course.model.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

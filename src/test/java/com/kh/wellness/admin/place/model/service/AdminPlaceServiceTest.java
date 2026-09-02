@@ -83,7 +83,7 @@ class AdminPlaceServiceTest {
 		assertThat(result.getTotalPages()).isZero();
 		verify(adminPlaceMapper, never()).selectPlaces(anyLong(), anyInt());
 	}
-
+ 
 	@Test
 	@DisplayName("page 파라미터에 맞춰 offset 을 계산한다")
 	void getPlaces_calculatesOffset() {

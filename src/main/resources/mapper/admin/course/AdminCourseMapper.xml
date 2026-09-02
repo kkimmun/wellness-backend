@@ -22,7 +22,7 @@
             COURSE_NAME,
             ESTIMATED_TIME,
             DESCRIPTION,
-            CREATED_DATE,
+            CREATE_DATE,
             ACTIVE
         FROM
             COURSE
