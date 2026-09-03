@@ -5,6 +5,9 @@ import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.route.model.dto.MapPlaceResponse;
+import com.kh.wellness.route.model.service.RouteService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +25,7 @@ import com.kh.wellness.place.model.dto.PlaceResponse;
 @RequestMapping("/api/place")
 @RequiredArgsConstructor
 public class PlaceController {
-
+	private final RouteService routeService;
     private final PlaceService placeService;
 
     @GetMapping("/{placeNo}")
@@ -36,7 +39,6 @@ public class PlaceController {
         return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", response));
     }
 
-	
 	@GetMapping("/{typeDetailNo}")
 	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){
 		
@@ -44,5 +46,12 @@ public class PlaceController {
 		
 		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", placeList));
 	}
+	
+    @GetMapping("/pins")
+    public ResponseEntity<ApiResponse<List<MapPlaceResponse>>> findMapPins() {
+        List<MapPlaceResponse> response = routeService.findMapPlaces();
+
+        return ResponseEntity.ok(ApiResponse.success("지도 장소 조회 성공", response));
+    }
 
 }

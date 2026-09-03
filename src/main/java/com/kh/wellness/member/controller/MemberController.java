@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
-import com.kh.wellness.member.model.dto.AuthMailDto;
 import com.kh.wellness.member.model.dto.MemberDto;
 import com.kh.wellness.member.model.dto.MemberEditValidation;
 import com.kh.wellness.member.model.dto.MemberImgDto;
