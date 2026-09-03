@@ -76,5 +76,22 @@
 			,#{authYn}
 		)
 	</insert>
+	<select id="checkMemberExists">
+	SELECT
+		COUNT(*)
+	FROM
+		WELLNESS_NORMAL_MEMBER
+	WHERE
+		MEMBER_ID = #{emailAddr}
+	</select>
+		<select id="checkEmailDuplicate">
+	SELECT
+		COUNT(*)
+	FROM
+		AUTH_EMAIL
+	WHERE
+		EMAIL_ADDR = #{emailAddr}
+	</select>
+
 
 </mapper>
