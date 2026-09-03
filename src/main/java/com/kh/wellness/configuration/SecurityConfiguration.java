@@ -49,6 +49,9 @@ public class SecurityConfiguration {
 
 		            // 회원 상세 - 로그인 필요
 		            requests.requestMatchers("/api/members/detail").authenticated();
+		            
+		            // 장소 관련 
+		            requests.requestMatchers("/api/places/*").permitAll();
 
 		            // 관리자 API - ADMIN만 접근
 		            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
@@ -79,6 +82,7 @@ public class SecurityConfiguration {
 		configuration.setAllowedOrigins(Arrays.asList(
 			    "http://localhost:5173"
 			));
+
 		configuration.setAllowedMethods(Arrays.asList("POST", "PATCH", "DELETE", "GET","PUT","OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 		configuration.setAllowCredentials(true);
