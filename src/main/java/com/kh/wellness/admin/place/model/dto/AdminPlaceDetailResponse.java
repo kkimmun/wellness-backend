@@ -14,8 +14,10 @@ import lombok.Setter;
 public class AdminPlaceDetailResponse {
 
 	private String createDate;
+	private Long typeDetailNo;
 	private String placeName;
 	private String placeDescription;
+	private String addr;
 	private Double xAxis;
 	private Double yAxis;
 	private List<PlaceImageResponse> placeImages;

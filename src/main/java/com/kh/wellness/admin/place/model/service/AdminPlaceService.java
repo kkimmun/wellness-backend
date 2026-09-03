@@ -39,7 +39,6 @@ public class AdminPlaceService {
 	private final FileService fileService;
 	private final S3Service s3Service;
 
-	// 관리자 장소 목록 조회 (page 는 1-base 로 받아 내부 0-base 로 변환)
 	public PageResponse<AdminPlaceListResponse> getPlaces(int page) {
 		validatePage(page);
 

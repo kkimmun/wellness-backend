@@ -19,6 +19,8 @@ import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.route.model.dto.PlaceCandidate;
+import com.kh.wellness.route.model.dto.RouteResponse;
+import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,13 @@ public class CourseController {
     @PostMapping("/waypoints")
     public ResponseEntity<ApiResponse<List<PlaceCandidate>>> getWaypoints(@Valid @RequestBody WaypointsRequest request) {
     	return ResponseEntity.ok(ApiResponse.success("중간 코스 추천 성공", courseService.getWaypoints(request)));
+    }
+
+    @PostMapping("/recommendations")
+    public ResponseEntity<ApiResponse<RouteResponse>> getRecommendedRoute(
+            @Valid @RequestBody RouteSearchRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("코스 경로 조회 성공", courseService.getRecommendedRoute(request)));
     }
     
     @PostMapping("/descriptions")

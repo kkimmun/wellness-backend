@@ -1,6 +1,7 @@
 package com.kh.wellness.course.model.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.enums.CourseTag;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
+import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.place.model.service.PlaceService;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
 import com.kh.wellness.route.model.dto.PlaceCandidate;
@@ -99,6 +101,103 @@ public class CourseService {
 				.places(places)
 				.build();
 	}
+
+    public RouteResponse getRecommendedRoute(RouteSearchRequest request) {
+        validateSelectedPlaces(request);
+        List<Long> waypointPlaceNos = request.getWaypointPlaceNos() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(request.getWaypointPlaceNos());
+        List<List<Long>> waypointOrders = new ArrayList<>();
+        collectWaypointOrders(waypointPlaceNos, 0, waypointOrders);
+
+        RouteResponse shortestRoute = null;
+        int shortestDistance = Integer.MAX_VALUE;
+
+        for (List<Long> waypointOrder : waypointOrders) {
+            try {
+                RouteResponse candidate = routeService.findRoutes(
+                        copyRouteRequest(request, waypointOrder));
+                int candidateDistance = getShortestDistance(candidate);
+
+                if (candidateDistance < shortestDistance) {
+                    shortestDistance = candidateDistance;
+                    shortestRoute = candidate;
+                }
+            } catch (NotFoundException ignored) {
+                // 해당 경유 순서에 경로가 없으면 나머지 순서를 계속 비교한다.
+            }
+        }
+
+        if (shortestRoute == null) {
+            throw new NotFoundException("순례길 코스 경로를 찾을 수 없습니다.");
+        }
+        return shortestRoute;
+    }
+
+    private void validateSelectedPlaces(RouteSearchRequest request) {
+        try {
+            validateSelectedPlace(request.getStartPlaceNo());
+            validateSelectedPlace(request.getEndPlaceNo());
+            if (request.getWaypointPlaceNos() != null) {
+                request.getWaypointPlaceNos().forEach(this::validateSelectedPlace);
+            }
+        } catch (NotFoundException exception) {
+            throw new NotFoundException("선택한 관광지 정보를 찾을 수 없습니다.");
+        }
+    }
+
+    private void validateSelectedPlace(Long placeNo) {
+        if (placeNo != null) {
+            placeService.selectByPlaceNo(placeNo);
+        }
+    }
+
+    private void collectWaypointOrders(
+            List<Long> waypointPlaceNos,
+            int currentIndex,
+            List<List<Long>> waypointOrders) {
+        if (currentIndex == waypointPlaceNos.size()) {
+            waypointOrders.add(new ArrayList<>(waypointPlaceNos));
+            return;
+        }
+
+        for (int index = currentIndex; index < waypointPlaceNos.size(); index++) {
+            Collections.swap(waypointPlaceNos, currentIndex, index);
+            collectWaypointOrders(waypointPlaceNos, currentIndex + 1, waypointOrders);
+            Collections.swap(waypointPlaceNos, currentIndex, index);
+        }
+    }
+
+    private RouteSearchRequest copyRouteRequest(
+            RouteSearchRequest source,
+            List<Long> waypointPlaceNos) {
+        RouteSearchRequest copy = new RouteSearchRequest();
+        copy.setEndPlaceNo(source.getEndPlaceNo());
+        copy.setStartPlaceNo(source.getStartPlaceNo());
+        copy.setStartX(source.getStartX());
+        copy.setStartY(source.getStartY());
+        copy.setEndX(source.getEndX());
+        copy.setEndY(source.getEndY());
+        copy.setTransportType(source.getTransportType());
+        copy.setRouteOption(source.getRouteOption());
+        copy.setTransitType(source.getTransitType());
+        copy.setSortType(source.getSortType());
+        copy.setWaypointPlaceNos(new ArrayList<>(waypointPlaceNos));
+        return copy;
+    }
+
+    private int getShortestDistance(RouteResponse response) {
+        if (response == null || response.getRoutes() == null) {
+            throw new InternalServerException("카카오 경로 응답이 올바르지 않습니다.");
+        }
+
+        return response.getRoutes().stream()
+                .map(RouteResultResponse::getTotalDistance)
+                .filter(distance -> distance != null)
+                .min(Integer::compareTo)
+                .orElseThrow(() -> new InternalServerException(
+                        "카카오 경로 응답에 거리 정보가 없습니다."));
+    }
 
     private List<WaypointDto> getWaypoint(Long courseNo) {
     	return courseMapper.selectWaypointBycourseNo(courseNo);

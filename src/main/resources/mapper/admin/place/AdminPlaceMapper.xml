@@ -38,8 +38,10 @@
 	<select id="selectPlaceDetail" resultType="AdminPlaceDetailResponse">
 		SELECT
 			TO_CHAR(CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+			,TYPE_DETAIL_NO
 			,PLACE_NAME
 			,PLACE_DESCRIPTION
+			,ADDR
 			,X_AXIS
 			,Y_AXIS
 		FROM

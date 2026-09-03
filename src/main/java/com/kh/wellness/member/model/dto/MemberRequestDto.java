@@ -1,5 +1,7 @@
 package com.kh.wellness.member.model.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,10 +14,15 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class MemberRequestDto {
+	private Long memberNo;
+	private String memberId;
 	private String memberName;
-	private String email;
+	private String role;
+	private String originalName;
+	private String saveName;
 	private String imgPath;
-    private String saveName;
-    private String delYn;
+	private String phoneNumber;
+	private LocalDateTime enrollDate;
+	private String delYn;
 
 }
