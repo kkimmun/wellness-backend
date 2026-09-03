@@ -57,6 +57,7 @@ public class SecurityConfiguration {
 					"/api/routes",
 					"/api/routes/origins").permitAll();
 
+
 	            // 회원 상세 - 로그인 필요
 	            requests.requestMatchers("/api/members/detail").authenticated();
 
@@ -87,6 +88,7 @@ public class SecurityConfiguration {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
 		configuration.setAllowedMethods(Arrays.asList("POST", "PATCH", "DELETE", "GET", "PUT", "OPTIONS"));
+
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 		configuration.setAllowCredentials(true);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

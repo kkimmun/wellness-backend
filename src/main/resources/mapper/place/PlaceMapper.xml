@@ -24,5 +24,25 @@
 		 WHERE
 		       P.PLACE_NO = #{placeNo}
 	</select>
-
+	<select id="selectPlaces"
+        resultType="com.kh.wellness.place.model.dto.PlaceResponse">
+		SELECT 
+			P.PLACE_NO
+		     , P.PLACE_NAME
+		     , P.PLACE_DESCRIPTION
+		     , P.ADDR
+		     , P.X_AXIS
+		     , P.Y_AXIS
+		     , PI.IMG_PATH
+		FROM
+			TYPE_DETAIL T
+		LEFT
+		JOIN
+			PLACE P ON P.TYPE_DETAIL_NO = T.TYPE_DETAIL_NO
+		LEFT
+		JOIN
+			PLACE_IMG PI ON PI.PLACE_NO = P.PLACE_NO
+		WHERE
+			T.TYPE_DETAIL_NO = #{typeDetailNo}
+	</select>
 </mapper>

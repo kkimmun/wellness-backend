@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -128,6 +129,32 @@ class CourseServiceTest {
         assertThat(result.getDescription()).contains("\n");
         assertThat(result.getPlaces()).containsExactly(waypoint);
         assertThat(result.getEndPlace()).isEqualTo(30L);
+        assertThat(result.getEndPlaceImg()).isEqualTo("end.jpg");
+    }
+
+    @Test
+    void getCustomCourseUsesOnlyEndPlaceWhenWaypointsAreNull() {
+        CustomCourseRequest request = new CustomCourseRequest(
+                30L, 126.1, 37.1, List.of(CourseTag.힐링), null);
+        PlaceDto endPlace = PlaceDto.builder()
+                .placeNo(30L)
+                .placeName("문수산성")
+                .imageUrl("end.jpg")
+                .build();
+        CourseContent content = new CourseContent(
+                "문수산 힐링길", "문수산성에서 자연과 역사를 만납니다.");
+        when(placeService.selectByPlaceNo(30L)).thenReturn(endPlace);
+        when(ollamaClient.generateCourseContent(
+                List.of("문수산성"), List.of(CourseTag.힐링))).thenReturn(content);
+
+        CourseResponse result = courseService.getCustomCourse(request);
+
+        assertThat(result.getPlaces()).isEmpty();
+        assertThat(result.getCourseName()).isEqualTo("문수산 힐링길");
+        assertThat(result.getDescription()).isEqualTo("문수산성에서 자연과 역사를 만납니다.");
+        assertThat(result.getEndPlace()).isEqualTo(30L);
+        assertThat(result.getEndPlaceImg()).isEqualTo("end.jpg");
+        verify(placeService).selectByPlaceNo(30L);
     }
 
     @Test
@@ -153,6 +180,64 @@ class CourseServiceTest {
         assertThat(captor.getAllValues())
                 .extracting(RouteSearchRequest::getWaypointPlaceNos)
                 .containsExactlyInAnyOrder(List.of(10L, 15L), List.of(15L, 10L));
+    }
+
+    @Test
+    void getRecommendedRouteSearchesOnceWithoutWaypointsAndCopiesRequestValues() {
+        RouteSearchRequest request = routeRequest(null);
+        RouteResponse route = routeResponse(8_500);
+        when(routeService.findRoutes(any(RouteSearchRequest.class))).thenReturn(route);
+
+        RouteResponse result = courseService.getRecommendedRoute(request);
+
+        assertThat(result).isSameAs(route);
+        ArgumentCaptor<RouteSearchRequest> captor =
+                ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService).findRoutes(captor.capture());
+        RouteSearchRequest copiedRequest = captor.getValue();
+        assertThat(copiedRequest).isNotSameAs(request);
+        assertThat(copiedRequest.getStartPlaceNo()).isEqualTo(5L);
+        assertThat(copiedRequest.getEndPlaceNo()).isEqualTo(25L);
+        assertThat(copiedRequest.getStartX()).isEqualTo(126.7156);
+        assertThat(copiedRequest.getStartY()).isEqualTo(37.6152);
+        assertThat(copiedRequest.getEndX()).isEqualTo(126.6801);
+        assertThat(copiedRequest.getEndY()).isEqualTo(37.7214);
+        assertThat(copiedRequest.getTransportType()).isEqualTo("WALK");
+        assertThat(copiedRequest.getRouteOption()).isEqualTo("SHORTEST");
+        assertThat(copiedRequest.getTransitType()).isEqualTo("SUBWAY");
+        assertThat(copiedRequest.getSortType()).isEqualTo("RECOMMEND");
+        assertThat(copiedRequest.getWaypointPlaceNos()).isEmpty();
+        verify(placeService).selectByPlaceNo(5L);
+        verify(placeService).selectByPlaceNo(25L);
+    }
+
+    @Test
+    void getRecommendedRouteUsesShortestDistanceWithinEachRouteResponse() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L));
+        RouteResponse firstOrder = routeResponse(12_000, 7_000);
+        RouteResponse secondOrder = routeResponse(8_000);
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenAnswer(invocation -> {
+                    RouteSearchRequest candidate = invocation.getArgument(0);
+                    return candidate.getWaypointPlaceNos().equals(List.of(10L, 15L))
+                            ? firstOrder
+                            : secondOrder;
+                });
+
+        RouteResponse result = courseService.getRecommendedRoute(request);
+
+        assertThat(result).isSameAs(firstOrder);
+        verify(routeService, times(2)).findRoutes(any(RouteSearchRequest.class));
+    }
+
+    @Test
+    void getRecommendedRouteThrowsWhenRouteResponseIsInvalid() {
+        RouteSearchRequest request = routeRequest(List.of());
+        when(routeService.findRoutes(any(RouteSearchRequest.class))).thenReturn(null);
+
+        assertThatThrownBy(() -> courseService.getRecommendedRoute(request))
+                .isInstanceOf(InternalServerException.class)
+                .hasMessage("카카오 경로 응답이 올바르지 않습니다.");
     }
 
     @Test
@@ -293,21 +378,28 @@ class CourseServiceTest {
 
     private RouteSearchRequest routeRequest(List<Long> waypointPlaceNos) {
         RouteSearchRequest request = new RouteSearchRequest();
+        request.setStartPlaceNo(5L);
         request.setStartX(126.7156);
         request.setStartY(37.6152);
         request.setEndPlaceNo(25L);
+        request.setEndX(126.6801);
+        request.setEndY(37.7214);
         request.setTransportType("WALK");
         request.setRouteOption("SHORTEST");
+        request.setTransitType("SUBWAY");
+        request.setSortType("RECOMMEND");
         request.setWaypointPlaceNos(waypointPlaceNos);
         return request;
     }
 
-    private RouteResponse routeResponse(int totalDistance) {
+    private RouteResponse routeResponse(int... totalDistances) {
         return RouteResponse.builder()
-                .routes(List.of(RouteResultResponse.builder()
-                        .totalDistance(totalDistance)
-                        .totalTime(13_200)
-                        .build()))
+                .routes(Arrays.stream(totalDistances)
+                        .mapToObj(totalDistance -> RouteResultResponse.builder()
+                                .totalDistance(totalDistance)
+                                .totalTime(13_200)
+                                .build())
+                        .toList())
                 .build();
     }
 
