@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -15,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,37 +35,35 @@ public class SecurityConfiguration {
 		return http.formLogin(AbstractHttpConfigurer::disable)
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(Customizer.withDefaults()).authorizeHttpRequests(requests ->{
-					// 임시 권한 전부 설정
-					requests.anyRequest().permitAll();
-					/*
-					 * // 1. 관리자 전용 경로 (가장 구체적이거나 제한이 강한 것)
-					 * requests.requestMatchers("/api/admins/**").hasRole("ADMIN"); // 2. 인증 관련
-					 * (로그인/토큰 등) requests.requestMatchers(HttpMethod.POST,
-					 * "/api/auth/**").permitAll(); // 3. 회원 관련
-					 * requests.requestMatchers(HttpMethod.POST, "/api/members").permitAll();
-					 * requests.requestMatchers(HttpMethod.DELETE,
-					 * "/api/members/**").authenticated();
-					 * requests.requestMatchers(HttpMethod.PATCH,
-					 * "/api/members/**").authenticated(); // 4. 게시판 관련 (보드/공지사항 등)
-					 * requests.requestMatchers(HttpMethod.POST, "/api/boards/**").authenticated();
-					 * requests.requestMatchers(HttpMethod.PATCH, "/api/boards/**").authenticated();
-					 * requests.requestMatchers(HttpMethod.DELETE,
-					 * "/api/boards/**").authenticated(); requests.requestMatchers(HttpMethod.GET,
-					 * "/api/boards/**").permitAll(); requests.requestMatchers(HttpMethod.GET,
-					 * "/api/boards").permitAll(); // 5. 공지사항 관련
-					 * requests.requestMatchers(HttpMethod.GET, "/api/notices/**").permitAll();
-					 * requests.requestMatchers(HttpMethod.GET, "/api/notices").permitAll(); // 6.
-					 * 식물 게시판 관련 requests.requestMatchers(HttpMethod.GET,
-					 * "/api/plants/**").permitAll(); requests.requestMatchers(HttpMethod.GET,
-					 * "/api/plants").permitAll(); // 7. 이미지 관련
-					 * requests.requestMatchers("/uploads/**").permitAll(); // 8. 마이페이지 및 센서 관련
-					 * requests.requestMatchers("/api/sensors/**").permitAll();
-					 * 
-					 * requests.requestMatchers(HttpMethod.GET, "/api/mypage/**").authenticated();
-					 * 
-					 * // 요청 /api/plants get requests.anyRequest().authenticated();
-					 */
-					
+                    // CORS Preflight
+		            requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+
+		            // 인증 관련
+		            requests.requestMatchers("/api/auth/login").permitAll();
+		            requests.requestMatchers("/api/auth/refresh").permitAll();
+		            requests.requestMatchers("/api/auth/google").permitAll();
+
+		            // 회원가입 / 이메일 인증
+		            requests.requestMatchers(HttpMethod.POST, "/api/members").permitAll();
+		            requests.requestMatchers("/api/email/verifications/**").permitAll();
+
+		            // 지도 핀·장소 검색·길찾기는 회원과 비회원 모두 사용하는 프론트 조회 API
+		            requests.requestMatchers(HttpMethod.GET,
+						"/api/places/pins",
+						"/api/routes",
+						"/api/routes/origins").permitAll();
+
+		            // 회원 상세 - 로그인 필요
+		            requests.requestMatchers("/api/members/detail").authenticated();
+		            
+		            // 장소 관련 
+		            requests.requestMatchers("/api/places/*").permitAll();
+
+		            // 관리자 API - ADMIN만 접근
+		            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
+
+		            // 그 외 모든 API - 로그인 필요
+		            requests.anyRequest().authenticated();
 
 				}).sessionManagement(manager ->
 				manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -90,6 +88,7 @@ public class SecurityConfiguration {
 		configuration.setAllowedOrigins(Arrays.asList(
 			    "http://localhost:5173"
 			));
+
 		configuration.setAllowedMethods(Arrays.asList("POST", "PATCH", "DELETE", "GET","PUT","OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 		configuration.setAllowCredentials(true);

@@ -4,7 +4,7 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
-    <!-- 팀원(main) 코드 -->
+ 
 	<select id="selectByPlaceNo"
 	        resultType="PlaceDto">
 		SELECT 
@@ -26,7 +26,6 @@
 		       P.PLACE_NO = #{placeNo}
 	</select>
 
-    <!-- 고객님 코드 (상세보기) -->
     <select id="selectPlaceDetail" resultType="com.kh.wellness.place.model.dto.PlaceDetailDto">
         SELECT
             P.PLACE_NO AS placeNo,
@@ -87,4 +86,25 @@
         ORDER BY T.TAG_NO
     </select>
 
+	<select id="selectPlaces"
+        resultType="com.kh.wellness.place.model.dto.PlaceResponse">
+		SELECT 
+			P.PLACE_NO
+		     , P.PLACE_NAME
+		     , P.PLACE_DESCRIPTION
+		     , P.ADDR
+		     , P.X_AXIS
+		     , P.Y_AXIS
+		     , PI.IMG_PATH
+		FROM
+			TYPE_DETAIL T
+		LEFT
+		JOIN
+			PLACE P ON P.TYPE_DETAIL_NO = T.TYPE_DETAIL_NO
+		LEFT
+		JOIN
+			PLACE_IMG PI ON PI.PLACE_NO = P.PLACE_NO
+		WHERE
+			T.TYPE_DETAIL_NO = #{typeDetailNo}
+	</select>
 </mapper>

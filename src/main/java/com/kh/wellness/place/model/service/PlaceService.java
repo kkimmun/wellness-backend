@@ -7,12 +7,19 @@ import com.kh.wellness.place.model.dto.PlaceDetailDto;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.dto.PlaceImageDto;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.kh.wellness.course.model.dto.PlaceDto;
+import com.kh.wellness.exception.NotFoundException;
+import com.kh.wellness.place.model.dao.PlaceMapper;
+import com.kh.wellness.place.model.dto.PlaceResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,7 +28,7 @@ public class PlaceService {
 
     private final PlaceMapper placeMapper;
 
-    // 팀원(main) 코드
+  
     public PlaceDto selectByPlaceNo(Long placeNo) {
         PlaceDto place = placeMapper.selectByPlaceNo(placeNo);
         if(place == null) {
@@ -30,7 +37,7 @@ public class PlaceService {
         return place;
     }
 
-    // 고객님 코드 (상세보기)
+    
     @Transactional(readOnly = true)
     public PlaceDetailResponse getPlaceDetail(Long placeNo, Long memberNo) {
         PlaceDetailDto placeDetail = placeMapper.selectPlaceDetail(placeNo, memberNo);
@@ -65,4 +72,16 @@ public class PlaceService {
                 .tags(placeDetail.getTags())
                 .build();
     }
+	
+
+	public List<PlaceResponse> selectPlaces(Long typeDetailNo) {
+
+		List<PlaceResponse> list = placeMapper.selectPlaces(typeDetailNo);
+		
+		if(list.isEmpty()) {
+			throw new NotFoundException("존재하지 않는 관광지입니다.");
+		}
+		
+		return list;
+	}
 }

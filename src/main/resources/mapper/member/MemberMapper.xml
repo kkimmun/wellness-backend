@@ -38,20 +38,24 @@
 		,#{memberPwd}
 	)
 </insert>
-<select id="memberMoreDetails" parameterType="long" resultType="Member">
+<select id="memberMoreDetails" parameterType="long" resultType="MemberRequestDto">
 	SELECT
-		M.MEMBER_NAME
-		,I.IMG_PATH
-		,I.SAVE_NAME
-		,I.DEL_YN
+		M.MEMBER_NO
+		,N.MEMBER_ID
+		,M.MEMBER_NAME
+		,M.ROLE
+		,M.ORIGINAL_NAME
+		,M.SAVE_NAME
+		,M.IMG_PATH
+		,M.PHONE_NUMBER
+		,M.ENROLL_DATE
+		,M.DEL_YN
 	FROM
 		WELLNESS_MEMBER M
 	LEFT JOIN
-		MEMBER_IMG I
+		WELLNESS_NORMAL_MEMBER N
 	ON
-		M.MEMBER_NO = I.MEMBER_NO
-	AND
-		I.DEL_YN = 'N'
+		M.MEMBER_NO = N.MEMBER_NO
 	WHERE
 		M.MEMBER_NO = #{memberNo}
 </select>

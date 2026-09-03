@@ -1,5 +1,6 @@
 package com.kh.wellness.place.controller;
 
+
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
@@ -11,6 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
+import org.springframework.stereotype.Controller;
+import com.kh.wellness.common.api.ApiResponse;
+import com.kh.wellness.place.model.dto.PlaceResponse;
+
 
 @RestController
 @RequestMapping("/api/place")
@@ -29,4 +35,14 @@ public class PlaceController {
         
         return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", response));
     }
+
+	
+	@GetMapping("/{typeDetailNo}")
+	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){
+		
+		List<PlaceResponse> placeList = placeService.selectPlaces(typeDetailNo);
+		
+		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", placeList));
+	}
+
 }

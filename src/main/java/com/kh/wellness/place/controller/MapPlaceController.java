@@ -1,4 +1,4 @@
-package com.kh.wellness.route.controller;
+package com.kh.wellness.place.controller;
 
 import java.util.List;
 
