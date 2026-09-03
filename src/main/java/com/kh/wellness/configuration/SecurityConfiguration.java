@@ -47,6 +47,12 @@ public class SecurityConfiguration {
 		            requests.requestMatchers(HttpMethod.POST, "/api/members").permitAll();
 		            requests.requestMatchers("/api/email/verifications/**").permitAll();
 
+		            // 지도 핀·장소 검색·길찾기는 회원과 비회원 모두 사용하는 프론트 조회 API
+		            requests.requestMatchers(HttpMethod.GET,
+						"/api/places/pins",
+						"/api/routes",
+						"/api/routes/origins").permitAll();
+
 		            // 회원 상세 - 로그인 필요
 		            requests.requestMatchers("/api/members/detail").authenticated();
 		            
