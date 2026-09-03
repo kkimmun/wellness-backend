@@ -181,6 +181,30 @@ class CourseServiceTest {
     }
 
     @Test
+    void getRecommendedRouteComparesAllSixOrdersForThreeWaypoints() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L, 20L));
+        RouteResponse shortestRoute = routeResponse(7_000);
+        RouteResponse longerRoute = routeResponse(12_000);
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenAnswer(invocation -> {
+                    RouteSearchRequest candidate = invocation.getArgument(0);
+                    return candidate.getWaypointPlaceNos().equals(List.of(20L, 10L, 15L))
+                            ? shortestRoute : longerRoute;
+                });
+
+        assertThat(courseService.getRecommendedRoute(request)).isSameAs(shortestRoute);
+        assertThat(request.getWaypointPlaceNos()).containsExactly(10L, 15L, 20L);
+        ArgumentCaptor<RouteSearchRequest> captor = ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService, times(6)).findRoutes(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(RouteSearchRequest::getWaypointPlaceNos)
+                .containsExactlyInAnyOrder(
+                        List.of(10L, 15L, 20L), List.of(10L, 20L, 15L),
+                        List.of(15L, 10L, 20L), List.of(15L, 20L, 10L),
+                        List.of(20L, 10L, 15L), List.of(20L, 15L, 10L));
+    }
+
+    @Test
     void getRecommendedRouteSearchesOnceWithoutWaypointsAndCopiesRequestValues() {
         RouteSearchRequest request = routeRequest(null);
         RouteResponse route = routeResponse(8_500);
