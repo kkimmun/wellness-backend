@@ -13,7 +13,6 @@
             START_PLACE.PLACE_NAME AS START_PLACE_NAME,
             END_PLACE.PLACE_NO AS END_PLACE_NO,
             END_PLACE.PLACE_NAME AS END_PLACE_NAME,
-            C.ESTIMATED_TIME,
             C.DESCRIPTION
         FROM
             COURSE C
@@ -48,7 +47,6 @@
              , START_PLACE
              , END_PLACE
              , COURSE_NAME
-             , ESTIMATED_TIME
              , DESCRIPTION
           FROM
                COURSE

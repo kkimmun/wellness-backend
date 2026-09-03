@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.wellness.admin.course.model.dao.AdminCourseMapper;
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
@@ -30,6 +31,16 @@ public class AdminCourseService {
     private static final int PAGE_SIZE = 10;
 
     private final AdminCourseMapper adminCourseMapper;
+
+    public AdminCourseDetailResponse getCourse(Long courseNo) {
+        validateCourseNo(courseNo);
+        AdminCourseDetailResponse course = adminCourseMapper.selectCourseDetail(courseNo);
+        if (course == null) {
+            throw new NotFoundException("고정 코스를 찾을 수 없습니다.");
+        }
+        course.setWaypointPlaceNos(adminCourseMapper.selectWaypointPlaceNos(courseNo));
+        return course;
+    }
 
     public PageResponse<AdminCourseListResponse> getCourses(
             int page, String keyword, String active) {
@@ -174,7 +185,6 @@ public class AdminCourseService {
                 .startPlace(request.getStartPlaceNo())
                 .endPlace(request.getEndPlaceNo())
                 .courseName(request.getCourseName().trim())
-                .estimatedTime(request.getEstimatedTime())
                 .description(request.getDescription().trim())
                 .build();
     }

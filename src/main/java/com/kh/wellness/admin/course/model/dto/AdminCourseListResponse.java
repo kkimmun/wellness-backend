@@ -14,7 +14,6 @@ import lombok.Setter;
 public class AdminCourseListResponse {
 	private Long courseNo;
 	private String courseName;
-	private Integer estimatedTime;
 	private String description;
 	private Date createDate;
 	private String active;

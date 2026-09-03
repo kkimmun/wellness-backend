@@ -1,6 +1,6 @@
-package com.kh.wellness.course.model.dto;
+package com.kh.wellness.admin.course.model.dto;
 
-import lombok.AllArgsConstructor;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,14 +8,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class CourseListRow {
-
+public class AdminCourseDetailResponse {
     private Long courseNo;
     private String courseName;
-    private Long startPlaceNo;
-    private String startPlaceName;
-    private Long endPlaceNo;
-    private String endPlaceName;
     private String description;
+    private Long startPlaceNo;
+    private Long endPlaceNo;
+    private String active;
+    private List<Long> waypointPlaceNos;
 }

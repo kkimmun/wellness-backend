@@ -68,7 +68,6 @@ class CourseServiceTest {
                 "김포시청",
                 101L,
                 "문수산성 사찰",
-                210,
                 "자연과 휴식을 중심으로 구성한 힐링 순례 코스입니다.");
         when(courseMapper.countActiveCourses()).thenReturn(1L);
         when(courseMapper.selectActiveCourses(0L, 5)).thenReturn(List.of(row));
@@ -91,7 +90,6 @@ class CourseServiceTest {
                 .startPlace(10L)
                 .endPlace(30L)
                 .courseName("문수산 마음쉴길")
-                .estimatedTime(210)
                 .description("자연과 휴식을 중심으로 구성한 힐링 순례 코스입니다.")
                 .build();
         WaypointDto waypoint = new WaypointDto(
