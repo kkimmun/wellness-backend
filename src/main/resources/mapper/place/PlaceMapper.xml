@@ -4,6 +4,7 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
+ 
 	<select id="selectByPlaceNo"
 	        resultType="PlaceDto">
 		SELECT 
@@ -24,6 +25,67 @@
 		 WHERE
 		       P.PLACE_NO = #{placeNo}
 	</select>
+
+    <select id="selectPlaceDetail" resultType="com.kh.wellness.place.model.dto.PlaceDetailDto">
+        SELECT
+            P.PLACE_NO AS placeNo,
+            P.PLACE_NAME AS placeName,
+            P.PLACE_DESCRIPTION AS placeDescription,
+            P.ADDR AS addr,
+            P.ADDR_DETAIL AS addrDetail,
+            P.PHONE_NUMBER AS phoneNumber,
+            P.VIEW_COUNT AS viewCount,
+            P.X_AXIS AS xAxis,
+            P.Y_AXIS AS yAxis,
+            P.TYPE_DETAIL_NO AS typeDetailNo,
+            TD.TYPE_DETAIL AS typeDetail,
+            T.TYPE AS type,
+            (SELECT COUNT(*) FROM PLACE_REVIEW R WHERE R.PLACE_NO = P.PLACE_NO AND R.DEL_YN = 'N') AS reviewCount,
+            (SELECT NVL(ROUND(AVG(R.RATING), 1), 0.0) FROM PLACE_REVIEW R WHERE R.PLACE_NO = P.PLACE_NO AND R.DEL_YN = 'N') AS avgRating,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM PLACE_BOOKMARK PB
+                    WHERE PB.PLACE_NO = P.PLACE_NO
+                      AND PB.MEMBER_NO = #{memberNo}
+                )
+                THEN 'Y'
+                ELSE 'N'
+            END AS bookmarkYn
+        FROM PLACE P
+        LEFT JOIN TYPE_DETAIL TD
+            ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN TYPE T
+            ON TD.TYPE_NO = T.TYPE_NO
+        WHERE P.PLACE_NO = #{placeNo}
+          AND P.DEL_YN = 'N'
+    </select>
+
+    <select id="selectPlaceImages" resultType="com.kh.wellness.place.model.dto.PlaceImageDto">
+        SELECT
+            IMG_NO AS imgNo,
+            PLACE_NO AS placeNo,
+            ORIGINAL_NAME AS originalName,
+            SAVE_NAME AS saveName,
+            IMG_PATH AS imgPath,
+            IMG_ORDER AS imgOrder
+        FROM PLACE_IMG
+        WHERE PLACE_NO = #{placeNo}
+          AND DEL_YN = 'N'
+        ORDER BY IMG_ORDER
+    </select>
+
+    <select id="selectPlaceTags" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
+        SELECT
+            T.TAG_NO AS tagNo,
+            T.TAG_CONTENT AS tagContent
+        FROM PLACE_TAG PT
+        JOIN TAG T
+            ON PT.TAG_NO = T.TAG_NO
+        WHERE PT.PLACE_NO = #{placeNo}
+        ORDER BY T.TAG_NO
+    </select>
+
 	<select id="selectPlaces"
         resultType="com.kh.wellness.place.model.dto.PlaceResponse">
 		SELECT 
