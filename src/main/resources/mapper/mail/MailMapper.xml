@@ -84,7 +84,7 @@
 	WHERE
 		MEMBER_ID = #{emailAddr}
 	</select>
-		<select id="checkEmailDuplicate">
+		<select id="checkEmailExists">
 	SELECT
 		COUNT(*)
 	FROM
