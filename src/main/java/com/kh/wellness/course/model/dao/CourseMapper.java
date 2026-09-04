@@ -19,6 +19,8 @@ public interface CourseMapper {
             @Param("size") int size);
 
     long countActiveCourses();
+
+    List<PlaceDto> selectRestaurants();
     
     CourseResponse selectByCourseNo(Long courseNo);
 

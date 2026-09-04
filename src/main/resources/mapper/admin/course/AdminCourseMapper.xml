@@ -4,6 +4,36 @@
 
 <mapper namespace="com.kh.wellness.admin.course.model.dao.AdminCourseMapper">
 
+    <select id="selectCourseDetail"
+            resultType="AdminCourseDetailResponse">
+        SELECT 
+        	   COURSE_NO
+        	 , COURSE_NAME
+        	 , DESCRIPTION
+        	 , START_PLACE AS START_PLACE_NO
+        	 , END_PLACE AS END_PLACE_NO
+        	 , ACTIVE
+          FROM
+               COURSE
+         WHERE
+               COURSE_NO = #{courseNo}
+    </select>
+
+    <select id="selectWaypoints" resultType="WaypointDto">
+        SELECT 
+               WAYPOINT_NO
+             , COURSE_NO
+             , PLACE_NO
+             , WAYPOINT_SEQUENCE
+             , WAYPOINT_DESCRIPTION
+          FROM
+               COURSE_WAYPOINT
+         WHERE 
+               COURSE_NO = #{courseNo}
+         ORDER 
+               BY WAYPOINT_SEQUENCE ASC
+    </select>
+
     <sql id="courseFilters">
         <where>
             <if test="keyword != null">
@@ -18,35 +48,35 @@
     <select id="selectCourses"
             resultType="AdminCourseListResponse">
         SELECT
-            COURSE_NO,
-            COURSE_NAME,
-            ESTIMATED_TIME,
-            DESCRIPTION,
-            CREATE_DATE,
-            ACTIVE
-        FROM
-            COURSE
+               COURSE_NO
+             , COURSE_NAME
+             , DESCRIPTION
+             , CREATE_DATE
+             , ACTIVE
+          FROM
+               COURSE
         <include refid="courseFilters" />
-        ORDER BY
-            COURSE_NO DESC
+         ORDER
+            BY
+               COURSE_NO DESC
         OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
     </select>
 
     <select id="countCourses" resultType="long">
         SELECT
-            COUNT(*)
-        FROM
-            COURSE
+               COUNT(*)
+          FROM
+               COURSE
         <include refid="courseFilters" />
     </select>
 
     <select id="countExistingPlaces" resultType="int">
         SELECT
-            COUNT(*)
-        FROM
-            PLACE
-        WHERE
-            PLACE_NO IN
+               COUNT(*)
+          FROM
+               PLACE
+         WHERE
+               PLACE_NO IN
             <foreach collection="list" item="placeNo" open="(" separator="," close=")">
                 #{placeNo}
             </foreach>
@@ -60,13 +90,11 @@
             START_PLACE,
             END_PLACE,
             COURSE_NAME,
-            ESTIMATED_TIME,
             DESCRIPTION
         ) VALUES (
             #{startPlace},
             #{endPlace},
             #{courseName},
-            #{estimatedTime},
             #{description}
         )
     </insert>
@@ -75,11 +103,13 @@
         INSERT INTO COURSE_WAYPOINT (
             COURSE_NO,
             PLACE_NO,
-            WAYPOINT_SEQUENCE
+            WAYPOINT_SEQUENCE,
+            WAYPOINT_DESCRIPTION
         ) VALUES (
             #{courseNo},
             #{placeNo},
-            #{waypointSequence}
+            #{waypointSequence},
+            #{waypointDescription,jdbcType=VARCHAR}
         )
     </insert>
 
@@ -98,7 +128,6 @@
             START_PLACE = #{startPlace},
             END_PLACE = #{endPlace},
             COURSE_NAME = #{courseName},
-            ESTIMATED_TIME = #{estimatedTime},
             DESCRIPTION = #{description}
         WHERE
             COURSE_NO = #{courseNo}

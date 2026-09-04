@@ -12,7 +12,6 @@ public class Course {
     private Long startPlace;
     private Long endPlace;
     private String courseName;
-    private Integer estimatedTime;
     private String description;
     private String active;
 }

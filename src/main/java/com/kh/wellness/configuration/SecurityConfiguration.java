@@ -48,19 +48,24 @@ public class SecurityConfiguration {
 	            // 회원가입 / 이메일 인증
 	            requests.requestMatchers(HttpMethod.POST, "/api/members").permitAll();
 	            requests.requestMatchers("/api/email/verifications/**").permitAll();
+	            requests.requestMatchers("/api/mail/**").permitAll();
 
 	            // 지도 핀·장소 검색·길찾기는 회원과 비회원 모두 사용하는 프론트 조회 API
 	            requests.requestMatchers(HttpMethod.GET,
 					"/api/places/pins",
 					"/api/places/types",
 					"/api/places/tags",
+					"/api/places/*",
 					"/api/places/*/detail",
+					"/api/place/*",
 					"/api/routes",
 					"/api/routes/origins").permitAll();
 
-
 	            // 회원 상세 - 로그인 필요
 	            requests.requestMatchers("/api/members/detail").authenticated();
+
+	            // 코스 조회는 비회원도 사용할 수 있다.
+	            requests.requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll();
 
 	            // 관리자 API - ADMIN만 접근
 	            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");

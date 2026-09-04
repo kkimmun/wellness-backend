@@ -21,6 +21,5 @@ public class CourseResponse {
 	private Long endPlace;
 	private String endPlaceImg;
 	private String courseName;
-	private int estimatedTime;
 	private String description;
 }

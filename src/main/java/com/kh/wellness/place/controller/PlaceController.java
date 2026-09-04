@@ -1,39 +1,32 @@
 package com.kh.wellness.place.controller;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
-import com.kh.wellness.place.model.dto.PlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.service.PlaceService;
 
 import lombok.RequiredArgsConstructor;
 
-@Controller
-@RequestMapping("/api/places")
+@RestController
+@RequestMapping("/api/place")
 @RequiredArgsConstructor
 public class PlaceController {
-	private final PlaceService placeService;
 
-	@GetMapping("/{placeNo}/detail")
-	public ResponseEntity<ApiResponse<PlaceDetailResponse>> getPlaceDetail(
-			@PathVariable(name = "placeNo") Long placeNo) {
-		PlaceDetailResponse place = placeService.getPlaceDetail(placeNo);
-		return ResponseEntity.ok(ApiResponse.success("장소 상세 조회 성공", place));
-	}
-	
-	@GetMapping("/{typeDetailNo}")
-	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){
-		
-		List<PlaceResponse> placeList = placeService.selectPlaces(typeDetailNo);
-		
-		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", placeList));
-	}
+    private final PlaceService placeService;
 
+    @GetMapping("/{placeNo}")
+    public ResponseEntity<ApiResponse<PlaceDetailResponse>> getPlaceDetail(
+            @PathVariable(name = "placeNo") Long placeNo,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberNo = userDetails == null ? null : userDetails.getMemberNo();
+        PlaceDetailResponse response = placeService.getPlaceDetail(placeNo, memberNo);
+        return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", response));
+    }
 }

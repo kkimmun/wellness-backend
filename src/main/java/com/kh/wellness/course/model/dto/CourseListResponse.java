@@ -11,7 +11,6 @@ public class CourseListResponse {
     private String courseName;
     private PlaceResponse startPlace;
     private PlaceResponse endPlace;
-    private Integer estimatedTime;
     private String description;
 
     public static CourseListResponse from(CourseListRow row) {
@@ -20,7 +19,6 @@ public class CourseListResponse {
                 row.getCourseName(),
                 new PlaceResponse(row.getStartPlaceNo(), row.getStartPlaceName()),
                 new PlaceResponse(row.getEndPlaceNo(), row.getEndPlaceName()),
-                row.getEstimatedTime(),
                 row.getDescription());
     }
 }

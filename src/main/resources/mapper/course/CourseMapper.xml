@@ -13,7 +13,6 @@
             START_PLACE.PLACE_NAME AS START_PLACE_NAME,
             END_PLACE.PLACE_NO AS END_PLACE_NO,
             END_PLACE.PLACE_NAME AS END_PLACE_NAME,
-            C.ESTIMATED_TIME,
             C.DESCRIPTION
         FROM
             COURSE C
@@ -48,7 +47,6 @@
              , START_PLACE
              , END_PLACE
              , COURSE_NAME
-             , ESTIMATED_TIME
              , DESCRIPTION
           FROM
                COURSE
@@ -65,6 +63,7 @@
              , W.COURSE_NO
              , W.PLACE_NO
              , W.WAYPOINT_SEQUENCE
+             , W.WAYPOINT_DESCRIPTION
              , P.PLACE_NAME
              , P.X_AXIS
              , P.Y_AXIS
@@ -95,12 +94,15 @@
 	    <id property="placeNo" column="PLACE_NO"/>
 
 	    <result property="placeName" column="PLACE_NAME"/>
+	    <result property="placeDescription" column="PLACE_DESCRIPTION"/>
+	    <result property="addr" column="ADDR"/>
+        <result property="type" column="TYPE"/>
 	    <result property="xAxis" column="X_AXIS"/>
 	    <result property="yAxis" column="Y_AXIS"/>
 	    <result property="imageUrl" column="IMAGE_URL"/>
 	
 	    <collection property="tags"
-	                ofType="CourseTag">
+	                ofType="CourseTag" notNullColumn="TAG_CONTENT">
 	        <result column="TAG_CONTENT"/>
 	    </collection>
 	
@@ -111,6 +113,8 @@
     	SELECT
     	       P.PLACE_NO
     	     , P.PLACE_NAME
+             , P.PLACE_DESCRIPTION
+             , P.ADDR
     	     , P.X_AXIS
     	     , P.Y_AXIS
     	     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
@@ -135,6 +139,41 @@
     	                close=")">
     	       		#{tag}
     	       </foreach>
+    </select>
+
+    <select id="selectRestaurants" resultMap="placeResultMap">
+        SELECT
+               P.PLACE_NO
+             , P.PLACE_NAME
+             , P.PLACE_DESCRIPTION
+             , TRIM(P.ADDR || ' ' || NVL(P.ADDR_DETAIL, '')) AS ADDR
+             , T.TYPE
+             , P.X_AXIS
+             , P.Y_AXIS
+             , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
+             , TG.TAG_CONTENT
+          FROM 
+               PLACE P
+          JOIN 
+               TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+          JOIN 
+               TYPE T ON TD.TYPE_NO = T.TYPE_NO
+          LEFT 
+          JOIN 
+               PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO AND PI.IMG_ORDER = 1
+          LEFT 
+          JOIN 
+               PLACE_TAG PT ON P.PLACE_NO = PT.PLACE_NO
+          LEFT 
+          JOIN 
+               TAG TG ON PT.TAG_NO = TG.TAG_NO
+         WHERE 
+               P.DEL_YN = 'N'
+           AND 
+               T.TYPE_NO = 6
+         ORDER
+            BY
+               P.PLACE_NO
     </select>
 
 </mapper>

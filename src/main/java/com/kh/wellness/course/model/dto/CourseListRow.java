@@ -17,6 +17,5 @@ public class CourseListRow {
     private String startPlaceName;
     private Long endPlaceNo;
     private String endPlaceName;
-    private Integer estimatedTime;
     private String description;
 }

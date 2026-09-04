@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
 import com.kh.wellness.admin.course.model.dto.CourseStatusRequest;
 import com.kh.wellness.admin.course.model.service.AdminCourseService;
@@ -38,6 +39,12 @@ public class AdminCourseController {
 			@RequestParam(name="active", required = false) String active) {
 		PageResponse<AdminCourseListResponse> courses = adminCourseService.getCourses(page, keyword, active);
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 목록 조회 성공", courses));
+	}
+
+	// 활성 여부와 관계없이 관리자 수정 폼에 원본 데이터를 제공한다.
+	@GetMapping("/{courseNo}")
+	public ResponseEntity<ApiResponse<AdminCourseDetailResponse>> getCourse(@PathVariable(name="courseNo") Long courseNo) {
+		return ResponseEntity.ok(ApiResponse.success("고정 코스 상세 조회 성공", adminCourseService.getCourse(courseNo)));
 	}
 
 	@PostMapping
