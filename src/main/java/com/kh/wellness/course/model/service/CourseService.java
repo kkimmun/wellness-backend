@@ -15,6 +15,7 @@ import com.kh.wellness.course.model.dao.CourseMapper;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseListRow;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.CourseRestaurantResponse;
 import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
@@ -30,6 +31,7 @@ import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.service.RouteService;
+import com.kh.wellness.route.util.RouteDistanceCalculator;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class CourseService {
 	private final RouteService routeService;
 	
     private static final int PAGE_SIZE = 5;
+    private static final double RESTAURANT_RADIUS_METERS = 1000;
 
     private final CourseMapper courseMapper;
     private final PlaceService placeService;
@@ -217,6 +220,40 @@ public class CourseService {
 
 
 
+    public List<CourseRestaurantResponse> getRestaurants(RouteSearchRequest request) {
+        if (request.getTransportType() == null || !"WALK".equalsIgnoreCase(request.getTransportType().trim())) {
+            throw new BadRequestException("순례길 음식점은 도보 경로를 기준으로 조회합니다.");
+        }
+        if (request.getWaypointPlaceNos() != null && !request.getWaypointPlaceNos().isEmpty()) {
+            throw new BadRequestException("조회할 한 구간의 출발지와 도착지만 선택해주세요.");
+        }
+        RouteSearchRequest routeRequest = new RouteSearchRequest();
+        routeRequest.setStartPlaceNo(request.getStartPlaceNo());
+        routeRequest.setStartX(request.getStartX());
+        routeRequest.setStartY(request.getStartY());
+        routeRequest.setEndPlaceNo(request.getEndPlaceNo());
+        routeRequest.setEndX(request.getEndX());
+        routeRequest.setEndY(request.getEndY());
+        routeRequest.setTransportType("WALK");
+        routeRequest.setRouteOption(request.getRouteOption() == null || request.getRouteOption().isBlank()
+                ? "SHORTEST" : request.getRouteOption());
+        // 장소/좌표 검증과 실제 도보 경로 조회는 기존 길찾기 서비스를 재사용한다.
+        RouteResponse response = routeService.findRoutes(routeRequest);
+        if (response == null || response.getRoutes() == null || response.getRoutes().isEmpty()
+                || response.getRoutes().getFirst() == null
+                || !RouteDistanceCalculator.isValidPath(response.getRoutes().getFirst().getPath())) {
+            throw new InternalServerException("음식점 조회에 필요한 도보 경로를 확인할 수 없습니다.");
+        }
+        List<CoordinateResponse> path = response.getRoutes().getFirst().getPath();
+        return courseMapper.selectRestaurants().stream()
+                .map(place -> new CourseRestaurantResponse(place, getMinDistanceFromPath(place, path)))
+                // 1km 경계의 부동소수점 오차만 허용한다. 필터링 전에 거리를 반올림하지 않는다.
+                .filter(restaurant -> restaurant.getDistance() <= RESTAURANT_RADIUS_METERS + 1e-6)
+                .sorted(Comparator.comparingDouble(CourseRestaurantResponse::getDistance)
+                        .thenComparing(restaurant -> restaurant.getPlace().getPlaceNo()))
+                .toList();
+    }
+
 	public List<PlaceCandidate> getWaypoints(WaypointsRequest request) {
 		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
 	
@@ -269,55 +306,10 @@ public class CourseService {
 
 	}
 
-	private double getMinDistanceFromPath(
-	        PlaceDto place,
-	        List<CoordinateResponse> path
-	) {
+    private double getMinDistanceFromPath(PlaceDto place, List<CoordinateResponse> path) {
+        return RouteDistanceCalculator.minDistanceMeters(place.getXAxis(), place.getYAxis(), path);
+    }
 
-	    double minDistance = Double.MAX_VALUE;
-
-	    for (CoordinateResponse coordinate : path) {
-
-	        double distance = calculateDistance(
-	                place.getYAxis(),
-	                place.getXAxis(),
-	                coordinate.getYAxis(),
-	                coordinate.getXAxis()
-	        );
-
-	        minDistance = Math.min(minDistance, distance);
-	    }
-
-	    return minDistance;
-	}
-
-	private double calculateDistance(
-	        double lat1,
-	        double lon1,
-	        double lat2,
-	        double lon2
-	) {
-
-	    final double EARTH_RADIUS = 6371000;
-
-	    double latDistance = Math.toRadians(lat2 - lat1);
-	    double lonDistance = Math.toRadians(lon2 - lon1);
-
-	    double a =
-	            Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-	            + Math.cos(Math.toRadians(lat1))
-	            * Math.cos(Math.toRadians(lat2))
-	            * Math.sin(lonDistance / 2)
-	            * Math.sin(lonDistance / 2);
-
-	    double c = 2 * Math.atan2(
-	            Math.sqrt(a),
-	            Math.sqrt(1 - a)
-	    );
-
-	    return EARTH_RADIUS * c;
-	}
-	
 	private double calculateDistanceScore(double distance) {
 
 	    if (distance <= 500) {

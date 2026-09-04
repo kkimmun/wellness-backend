@@ -15,6 +15,7 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.course.model.dto.CourseListResponse;
 import com.kh.wellness.course.model.dto.CourseResponse;
+import com.kh.wellness.course.model.dto.CourseRestaurantResponse;
 import com.kh.wellness.course.model.dto.CustomCourseRequest;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
@@ -56,6 +57,13 @@ public class CourseController {
                 ApiResponse.success("코스 경로 조회 성공", courseService.getRecommendedRoute(request)));
     }
     
+    @PostMapping("/restaurants")
+    public ResponseEntity<ApiResponse<List<CourseRestaurantResponse>>> getRestaurants(
+            @Valid @RequestBody RouteSearchRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("경로 주변 음식점 조회 성공", courseService.getRestaurants(request)));
+    }
+
     @PostMapping("/descriptions")
     public ResponseEntity<ApiResponse<CourseResponse>> getCustomCourse(@Valid @RequestBody CustomCourseRequest request) { 
     	return ResponseEntity.ok(ApiResponse.success("코스 안내 성공", courseService.getCustomCourse(request)));
