@@ -45,7 +45,7 @@ public class SecurityConfiguration {
 
 		            // 회원가입 / 이메일 인증
 		            requests.requestMatchers(HttpMethod.POST, "/api/members").permitAll();
-		            requests.requestMatchers("/api/email/verifications/**").permitAll();
+		            requests.requestMatchers("/api/mail/**").permitAll();
 
 		            // 지도 핀·장소 검색·길찾기는 회원과 비회원 모두 사용하는 프론트 조회 API
 		            requests.requestMatchers(HttpMethod.GET,

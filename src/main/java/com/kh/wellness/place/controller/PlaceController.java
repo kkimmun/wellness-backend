@@ -1,25 +1,44 @@
 package com.kh.wellness.place.controller;
 
-import java.util.List;
 
+import com.kh.wellness.auth.model.vo.CustomUserDetails;
+import com.kh.wellness.common.api.ApiResponse;
+import com.kh.wellness.place.model.dto.PlaceDetailResponse;
+import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.route.model.dto.MapPlaceResponse;
+import com.kh.wellness.route.model.service.RouteService;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
+import org.springframework.stereotype.Controller;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.place.model.dto.PlaceResponse;
-import com.kh.wellness.place.model.service.PlaceService;
 
-import lombok.RequiredArgsConstructor;
 
-@Controller
-@RequestMapping("/api/places")
+@RestController
+@RequestMapping("/api/place")
 @RequiredArgsConstructor
 public class PlaceController {
-	private final PlaceService placeService;
-	
+	private final RouteService routeService;
+    private final PlaceService placeService;
+
+    @GetMapping("/{placeNo}")
+    public ResponseEntity<ApiResponse<PlaceDetailResponse>> getPlaceDetail(
+            @PathVariable("placeNo") Long placeNo,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        Long memberNo = (userDetails != null) ? userDetails.getMemberNo() : null;
+        PlaceDetailResponse response = placeService.getPlaceDetail(placeNo, memberNo);
+        
+        return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", response));
+    }
+
 	@GetMapping("/{typeDetailNo}")
 	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){
 		
@@ -27,5 +46,12 @@ public class PlaceController {
 		
 		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", placeList));
 	}
+	
+    @GetMapping("/pins")
+    public ResponseEntity<ApiResponse<List<MapPlaceResponse>>> findMapPins() {
+        List<MapPlaceResponse> response = routeService.findMapPlaces();
+
+        return ResponseEntity.ok(ApiResponse.success("지도 장소 조회 성공", response));
+    }
 
 }

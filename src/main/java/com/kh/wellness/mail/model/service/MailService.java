@@ -64,10 +64,16 @@ public class MailService {
     }
 
     public void sendAuthMail(AuthMailDto email) throws MessagingException {
-
-        int checkEmail = mailMapper.checkEmailDuplicate(email);
+    	
+    	 int checkUserExist = mailMapper.checkMemberExists(email.getEmailAddr());
+         
+         if(checkUserExist > 0) {
+         	throw new BadRequestException("이미 기등록된 사용자가 존재합니다.");
+         }
+         
+        int checkEmailExist = mailMapper.checkEmailExists(email);
         
-        if(checkEmail > 0) {
+        if(checkEmailExist > 0) {
         	throw new BadRequestException("이미 인증메일이 발송되었습니다.");
         }
         

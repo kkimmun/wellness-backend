@@ -15,15 +15,14 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/places")
 public class MapPlaceController {
 
     private final RouteService routeService;
 
-    @GetMapping("/pins")
+   /* @GetMapping("/pins")
     public ResponseEntity<ApiResponse<List<MapPlaceResponse>>> findMapPins() {
         List<MapPlaceResponse> response = routeService.findMapPlaces();
 
         return ResponseEntity.ok(ApiResponse.success("지도 장소 조회 성공", response));
-    }
+    } */
 }
