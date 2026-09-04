@@ -16,10 +16,13 @@ import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
+import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
+import com.kh.wellness.route.model.dto.PlaceResponse;
+import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +34,7 @@ public class AdminCourseService {
     private static final int PAGE_SIZE = 10;
 
     private final AdminCourseMapper adminCourseMapper;
+    private final CourseService courseService;
 
     public AdminCourseDetailResponse getCourse(Long courseNo) {
         validateCourseNo(courseNo);
@@ -67,15 +71,14 @@ public class AdminCourseService {
         validateDuplicatePlace(request.getStartPlaceNo(),
         					   request.getWaypointPlaceNos(),
         					   request.getEndPlaceNo());
+        List<Long> orderedWaypointPlaceNos = findShortestWaypointOrder(request);
         Course course = toCourse(request, null);
         int result = adminCourseMapper.insertCourse(course);
         if (result != 1 || course.getCourseNo() == null) {
             throw new InternalServerException("고정 코스 등록 중 오류가 발생했습니다.");
         }
-        
-        
 
-        saveWaypoints(course.getCourseNo(), request.getWaypointPlaceNos(),
+        saveWaypoints(course.getCourseNo(), orderedWaypointPlaceNos,
                 "고정 코스 등록 중 오류가 발생했습니다.");
     }
 
@@ -88,13 +91,14 @@ public class AdminCourseService {
                                request.getWaypointPlaceNos(),
                                request.getEndPlaceNo());
 
+        List<Long> orderedWaypointPlaceNos = findShortestWaypointOrder(request);
         int result = adminCourseMapper.updateCourse(toCourse(request, courseNo));
         if (result != 1) {
             throw new InternalServerException("고정 코스 수정 중 오류가 발생했습니다.");
         }
 
         adminCourseMapper.deleteCourseWaypoints(courseNo);
-        saveWaypoints(courseNo, request.getWaypointPlaceNos(),
+        saveWaypoints(courseNo, orderedWaypointPlaceNos,
                 "고정 코스 수정 중 오류가 발생했습니다.");
     }
 
@@ -187,6 +191,27 @@ public class AdminCourseService {
                 .courseName(request.getCourseName().trim())
                 .description(request.getDescription().trim())
                 .build();
+    }
+
+    private List<Long> findShortestWaypointOrder(AdminCourseRequest request) {
+        List<Long> waypointPlaceNos = request.getWaypointPlaceNos();
+        if (waypointPlaceNos == null || waypointPlaceNos.isEmpty()) {
+            return List.of();
+        }
+        if (waypointPlaceNos.size() == 1) {
+            return waypointPlaceNos;
+        }
+
+        RouteSearchRequest routeRequest = new RouteSearchRequest();
+        routeRequest.setStartPlaceNo(request.getStartPlaceNo());
+        routeRequest.setEndPlaceNo(request.getEndPlaceNo());
+        routeRequest.setWaypointPlaceNos(waypointPlaceNos);
+        routeRequest.setTransportType("WALK");
+        routeRequest.setRouteOption("SHORTEST");
+
+        return courseService.getRecommendedRoute(routeRequest).getWaypoints().stream()
+                .map(PlaceResponse::getPlaceNo)
+                .toList();
     }
 
     private void saveWaypoints(
