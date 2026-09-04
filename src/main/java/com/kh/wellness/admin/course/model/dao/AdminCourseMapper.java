@@ -1,6 +1,7 @@
 package com.kh.wellness.admin.course.model.dao;
 
 import java.util.List;
+import com.kh.wellness.course.model.dto.WaypointDto;
 
 
 import org.apache.ibatis.annotations.Mapper;
@@ -16,7 +17,7 @@ public interface AdminCourseMapper {
 
     AdminCourseDetailResponse selectCourseDetail(@Param("courseNo") Long courseNo);
 
-    List<Long> selectWaypointPlaceNos(@Param("courseNo") Long courseNo);
+    List<WaypointDto> selectWaypoints(@Param("courseNo") Long courseNo);
 
 	List<AdminCourseListResponse> selectCourses(@Param("keyword") String keyword, @Param("active") String active,
 			@Param("offset") long offset, @Param("size") int size);

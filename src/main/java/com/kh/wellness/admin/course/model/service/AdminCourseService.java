@@ -2,6 +2,8 @@ package com.kh.wellness.admin.course.model.service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,8 @@ import com.kh.wellness.admin.course.model.dao.AdminCourseMapper;
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
+import com.kh.wellness.admin.course.model.dto.AdminCourseWaypointRequest;
+import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
@@ -42,7 +46,9 @@ public class AdminCourseService {
         if (course == null) {
             throw new NotFoundException("고정 코스를 찾을 수 없습니다.");
         }
-        course.setWaypointPlaceNos(adminCourseMapper.selectWaypointPlaceNos(courseNo));
+        List<WaypointDto> waypoints = adminCourseMapper.selectWaypoints(courseNo);
+        course.setWaypoints(waypoints);
+        course.setWaypointPlaceNos(waypoints.stream().map(WaypointDto::getPlaceNo).toList());
         return course;
     }
 
@@ -67,6 +73,9 @@ public class AdminCourseService {
 
     @Transactional
     public void saveCourse(AdminCourseRequest request) {
+        if (!request.isWaypointSelectionConsistent()) {
+            throw new BadRequestException("중간 관광지 번호 목록과 상세 목록이 일치해야 합니다.");
+        }
         validatePlaces(request);
         validateDuplicatePlace(request.getStartPlaceNo(),
         					   request.getWaypointPlaceNos(),
@@ -78,7 +87,7 @@ public class AdminCourseService {
             throw new InternalServerException("고정 코스 등록 중 오류가 발생했습니다.");
         }
 
-        saveWaypoints(course.getCourseNo(), orderedWaypointPlaceNos,
+        saveWaypoints(course.getCourseNo(), orderedWaypointPlaceNos, waypointDescriptions(request, null),
                 "고정 코스 등록 중 오류가 발생했습니다.");
     }
 
@@ -86,6 +95,9 @@ public class AdminCourseService {
     public void updateCourse(Long courseNo, AdminCourseRequest request) {
         validateCourseNo(courseNo);
         validateCourseExists(courseNo);
+        if (!request.isWaypointSelectionConsistent()) {
+            throw new BadRequestException("중간 관광지 번호 목록과 상세 목록이 일치해야 합니다.");
+        }
         validatePlaces(request);
         validateDuplicatePlace(request.getStartPlaceNo(),
                                request.getWaypointPlaceNos(),
@@ -97,8 +109,9 @@ public class AdminCourseService {
             throw new InternalServerException("고정 코스 수정 중 오류가 발생했습니다.");
         }
 
+        Map<Long, String> descriptions = waypointDescriptions(request, courseNo);
         adminCourseMapper.deleteCourseWaypoints(courseNo);
-        saveWaypoints(courseNo, orderedWaypointPlaceNos,
+        saveWaypoints(courseNo, orderedWaypointPlaceNos, descriptions,
                 "고정 코스 수정 중 오류가 발생했습니다.");
     }
 
@@ -214,8 +227,24 @@ public class AdminCourseService {
                 .toList();
     }
 
+    private Map<Long, String> waypointDescriptions(AdminCourseRequest request, Long courseNo) {
+        Map<Long, String> descriptions = new HashMap<>();
+        if (request.getWaypoints() != null) {
+            for (AdminCourseWaypointRequest waypoint : request.getWaypoints()) {
+                descriptions.put(waypoint.getPlaceNo(), waypoint.getWaypointDescription());
+            }
+        } else if (courseNo != null) {
+            // 기존 번호 목록으로 수정할 때도 남아 있는 관광지의 설명을 보존한다.
+            for (WaypointDto waypoint : adminCourseMapper.selectWaypoints(courseNo)) {
+                descriptions.put(waypoint.getPlaceNo(), waypoint.getWaypointDescription());
+            }
+        }
+        return descriptions;
+    }
+
     private void saveWaypoints(
-            Long courseNo, List<Long> waypointPlaceNos, String errorMessage) {
+            Long courseNo, List<Long> waypointPlaceNos,
+            Map<Long, String> descriptions, String errorMessage) {
         if (waypointPlaceNos == null || waypointPlaceNos.isEmpty()) {
             return;
         }
@@ -225,6 +254,7 @@ public class AdminCourseService {
                     .courseNo(courseNo)
                     .placeNo(waypointPlaceNos.get(index))
                     .waypointSequence(index + 1)
+                    .waypointDescription(descriptions.get(waypointPlaceNos.get(index)))
                     .build();
             if (adminCourseMapper.insertCourseWaypoint(waypoint) != 1) {
                 throw new InternalServerException(errorMessage);

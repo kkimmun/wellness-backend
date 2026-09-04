@@ -14,6 +14,7 @@ public class WaypointDto {
     private Long courseNo;
     private Long placeNo;
     private Integer waypointSequence;
+    private String waypointDescription;
 	private String placeName;
 	private Double xAxis;
 	private Double yAxis;

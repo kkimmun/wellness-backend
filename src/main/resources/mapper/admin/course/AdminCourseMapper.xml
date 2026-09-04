@@ -12,8 +12,8 @@
         WHERE COURSE_NO = #{courseNo}
     </select>
 
-    <select id="selectWaypointPlaceNos" resultType="long">
-        SELECT PLACE_NO
+    <select id="selectWaypoints" resultType="com.kh.wellness.course.model.dto.WaypointDto">
+        SELECT WAYPOINT_NO, COURSE_NO, PLACE_NO, WAYPOINT_SEQUENCE, WAYPOINT_DESCRIPTION
         FROM COURSE_WAYPOINT
         WHERE COURSE_NO = #{courseNo}
         ORDER BY WAYPOINT_SEQUENCE ASC
@@ -87,11 +87,13 @@
         INSERT INTO COURSE_WAYPOINT (
             COURSE_NO,
             PLACE_NO,
-            WAYPOINT_SEQUENCE
+            WAYPOINT_SEQUENCE,
+            WAYPOINT_DESCRIPTION
         ) VALUES (
             #{courseNo},
             #{placeNo},
-            #{waypointSequence}
+            #{waypointSequence},
+            #{waypointDescription,jdbcType=VARCHAR}
         )
     </insert>
 

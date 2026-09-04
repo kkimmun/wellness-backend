@@ -1,6 +1,7 @@
 package com.kh.wellness.admin.course.model.dto;
 
 import java.util.List;
+import com.kh.wellness.course.model.dto.WaypointDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,4 +17,5 @@ public class AdminCourseDetailResponse {
     private Long endPlaceNo;
     private String active;
     private List<Long> waypointPlaceNos;
+    private List<WaypointDto> waypoints;
 }
