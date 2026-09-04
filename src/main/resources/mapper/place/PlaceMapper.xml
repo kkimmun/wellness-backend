@@ -4,6 +4,45 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
+	<select id="selectPlaceDetail"
+	        resultType="com.kh.wellness.place.model.dto.PlaceDetailResponse">
+		SELECT
+		       P.PLACE_NO
+		     , P.PLACE_NAME
+		     , P.PLACE_DESCRIPTION
+		     , P.ADDR
+		     , P.ADDR_DETAIL
+		     , P.PHONE_NUMBER AS PHONE
+		     , T.TYPE
+		     , TD.TYPE_DETAIL
+		     , P.X_AXIS
+		     , P.Y_AXIS
+		  FROM
+		       PLACE P
+		  LEFT JOIN
+		       TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+		  LEFT JOIN
+		       TYPE T ON TD.TYPE_NO = T.TYPE_NO
+		 WHERE
+		       P.PLACE_NO = #{placeNo}
+		   AND P.DEL_YN = 'N'
+	</select>
+
+	<select id="selectPlaceImages"
+	        resultType="com.kh.wellness.place.model.dto.PlaceImageResponse">
+		SELECT
+		       IMG_ORDER
+		     , IMG_PATH || SAVE_NAME AS IMAGE_URL
+		  FROM
+		       PLACE_IMG
+		 WHERE
+		       PLACE_NO = #{placeNo}
+		   AND DEL_YN = 'N'
+		 ORDER BY
+		       IMG_ORDER
+		     , IMG_NO
+	</select>
+
 	<select id="selectByPlaceNo"
 	        resultType="PlaceDto">
 		SELECT 
@@ -13,17 +52,22 @@
 		     , P.ADDR
 		     , P.X_AXIS
 		     , P.Y_AXIS
-		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
+		     , (
+		       SELECT
+		              MAX(PI.IMG_PATH || PI.SAVE_NAME)
+		              KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+		         FROM
+		              PLACE_IMG PI
+		        WHERE
+		              PI.PLACE_NO = P.PLACE_NO
+		          AND PI.DEL_YN = 'N'
+		       ) AS IMAGE_URL
 		  FROM
 		       PLACE P
-		  LEFT
-		  JOIN
-		       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO
-		   AND
-		       PI.IMG_ORDER = 1
 		 WHERE
 		       P.PLACE_NO = #{placeNo}
 	</select>
+
 	<select id="selectPlaces"
         resultType="com.kh.wellness.place.model.dto.PlaceResponse">
 		SELECT 
@@ -33,16 +77,161 @@
 		     , P.ADDR
 		     , P.X_AXIS
 		     , P.Y_AXIS
-		     , PI.IMG_PATH
+		     , (
+		       SELECT
+		              MAX(PI.IMG_PATH || PI.SAVE_NAME)
+		              KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+		         FROM
+		              PLACE_IMG PI
+		        WHERE
+		              PI.PLACE_NO = P.PLACE_NO
+		          AND PI.DEL_YN = 'N'
+		       ) AS IMAGE_URL
 		FROM
 			TYPE_DETAIL T
 		LEFT
 		JOIN
 			PLACE P ON P.TYPE_DETAIL_NO = T.TYPE_DETAIL_NO
-		LEFT
-		JOIN
-			PLACE_IMG PI ON PI.PLACE_NO = P.PLACE_NO
 		WHERE
 			T.TYPE_DETAIL_NO = #{typeDetailNo}
 	</select>
+
+    <select id="findMapPlaces"
+            resultType="MapPlace">
+        SELECT
+                P.PLACE_NO,
+                P.PLACE_NAME,
+                P.PLACE_DESCRIPTION,
+                P.ADDR,
+                P.ADDR_DETAIL,
+                P.PHONE_NUMBER AS PHONE,
+                T.TYPE,
+                TD.TYPE_DETAIL,
+                P.VIEW_COUNT,
+                P.X_AXIS,
+                P.Y_AXIS,
+                (
+                    SELECT
+                            MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                            KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+                    FROM
+                            PLACE_IMG PI
+                    WHERE
+                            PI.PLACE_NO = P.PLACE_NO
+                    AND
+                            PI.DEL_YN = 'N'
+                ) AS IMAGE_URL
+        FROM
+                PLACE P
+        LEFT JOIN
+                TYPE_DETAIL TD
+        ON
+                P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN
+                TYPE T
+        ON
+                TD.TYPE_NO = T.TYPE_NO
+        WHERE
+                P.DEL_YN = 'N'
+        ORDER BY
+                P.PLACE_NO
+    </select>
+
+    <select id="findMapPlacesByType"
+            resultType="MapPlace">
+        SELECT DISTINCT
+                P.PLACE_NO,
+                P.PLACE_NAME,
+                P.PLACE_DESCRIPTION,
+                P.ADDR,
+                P.ADDR_DETAIL,
+                P.PHONE_NUMBER AS PHONE,
+                T.TYPE,
+                TD.TYPE_DETAIL,
+                P.VIEW_COUNT,
+                P.X_AXIS,
+                P.Y_AXIS,
+                (
+                    SELECT
+                            MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                            KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+                    FROM
+                            PLACE_IMG PI
+                    WHERE
+                            PI.PLACE_NO = P.PLACE_NO
+                    AND
+                            PI.DEL_YN = 'N'
+                ) AS IMAGE_URL
+        FROM
+                PLACE P
+        JOIN
+                TYPE_DETAIL TD
+        ON
+                P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        JOIN
+                TYPE T
+        ON
+                TD.TYPE_NO = T.TYPE_NO
+        WHERE
+                P.DEL_YN = 'N'
+        AND
+                (T.TYPE = #{type} OR TD.TYPE_DETAIL = #{type})
+        ORDER BY
+                P.PLACE_NO
+    </select>
+
+    <select id="findMapPlacesByTag"
+            resultType="MapPlace">
+        SELECT
+                P.PLACE_NO,
+                P.PLACE_NAME,
+                P.PLACE_DESCRIPTION,
+                P.ADDR,
+                P.ADDR_DETAIL,
+                P.PHONE_NUMBER AS PHONE,
+                T.TYPE,
+                TD.TYPE_DETAIL,
+                P.VIEW_COUNT,
+                P.X_AXIS,
+                P.Y_AXIS,
+                (
+                    SELECT
+                            MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                            KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+                    FROM
+                            PLACE_IMG PI
+                    WHERE
+                            PI.PLACE_NO = P.PLACE_NO
+                    AND
+                            PI.DEL_YN = 'N'
+                ) AS IMAGE_URL
+        FROM
+                PLACE P
+        LEFT JOIN
+                TYPE_DETAIL TD
+        ON
+                P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN
+                TYPE T
+        ON
+                TD.TYPE_NO = T.TYPE_NO
+        WHERE
+                P.DEL_YN = 'N'
+        AND EXISTS (
+            SELECT
+                    1
+            FROM
+                    PLACE_TAG PT
+            JOIN
+                    TAG TG
+            ON
+                    PT.TAG_NO = TG.TAG_NO
+            WHERE
+                    PT.PLACE_NO = P.PLACE_NO
+            AND
+                    TG.TAG_CONTENT = #{tag}
+        )
+        ORDER BY
+                P.PLACE_NO
+    </select>
 </mapper>

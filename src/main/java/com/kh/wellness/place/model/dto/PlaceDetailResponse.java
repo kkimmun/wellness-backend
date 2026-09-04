@@ -1,15 +1,17 @@
-package com.kh.wellness.route.model.dto;
+package com.kh.wellness.place.model.dto;
+
+import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MapPlaceResponse {
+public class PlaceDetailResponse {
 
     private Long placeNo;
     private String placeName;
@@ -18,7 +20,8 @@ public class MapPlaceResponse {
     private String addrDetail;
     private String phone;
     private String type;
-    private Long viewCount;
+    private String typeDetail;
     private Double xAxis;
     private Double yAxis;
+    private List<PlaceImageResponse> placeImages;
 }

@@ -54,6 +54,7 @@ public class SecurityConfiguration {
 					"/api/places/pins",
 					"/api/places/types",
 					"/api/places/tags",
+					"/api/places/*/detail",
 					"/api/routes",
 					"/api/routes/origins").permitAll();
 

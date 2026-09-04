@@ -15,4 +15,5 @@ public class PlaceImageResponse {
 	private String imgPath;
 	private String originalName;
 	private String saveName;
+	private String imageUrl;
 }

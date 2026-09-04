@@ -13,14 +13,12 @@ import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
-import com.kh.wellness.route.model.dto.MapPlaceResponse;
 import com.kh.wellness.route.model.dto.OriginSearchResponse;
 import com.kh.wellness.route.model.dto.PlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.dto.RouteStepResponse;
-import com.kh.wellness.route.model.vo.MapPlace;
 import com.kh.wellness.route.model.vo.Place;
 import com.kh.wellness.route.model.vo.RouteOption;
 import com.kh.wellness.route.model.vo.TransitSortType;
@@ -90,28 +88,6 @@ public class RouteService {
                         .yAxis(place.getYAxis())
                         .build())
                 .toList();
-    }
-
-    public List<MapPlaceResponse> findMapPlaces() {
-        return routeMapper.findMapPlaces()
-                .stream()
-                .map(this::toMapPlaceResponse)
-                .toList();
-    }
-
-    private MapPlaceResponse toMapPlaceResponse(MapPlace place) {
-        return MapPlaceResponse.builder()
-                .placeNo(place.getPlaceNo())
-                .placeName(place.getPlaceName())
-                .placeDescription(place.getPlaceDescription())
-                .addr(place.getAddr())
-                .addrDetail(place.getAddrDetail())
-                .phone(place.getPhone())
-                .type(place.getType())
-                .viewCount(place.getViewCount())
-                .xAxis(place.getXAxis())
-                .yAxis(place.getYAxis())
-                .build();
     }
 
     private RouteResponse findCarRoutes(

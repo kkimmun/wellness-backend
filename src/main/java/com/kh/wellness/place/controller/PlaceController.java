@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.place.model.dto.PlaceResponse;
+import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.service.PlaceService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PlaceController {
 	private final PlaceService placeService;
+
+	@GetMapping("/{placeNo}/detail")
+	public ResponseEntity<ApiResponse<PlaceDetailResponse>> getPlaceDetail(
+			@PathVariable(name = "placeNo") Long placeNo) {
+		PlaceDetailResponse place = placeService.getPlaceDetail(placeNo);
+		return ResponseEntity.ok(ApiResponse.success("장소 상세 조회 성공", place));
+	}
 	
 	@GetMapping("/{typeDetailNo}")
 	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){

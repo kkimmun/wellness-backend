@@ -7,12 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class PlaceResponse {
-	private Long placeNo;
-	private String placeName;
-	private Double xAxis;
-	private Double yAxis;
-	private String imageUrl;
+@AllArgsConstructor
+public class PlaceImageResponse {
+
+    private Integer imgOrder;
+    private String imageUrl;
 }
