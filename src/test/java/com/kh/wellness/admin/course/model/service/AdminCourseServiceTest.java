@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.kh.wellness.admin.course.model.dao.AdminCourseMapper;
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
 import com.kh.wellness.admin.course.model.service.AdminCourseService;
 import com.kh.wellness.admin.course.model.vo.Course;
@@ -50,7 +51,7 @@ class AdminCourseServiceTest {
     @Test
     void getCoursesAppliesFiltersAndPagination() {
         AdminCourseListResponse row = new AdminCourseListResponse(
-                101L, "김포 힐링 코스", 180, "설명", Date.valueOf("2026-08-20"), "Y");
+                101L, "김포 힐링 코스", "설명", Date.valueOf("2026-08-20"), "Y");
         when(adminCourseMapper.countCourses("힐링", "Y")).thenReturn(1L);
         when(adminCourseMapper.selectCourses("힐링", "Y", 10L, 10))
                 .thenReturn(List.of(row));
@@ -172,10 +173,42 @@ class AdminCourseServiceTest {
     private AdminCourseRequest request(List<Long> waypointPlaceNos) {
         return new AdminCourseRequest(
                 "김포 힐링 순례길",
-                120,
                 "전통 사찰과 웰니스 관광지를 둘러보는 코스입니다.",
                 1L,
                 waypointPlaceNos,
                 20L);
+    }
+
+    @Test
+    void getCourseReturnsInactiveCourseAndOrderedWaypointsForEditing() {
+        AdminCourseDetailResponse detail = new AdminCourseDetailResponse();
+        detail.setCourseNo(101L);
+        detail.setActive("N");
+        detail.setStartPlaceNo(1L);
+        detail.setEndPlaceNo(20L);
+        when(adminCourseMapper.selectCourseDetail(101L)).thenReturn(detail);
+        when(adminCourseMapper.selectWaypointPlaceNos(101L)).thenReturn(List.of(8L, 5L));
+
+        AdminCourseDetailResponse result = adminCourseService.getCourse(101L);
+
+        assertThat(result.getActive()).isEqualTo("N");
+        assertThat(result.getStartPlaceNo()).isEqualTo(1L);
+        assertThat(result.getEndPlaceNo()).isEqualTo(20L);
+        assertThat(result.getWaypointPlaceNos()).containsExactly(8L, 5L);
+    }
+
+    @Test
+    void getCourseRejectsMissingCourseWithoutReadingWaypoints() {
+        when(adminCourseMapper.selectCourseDetail(999L)).thenReturn(null);
+        assertThatThrownBy(() -> adminCourseService.getCourse(999L))
+                .isInstanceOf(NotFoundException.class);
+        verify(adminCourseMapper, never()).selectWaypointPlaceNos(any());
+    }
+
+    @Test
+    void getCourseRejectsInvalidNumberBeforeQuerying() {
+        assertThatThrownBy(() -> adminCourseService.getCourse(0L))
+                .isInstanceOf(BadRequestException.class);
+        verify(adminCourseMapper, never()).selectCourseDetail(any());
     }
 }

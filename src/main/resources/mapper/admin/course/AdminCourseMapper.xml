@@ -4,6 +4,21 @@
 
 <mapper namespace="com.kh.wellness.admin.course.model.dao.AdminCourseMapper">
 
+    <select id="selectCourseDetail"
+            resultType="com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse">
+        SELECT COURSE_NO, COURSE_NAME, DESCRIPTION,
+               START_PLACE AS START_PLACE_NO, END_PLACE AS END_PLACE_NO, ACTIVE
+        FROM COURSE
+        WHERE COURSE_NO = #{courseNo}
+    </select>
+
+    <select id="selectWaypointPlaceNos" resultType="long">
+        SELECT PLACE_NO
+        FROM COURSE_WAYPOINT
+        WHERE COURSE_NO = #{courseNo}
+        ORDER BY WAYPOINT_SEQUENCE ASC
+    </select>
+
     <sql id="courseFilters">
         <where>
             <if test="keyword != null">
@@ -20,7 +35,6 @@
         SELECT
             COURSE_NO,
             COURSE_NAME,
-            ESTIMATED_TIME,
             DESCRIPTION,
             CREATE_DATE,
             ACTIVE
@@ -60,13 +74,11 @@
             START_PLACE,
             END_PLACE,
             COURSE_NAME,
-            ESTIMATED_TIME,
             DESCRIPTION
         ) VALUES (
             #{startPlace},
             #{endPlace},
             #{courseName},
-            #{estimatedTime},
             #{description}
         )
     </insert>
@@ -98,7 +110,6 @@
             START_PLACE = #{startPlace},
             END_PLACE = #{endPlace},
             COURSE_NAME = #{courseName},
-            ESTIMATED_TIME = #{estimatedTime},
             DESCRIPTION = #{description}
         WHERE
             COURSE_NO = #{courseNo}

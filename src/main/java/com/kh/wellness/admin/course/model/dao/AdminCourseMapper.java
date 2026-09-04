@@ -7,11 +7,16 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 
 @Mapper
 public interface AdminCourseMapper {
+
+    AdminCourseDetailResponse selectCourseDetail(@Param("courseNo") Long courseNo);
+
+    List<Long> selectWaypointPlaceNos(@Param("courseNo") Long courseNo);
 
 	List<AdminCourseListResponse> selectCourses(@Param("keyword") String keyword, @Param("active") String active,
 			@Param("offset") long offset, @Param("size") int size);

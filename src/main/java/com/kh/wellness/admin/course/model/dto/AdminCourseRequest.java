@@ -19,10 +19,6 @@ public class AdminCourseRequest {
 	@Size(max = 100, message = "코스명은 100자 이하로 입력해야 합니다.")
 	private String courseName;
 
-	@NotNull(message = "예상 소요시간은 필수입니다.")
-	@Positive(message = "예상 소요시간은 1분 이상이어야 합니다.")
-	private Integer estimatedTime;
-
 	@NotBlank(message = "코스 설명은 필수입니다.")
 	@Size(max = 500, message = "코스 설명은 500자 이하로 입력해야 합니다.")
 	private String description;
