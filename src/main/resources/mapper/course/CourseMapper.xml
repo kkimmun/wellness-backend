@@ -93,6 +93,8 @@
 	    <id property="placeNo" column="PLACE_NO"/>
 
 	    <result property="placeName" column="PLACE_NAME"/>
+	    <result property="placeDescription" column="PLACE_DESCRIPTION"/>
+	    <result property="addr" column="ADDR"/>
 	    <result property="xAxis" column="X_AXIS"/>
 	    <result property="yAxis" column="Y_AXIS"/>
 	    <result property="imageUrl" column="IMAGE_URL"/>
@@ -109,6 +111,8 @@
     	SELECT
     	       P.PLACE_NO
     	     , P.PLACE_NAME
+             , P.PLACE_DESCRIPTION
+             , P.ADDR
     	     , P.X_AXIS
     	     , P.Y_AXIS
     	     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL

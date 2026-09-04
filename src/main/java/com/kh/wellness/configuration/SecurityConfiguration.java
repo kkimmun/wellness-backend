@@ -59,6 +59,9 @@ public class SecurityConfiguration {
 		            // 장소 관련 
 		            requests.requestMatchers("/api/places/*").permitAll();
 
+		            // 코스 관련
+		            requests.requestMatchers("/api/courses/**").permitAll();
+
 		            // 관리자 API - ADMIN만 접근
 		            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
 

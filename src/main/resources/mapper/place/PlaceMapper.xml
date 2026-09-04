@@ -33,7 +33,7 @@
 		     , P.ADDR
 		     , P.X_AXIS
 		     , P.Y_AXIS
-		     , PI.IMG_PATH
+		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
 		FROM
 			TYPE_DETAIL T
 		LEFT
@@ -42,7 +42,10 @@
 		LEFT
 		JOIN
 			PLACE_IMG PI ON PI.PLACE_NO = P.PLACE_NO
+			            AND PI.IMG_ORDER = 1
 		WHERE
 			T.TYPE_DETAIL_NO = #{typeDetailNo}
+			AND P.DEL_YN = 'N'
+		ORDER BY P.PLACE_NO
 	</select>
 </mapper>
