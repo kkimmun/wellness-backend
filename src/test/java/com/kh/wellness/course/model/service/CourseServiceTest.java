@@ -427,6 +427,25 @@ class CourseServiceTest {
     }
 
     @Test
+    void restaurantsReturnOnlyTenNearestAfterFilteringAndSorting() {
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(-0.02, 0), coordinate(0.02, 0)));
+        // Farther and excluded places arrive first; equal distances use place number.
+        when(courseMapper.selectRestaurants()).thenReturn(List.of(
+                restaurant(99L, 1100), restaurant(12L, 900), restaurant(11L, 800),
+                restaurant(10L, 800), restaurant(9L, 700), restaurant(8L, 600),
+                restaurant(7L, 500), restaurant(6L, 400), restaurant(5L, 300),
+                restaurant(4L, 200), restaurant(3L, 150), restaurant(2L, 100),
+                restaurant(1L, 50)));
+
+        var result = courseService.getRestaurants(restaurantRequest());
+
+        assertThat(result).extracting(item -> item.getPlace().getPlaceNo())
+                .containsExactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+        assertThat(result).extracting(item -> item.getDistance()).isSorted();
+    }
+
+    @Test
     void restaurantsSupportCoordinateOriginAndExistingWalkOption() {
         RouteSearchRequest request = restaurantRequest();
         request.setStartPlaceNo(null);

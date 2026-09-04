@@ -47,6 +47,7 @@ public class CourseService {
 	
     private static final int PAGE_SIZE = 5;
     private static final double RESTAURANT_RADIUS_METERS = 1000;
+    private static final int RESTAURANT_LIMIT = 10;
 
     private final CourseMapper courseMapper;
     private final PlaceService placeService;
@@ -251,6 +252,7 @@ public class CourseService {
                 .filter(restaurant -> restaurant.getDistance() <= RESTAURANT_RADIUS_METERS + 1e-6)
                 .sorted(Comparator.comparingDouble(CourseRestaurantResponse::getDistance)
                         .thenComparing(restaurant -> restaurant.getPlace().getPlaceNo()))
+                .limit(RESTAURANT_LIMIT)
                 .toList();
     }
 
