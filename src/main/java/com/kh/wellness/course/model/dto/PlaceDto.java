@@ -20,6 +20,8 @@ import lombok.ToString;
 public class PlaceDto {
 	private Long placeNo;
 	private String placeName;
+	private String placeDescription;
+	private String addr;
 	private String type;
 	private Double xAxis;
 	private Double yAxis;
