@@ -5,18 +5,33 @@
 <mapper namespace="com.kh.wellness.admin.course.model.dao.AdminCourseMapper">
 
     <select id="selectCourseDetail"
-            resultType="com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse">
-        SELECT COURSE_NO, COURSE_NAME, DESCRIPTION,
-               START_PLACE AS START_PLACE_NO, END_PLACE AS END_PLACE_NO, ACTIVE
-        FROM COURSE
-        WHERE COURSE_NO = #{courseNo}
+            resultType="AdminCourseDetailResponse">
+        SELECT 
+        	   COURSE_NO
+        	 , COURSE_NAME
+        	 , DESCRIPTION
+        	 , START_PLACE AS START_PLACE_NO
+        	 , END_PLACE AS END_PLACE_NO
+        	 , ACTIVE
+          FROM
+               COURSE
+         WHERE
+               COURSE_NO = #{courseNo}
     </select>
 
-    <select id="selectWaypoints" resultType="com.kh.wellness.course.model.dto.WaypointDto">
-        SELECT WAYPOINT_NO, COURSE_NO, PLACE_NO, WAYPOINT_SEQUENCE, WAYPOINT_DESCRIPTION
-        FROM COURSE_WAYPOINT
-        WHERE COURSE_NO = #{courseNo}
-        ORDER BY WAYPOINT_SEQUENCE ASC
+    <select id="selectWaypoints" resultType="WaypointDto">
+        SELECT 
+               WAYPOINT_NO
+             , COURSE_NO
+             , PLACE_NO
+             , WAYPOINT_SEQUENCE
+             , WAYPOINT_DESCRIPTION
+          FROM
+               COURSE_WAYPOINT
+         WHERE 
+               COURSE_NO = #{courseNo}
+         ORDER 
+               BY WAYPOINT_SEQUENCE ASC
     </select>
 
     <sql id="courseFilters">
@@ -33,34 +48,35 @@
     <select id="selectCourses"
             resultType="AdminCourseListResponse">
         SELECT
-            COURSE_NO,
-            COURSE_NAME,
-            DESCRIPTION,
-            CREATE_DATE,
-            ACTIVE
-        FROM
-            COURSE
+               COURSE_NO
+             , COURSE_NAME
+             , DESCRIPTION
+             , CREATE_DATE
+             , ACTIVE
+          FROM
+               COURSE
         <include refid="courseFilters" />
-        ORDER BY
-            COURSE_NO DESC
+         ORDER
+            BY
+               COURSE_NO DESC
         OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
     </select>
 
     <select id="countCourses" resultType="long">
         SELECT
-            COUNT(*)
-        FROM
-            COURSE
+               COUNT(*)
+          FROM
+               COURSE
         <include refid="courseFilters" />
     </select>
 
     <select id="countExistingPlaces" resultType="int">
         SELECT
-            COUNT(*)
-        FROM
-            PLACE
-        WHERE
-            PLACE_NO IN
+               COUNT(*)
+          FROM
+               PLACE
+         WHERE
+               PLACE_NO IN
             <foreach collection="list" item="placeNo" open="(" separator="," close=")">
                 #{placeNo}
             </foreach>

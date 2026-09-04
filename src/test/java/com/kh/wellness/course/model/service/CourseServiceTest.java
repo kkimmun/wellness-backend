@@ -31,6 +31,7 @@ import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.enums.CourseTag;
 import com.kh.wellness.exception.InternalServerException;
+import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.place.model.service.PlaceService;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
@@ -398,6 +399,112 @@ class CourseServiceTest {
         assertThatThrownBy(() -> courseService.getWaypoints(request))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("잠시 후에 다시 시도해주세요.");
+    }
+
+    @Test
+    void restaurantsIncludeOneKilometerBoundaryAndSortByDistance() {
+        RouteSearchRequest request = restaurantRequest();
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(-0.02, 0), coordinate(0.02, 0)));
+        PlaceDto boundary = restaurant(1L, 1000);
+        PlaceDto near = restaurant(2L, 500);
+        PlaceDto outside = restaurant(3L, 1000.01);
+        PlaceDto invalid = restaurant(4L, 100);
+        invalid.setXAxis(null);
+        when(courseMapper.selectRestaurants()).thenReturn(List.of(boundary, outside, near, invalid));
+
+        var result = courseService.getRestaurants(request);
+
+        assertThat(result).extracting(item -> item.getPlace().getPlaceNo()).containsExactly(2L, 1L);
+        assertThat(result.getFirst().getDistance()).isCloseTo(500, org.assertj.core.api.Assertions.within(0.001));
+        ArgumentCaptor<RouteSearchRequest> captor = ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService).findRoutes(captor.capture());
+        assertThat(captor.getValue().getStartPlaceNo()).isEqualTo(10L);
+        assertThat(captor.getValue().getEndPlaceNo()).isEqualTo(20L);
+        assertThat(captor.getValue().getRouteOption()).isEqualTo("SHORTEST");
+        assertThat(captor.getValue().getTransportType()).isEqualTo("WALK");
+        assertThat(captor.getValue().getWaypointPlaceNos()).isEmpty();
+    }
+
+    @Test
+    void restaurantsReturnOnlyTenNearestAfterFilteringAndSorting() {
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(-0.02, 0), coordinate(0.02, 0)));
+        // Farther and excluded places arrive first; equal distances use place number.
+        when(courseMapper.selectRestaurants()).thenReturn(List.of(
+                restaurant(99L, 1100), restaurant(12L, 900), restaurant(11L, 800),
+                restaurant(10L, 800), restaurant(9L, 700), restaurant(8L, 600),
+                restaurant(7L, 500), restaurant(6L, 400), restaurant(5L, 300),
+                restaurant(4L, 200), restaurant(3L, 150), restaurant(2L, 100),
+                restaurant(1L, 50)));
+
+        var result = courseService.getRestaurants(restaurantRequest());
+
+        assertThat(result).extracting(item -> item.getPlace().getPlaceNo())
+                .containsExactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+        assertThat(result).extracting(item -> item.getDistance()).isSorted();
+    }
+
+    @Test
+    void restaurantsSupportCoordinateOriginAndExistingWalkOption() {
+        RouteSearchRequest request = restaurantRequest();
+        request.setStartPlaceNo(null);
+        request.setStartX(126.7);
+        request.setStartY(37.6);
+        request.setRouteOption("BROAD_FIRST");
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(126.7, 37.6), coordinate(126.8, 37.7)));
+        when(courseMapper.selectRestaurants()).thenReturn(List.of());
+        assertThat(courseService.getRestaurants(request)).isEmpty();
+        ArgumentCaptor<RouteSearchRequest> captor = ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService).findRoutes(captor.capture());
+        assertThat(captor.getValue().getStartX()).isEqualTo(126.7);
+        assertThat(captor.getValue().getStartY()).isEqualTo(37.6);
+        assertThat(captor.getValue().getRouteOption()).isEqualTo("BROAD_FIRST");
+    }
+
+    @Test
+    void restaurantsRejectWholeCourseAndNonWalkingRequests() {
+        RouteSearchRequest request = restaurantRequest();
+        request.setWaypointPlaceNos(List.of(15L));
+        assertThatThrownBy(() -> courseService.getRestaurants(request)).isInstanceOf(BadRequestException.class);
+        request.setWaypointPlaceNos(List.of());
+        request.setTransportType("CAR");
+        assertThatThrownBy(() -> courseService.getRestaurants(request)).isInstanceOf(BadRequestException.class);
+        verifyNoInteractions(routeService, courseMapper);
+    }
+
+    @Test
+    void restaurantsFailOnMissingOrBrokenPathInsteadOfReturningEmptyResults() {
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(RouteResponse.builder().routes(List.of()).build())
+                .thenReturn(routeResponseWithPath(coordinate(0, 0)))
+                .thenReturn(routeResponseWithPath(coordinate(0, 0), coordinate(Double.NaN, 0)));
+        for (int attempt = 0; attempt < 3; attempt++) {
+            assertThatThrownBy(() -> courseService.getRestaurants(restaurantRequest()))
+                    .isInstanceOf(InternalServerException.class);
+        }
+        verifyNoInteractions(courseMapper);
+    }
+
+    @Test
+    void restaurantsPropagateExistingRouteValidationErrors() {
+        when(routeService.findRoutes(any(RouteSearchRequest.class))).thenThrow(new NotFoundException("존재하지 않는 장소입니다."));
+        assertThatThrownBy(() -> courseService.getRestaurants(restaurantRequest())).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(courseMapper);
+    }
+
+    private RouteSearchRequest restaurantRequest() {
+        RouteSearchRequest request = new RouteSearchRequest();
+        request.setStartPlaceNo(10L);
+        request.setEndPlaceNo(20L);
+        request.setTransportType("WALK");
+        return request;
+    }
+
+    private PlaceDto restaurant(Long placeNo, double distance) {
+        return PlaceDto.builder().placeNo(placeNo).placeName("음식점 " + placeNo)
+                .xAxis(0.0).yAxis(Math.toDegrees(distance / 6_371_000)).build();
     }
 
     private RouteSearchRequest routeRequest(List<Long> waypointPlaceNos) {
