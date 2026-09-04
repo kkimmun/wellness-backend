@@ -13,6 +13,47 @@ import tools.jackson.databind.ObjectMapper;
 
 class AdminCourseContractTest {
     @Test
+    void waypointDescriptionsDeserializeAndValidate() {
+        ObjectMapper mapper = new ObjectMapper();
+        AdminCourseRequest request = mapper.readValue("""
+                {"courseName":"순례길","description":"코스 설명","startPlaceNo":1,"endPlaceNo":5,
+                 "waypoints":[{"placeNo":2,"waypointDescription":"고요 속에서 자신을 돌아보는 곳"},
+                              {"placeNo":3,"waypointDescription":null}]}
+                """, AdminCourseRequest.class);
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            assertThat(factory.getValidator().validate(request)).isEmpty();
+        }
+        assertThat(request.getWaypointPlaceNos()).containsExactly(2L, 3L);
+        assertThat(request.getWaypoints().getFirst().getWaypointDescription())
+                .isEqualTo("고요 속에서 자신을 돌아보는 곳");
+        assertThat(mapper.writeValueAsString(request)).doesNotContain("waypointSelectionConsistent");
+    }
+
+    @Test
+    void invalidWaypointObjectsAndConflictingLegacyIdsFailValidation() {
+        ObjectMapper mapper = new ObjectMapper();
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            var validator = factory.getValidator();
+            for (String waypoints : List.of(
+                    "[null]", "[{}]", "[{\"placeNo\":0}]",
+                    "[{\"placeNo\":2},{\"placeNo\":3},{\"placeNo\":4},{\"placeNo\":6}]")) {
+                AdminCourseRequest request = mapper.readValue(
+                        """
+                        {"courseName":"순례길","description":"설명","startPlaceNo":1,"endPlaceNo":5,
+                         "waypoints":%s}
+                        """.formatted(waypoints), AdminCourseRequest.class);
+                assertThat(validator.validate(request)).isNotEmpty();
+            }
+            AdminCourseRequest conflicting = mapper.readValue("""
+                    {"courseName":"순례길","description":"설명","startPlaceNo":1,"endPlaceNo":5,
+                     "waypointPlaceNos":[3],"waypoints":[{"placeNo":2,"waypointDescription":"서사"}]}
+                    """, AdminCourseRequest.class);
+            assertThat(validator.validate(conflicting)).anyMatch(v ->
+                    v.getPropertyPath().toString().equals("waypointSelectionConsistent"));
+        }
+    }
+
+    @Test
     void requestWithoutEstimatedTimeDeserializesAndValidates() {
         ObjectMapper mapper = new ObjectMapper();
         AdminCourseRequest request = mapper.readValue("""
@@ -30,9 +71,9 @@ class AdminCourseContractTest {
     void requiredEndpointsAndWaypointLimitStillValidate() {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             var validator = factory.getValidator();
-            var missingStart = new AdminCourseRequest("코스", "설명", null, List.of(), 5L);
+            var missingStart = new AdminCourseRequest("코스", "설명", null, List.of(), 5L, null);
             assertThat(validator.validate(missingStart)).anyMatch(v -> v.getPropertyPath().toString().equals("startPlaceNo"));
-            var tooManyStops = new AdminCourseRequest("코스", "설명", 1L, List.of(2L, 3L, 4L, 5L), 6L);
+            var tooManyStops = new AdminCourseRequest("코스", "설명", 1L, List.of(2L, 3L, 4L, 5L), 6L, null);
             assertThat(validator.validate(tooManyStops)).anyMatch(v -> v.getPropertyPath().toString().equals("waypointPlaceNos"));
         }
     }

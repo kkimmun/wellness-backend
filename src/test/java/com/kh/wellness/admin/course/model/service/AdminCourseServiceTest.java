@@ -32,6 +32,8 @@ import com.kh.wellness.admin.course.model.dao.AdminCourseMapper;
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
+import com.kh.wellness.admin.course.model.dto.AdminCourseWaypointRequest;
+import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.admin.course.model.service.AdminCourseService;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
@@ -80,7 +82,10 @@ class AdminCourseServiceTest {
 
     @Test
     void saveCourseStoresShortestWaypointOrderAndKeepsEndpoints() {
-        AdminCourseRequest request = request(List.of(5L, 8L, 12L));
+        AdminCourseRequest request = requestWithDescriptions(List.of(
+                new AdminCourseWaypointRequest(5L, "성찰의 시작"),
+                new AdminCourseWaypointRequest(8L, "마음을 비우는 길"),
+                new AdminCourseWaypointRequest(12L, "쉼과 회복")));
 
         when(adminCourseMapper.countExistingPlaces(anyList()))
                 .thenReturn(5);
@@ -111,6 +116,9 @@ class AdminCourseServiceTest {
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getPlaceNo)
                 .containsExactly(12L, 5L, 8L);
+        assertThat(waypointCaptor.getAllValues())
+                .extracting(CourseWaypoint::getWaypointDescription)
+                .containsExactly("쉼과 회복", "성찰의 시작", "마음을 비우는 길");
 
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getWaypointSequence)
@@ -151,7 +159,9 @@ class AdminCourseServiceTest {
 
     @Test
     void updateCourseReplacesExistingWaypointsWithShortestOrder() {
-        AdminCourseRequest request = request(List.of(21L, 32L));
+        AdminCourseRequest request = requestWithDescriptions(List.of(
+                new AdminCourseWaypointRequest(21L, "새로 작성한 서사"),
+                new AdminCourseWaypointRequest(32L, null)));
         when(adminCourseMapper.countCourseByNo(101L)).thenReturn(1);
         when(adminCourseMapper.countExistingPlaces(anyList())).thenReturn(4);
         when(courseService.getRecommendedRoute(any(RouteSearchRequest.class)))
@@ -175,6 +185,9 @@ class AdminCourseServiceTest {
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getPlaceNo)
                 .containsExactly(32L, 21L);
+        assertThat(waypointCaptor.getAllValues())
+                .extracting(CourseWaypoint::getWaypointDescription)
+                .containsExactly(null, "새로 작성한 서사");
         assertThat(waypointCaptor.getAllValues())
                 .extracting(CourseWaypoint::getWaypointSequence)
                 .containsExactly(1, 2);
@@ -277,13 +290,42 @@ class AdminCourseServiceTest {
         verify(adminCourseMapper, never()).updateCourseStatus(eq(101L), any());
     }
 
+    @Test
+    void legacyUpdatePreservesDescriptionsForRemainingPlaces() {
+        when(adminCourseMapper.countCourseByNo(101L)).thenReturn(1);
+        when(adminCourseMapper.countExistingPlaces(anyList())).thenReturn(3);
+        when(adminCourseMapper.updateCourse(any(Course.class))).thenReturn(1);
+        when(adminCourseMapper.selectWaypoints(101L)).thenReturn(List.of(
+                waypoint(5L, "기존 순례길 서사"), waypoint(8L, "제거할 관광지 설명")));
+        when(adminCourseMapper.insertCourseWaypoint(any(CourseWaypoint.class))).thenReturn(1);
+
+        adminCourseService.updateCourse(101L, request(List.of(5L)));
+
+        ArgumentCaptor<CourseWaypoint> captor = ArgumentCaptor.forClass(CourseWaypoint.class);
+        verify(adminCourseMapper).insertCourseWaypoint(captor.capture());
+        assertThat(captor.getValue().getPlaceNo()).isEqualTo(5L);
+        assertThat(captor.getValue().getWaypointDescription()).isEqualTo("기존 순례길 서사");
+        verify(adminCourseMapper).deleteCourseWaypoints(101L);
+    }
+
+    private WaypointDto waypoint(Long placeNo, String description) {
+        WaypointDto waypoint = new WaypointDto();
+        waypoint.setPlaceNo(placeNo);
+        waypoint.setWaypointDescription(description);
+        return waypoint;
+    }
+
+    private AdminCourseRequest requestWithDescriptions(List<AdminCourseWaypointRequest> waypoints) {
+        return new AdminCourseRequest("김포 순례길", "코스 설명", 1L, null, 20L, waypoints);
+    }
+
     private AdminCourseRequest request(List<Long> waypointPlaceNos) {
         return new AdminCourseRequest(
                 "김포 힐링 순례길",
                 "전통 사찰과 웰니스 관광지를 둘러보는 코스입니다.",
                 1L,
                 waypointPlaceNos,
-                20L);
+                20L, null);
     }
 
     @Test
@@ -294,7 +336,8 @@ class AdminCourseServiceTest {
         detail.setStartPlaceNo(1L);
         detail.setEndPlaceNo(20L);
         when(adminCourseMapper.selectCourseDetail(101L)).thenReturn(detail);
-        when(adminCourseMapper.selectWaypointPlaceNos(101L)).thenReturn(List.of(8L, 5L));
+        when(adminCourseMapper.selectWaypoints(101L)).thenReturn(List.of(
+                waypoint(8L, "마음을 비우는 길"), waypoint(5L, "성찰의 시작")));
 
         AdminCourseDetailResponse result = adminCourseService.getCourse(101L);
 
@@ -302,6 +345,8 @@ class AdminCourseServiceTest {
         assertThat(result.getStartPlaceNo()).isEqualTo(1L);
         assertThat(result.getEndPlaceNo()).isEqualTo(20L);
         assertThat(result.getWaypointPlaceNos()).containsExactly(8L, 5L);
+        assertThat(result.getWaypoints()).extracting(WaypointDto::getWaypointDescription)
+                .containsExactly("마음을 비우는 길", "성찰의 시작");
     }
 
     @Test
@@ -309,7 +354,7 @@ class AdminCourseServiceTest {
         when(adminCourseMapper.selectCourseDetail(999L)).thenReturn(null);
         assertThatThrownBy(() -> adminCourseService.getCourse(999L))
                 .isInstanceOf(NotFoundException.class);
-        verify(adminCourseMapper, never()).selectWaypointPlaceNos(any());
+        verify(adminCourseMapper, never()).selectWaypoints(any());
     }
 
     @Test

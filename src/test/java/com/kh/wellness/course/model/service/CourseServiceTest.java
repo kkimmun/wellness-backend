@@ -93,7 +93,7 @@ class CourseServiceTest {
                 .description("자연과 휴식을 중심으로 구성한 힐링 순례 코스입니다.")
                 .build();
         WaypointDto waypoint = new WaypointDto(
-                100L, 1L, 20L, 1, "중간 관광지", 126.1, 37.1, null);
+                100L, 1L, 20L, 1, "자신을 돌아보는 순례길 쉼터", "중간 관광지", 126.1, 37.1, null);
         PlaceDto endPlace = PlaceDto.builder().placeNo(30L).imageUrl("end.jpg").build();
         when(courseMapper.selectByCourseNo(1L)).thenReturn(course);
         when(courseMapper.selectWaypointBycourseNo(1L)).thenReturn(List.of(waypoint));
@@ -102,6 +102,8 @@ class CourseServiceTest {
         CourseResponse result = courseService.getCourse(1L);
 
         assertThat(result.getWaypoints()).containsExactly(waypoint);
+        assertThat(result.getWaypoints().getFirst().getWaypointDescription())
+                .isEqualTo("자신을 돌아보는 순례길 쉼터");
         assertThat(result.getEndPlaceImg()).isEqualTo("end.jpg");
         verify(courseMapper).selectWaypointBycourseNo(1L);
     }

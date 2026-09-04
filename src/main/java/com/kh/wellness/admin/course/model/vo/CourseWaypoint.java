@@ -11,6 +11,7 @@ public class CourseWaypoint {
     private Long courseNo;
     private Long placeNo;
     private Integer waypointSequence;
+    private String waypointDescription;
 	private String placeName;
 	private String type;
 	private Double xAxis;

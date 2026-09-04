@@ -63,6 +63,7 @@
              , W.COURSE_NO
              , W.PLACE_NO
              , W.WAYPOINT_SEQUENCE
+             , W.WAYPOINT_DESCRIPTION
              , P.PLACE_NAME
              , P.X_AXIS
              , P.Y_AXIS
