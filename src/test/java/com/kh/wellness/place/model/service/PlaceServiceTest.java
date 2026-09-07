@@ -22,6 +22,7 @@ import com.kh.wellness.place.model.dto.PlaceDetailDto;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.dto.PlaceImageDto;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
+import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.vo.MapPlace;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,6 +97,38 @@ class PlaceServiceTest {
         assertThatThrownBy(() -> placeService.findMapPlacesByTag(null))
                 .isInstanceOf(BadRequestException.class);
         verifyNoInteractions(placeMapper);
+    }
+
+    @Test
+    void 타입과_태그_PK를_동시에_적용해_장소를_조회한다() {
+        when(placeMapper.findMapPlacesByFilters(1L, 18L, 4L)).thenReturn(List.of(mapPlace()));
+
+        List<MapPlaceResponse> response = placeService.findMapPlaces(1L, 18L, 4L);
+
+        assertThat(response).hasSize(1);
+        verify(placeMapper).findMapPlacesByFilters(1L, 18L, 4L);
+    }
+
+    @Test
+    void 타입과_태그_선택지는_DB_조회결과를_그대로_반환한다() {
+        PlaceTypeOptionResponse type = PlaceTypeOptionResponse.builder()
+                .typeNo(1L)
+                .type("주요관광지")
+                .typeDetailNo(18L)
+                .typeDetailContent("김포 TOP 10")
+                .build();
+        PlaceTagDto tag = new PlaceTagDto();
+        tag.setTagNo(4L);
+        tag.setTagContent("가족");
+        when(placeMapper.findPlaceTypeOptions()).thenReturn(List.of(type));
+        when(placeMapper.findPlaceTagOptions()).thenReturn(List.of(tag));
+
+        assertThat(placeService.findPlaceTypeOptions())
+                .extracting(PlaceTypeOptionResponse::getType)
+                .containsExactly("주요관광지");
+        assertThat(placeService.findPlaceTagOptions())
+                .extracting(PlaceTagDto::getTagContent)
+                .containsExactly("가족");
     }
 
     private MapPlace mapPlace() {

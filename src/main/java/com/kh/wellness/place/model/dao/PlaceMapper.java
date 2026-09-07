@@ -10,6 +10,7 @@ import com.kh.wellness.place.model.dto.PlaceDetailDto;
 import com.kh.wellness.place.model.dto.PlaceImageDto;
 import com.kh.wellness.place.model.dto.PlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
+import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.vo.MapPlace;
 
 @Mapper
@@ -30,4 +31,13 @@ public interface PlaceMapper {
     List<MapPlace> findMapPlacesByType(@Param("type") String type);
 
     List<MapPlace> findMapPlacesByTag(@Param("tag") String tag);
+
+    List<MapPlace> findMapPlacesByFilters(
+            @Param("typeNo") Long typeNo,
+            @Param("typeDetailNo") Long typeDetailNo,
+            @Param("tagNo") Long tagNo);
+
+    List<PlaceTypeOptionResponse> findPlaceTypeOptions();
+
+    List<PlaceTagDto> findPlaceTagOptions();
 }

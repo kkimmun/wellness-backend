@@ -13,6 +13,8 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.place.model.dto.MapPlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.dto.PlaceResponse;
+import com.kh.wellness.place.model.dto.PlaceTagDto;
+import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.service.PlaceService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,8 +27,24 @@ public class MapPlaceController {
     private final PlaceService placeService;
 
     @GetMapping("/pins")
-    public ResponseEntity<ApiResponse<List<MapPlaceResponse>>> findMapPins() {
-        return ResponseEntity.ok(ApiResponse.success("지도 장소 조회 성공", placeService.findMapPlaces()));
+    public ResponseEntity<ApiResponse<List<MapPlaceResponse>>> findMapPins(
+            @RequestParam(name = "typeNo", required = false) Long typeNo,
+            @RequestParam(name = "typeDetailNo", required = false) Long typeDetailNo,
+            @RequestParam(name = "tagNo", required = false) Long tagNo) {
+        List<MapPlaceResponse> places = typeNo == null && typeDetailNo == null && tagNo == null
+                ? placeService.findMapPlaces()
+                : placeService.findMapPlaces(typeNo, typeDetailNo, tagNo);
+        return ResponseEntity.ok(ApiResponse.success("지도 장소 조회 성공", places));
+    }
+
+    @GetMapping("/type-options")
+    public ResponseEntity<ApiResponse<List<PlaceTypeOptionResponse>>> findPlaceTypeOptions() {
+        return ResponseEntity.ok(ApiResponse.success("장소 타입 목록 조회 성공", placeService.findPlaceTypeOptions()));
+    }
+
+    @GetMapping("/tag-options")
+    public ResponseEntity<ApiResponse<List<PlaceTagDto>>> findPlaceTagOptions() {
+        return ResponseEntity.ok(ApiResponse.success("장소 태그 목록 조회 성공", placeService.findPlaceTagOptions()));
     }
 
     @GetMapping("/types")

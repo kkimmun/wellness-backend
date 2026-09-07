@@ -15,6 +15,7 @@ import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.dto.PlaceImageDto;
 import com.kh.wellness.place.model.dto.PlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
+import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.vo.MapPlace;
 
 import lombok.RequiredArgsConstructor;
@@ -81,6 +82,23 @@ public class PlaceService {
         return toMapPlaceResponses(placeMapper.findMapPlaces());
     }
 
+    public List<MapPlaceResponse> findMapPlaces(Long typeNo, Long typeDetailNo, Long tagNo) {
+        validateFilterNumber(typeNo, "타입 번호");
+        validateFilterNumber(typeDetailNo, "상세 타입 번호");
+        validateFilterNumber(tagNo, "태그 번호");
+        return toMapPlaceResponses(placeMapper.findMapPlacesByFilters(typeNo, typeDetailNo, tagNo));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlaceTypeOptionResponse> findPlaceTypeOptions() {
+        return placeMapper.findPlaceTypeOptions();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlaceTagDto> findPlaceTagOptions() {
+        return placeMapper.findPlaceTagOptions();
+    }
+
     public List<MapPlaceResponse> findMapPlacesByType(String type) {
         return toMapPlaceResponses(placeMapper.findMapPlacesByType(requireFilterValue(type, "타입은 필수입니다.")));
     }
@@ -98,6 +116,12 @@ public class PlaceService {
             throw new BadRequestException(requiredMessage);
         }
         return value.trim();
+    }
+
+    private void validateFilterNumber(Long value, String fieldName) {
+        if (value != null && value <= 0) {
+            throw new BadRequestException(fieldName + "는 1 이상이어야 합니다.");
+        }
     }
 
     private MapPlaceResponse toMapPlaceResponse(MapPlace place) {

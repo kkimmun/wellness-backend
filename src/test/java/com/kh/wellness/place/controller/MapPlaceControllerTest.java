@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.kh.wellness.place.model.dto.MapPlaceResponse;
+import com.kh.wellness.place.model.dto.PlaceTagDto;
+import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.service.PlaceService;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,5 +75,42 @@ class MapPlaceControllerTest {
                 .andExpect(jsonPath("$.data[0].placeNo").value(5));
 
         verify(placeService).findMapPlacesByTag("반려동물");
+    }
+
+    @Test
+    void pins는_타입과_태그_PK를_동시에_서비스에_전달한다() throws Exception {
+        when(placeService.findMapPlaces(1L, 18L, 4L)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/places/pins")
+                        .queryParam("typeNo", "1")
+                        .queryParam("typeDetailNo", "18")
+                        .queryParam("tagNo", "4"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        verify(placeService).findMapPlaces(1L, 18L, 4L);
+    }
+
+    @Test
+    void 타입과_태그_선택지_API는_DB_값을_반환한다() throws Exception {
+        PlaceTypeOptionResponse type = PlaceTypeOptionResponse.builder()
+                .typeNo(1L)
+                .type("주요관광지")
+                .typeDetailNo(18L)
+                .typeDetailContent("김포 TOP 10")
+                .build();
+        PlaceTagDto tag = new PlaceTagDto();
+        tag.setTagNo(4L);
+        tag.setTagContent("가족");
+        when(placeService.findPlaceTypeOptions()).thenReturn(List.of(type));
+        when(placeService.findPlaceTagOptions()).thenReturn(List.of(tag));
+
+        mockMvc.perform(get("/api/places/type-options"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].type").value("주요관광지"))
+                .andExpect(jsonPath("$.data[0].typeDetailContent").value("김포 TOP 10"));
+        mockMvc.perform(get("/api/places/tag-options"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].tagContent").value("가족"));
     }
 }
