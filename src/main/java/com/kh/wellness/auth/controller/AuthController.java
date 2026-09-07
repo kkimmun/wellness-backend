@@ -74,7 +74,7 @@ public class AuthController {
 	}
 	
 	@PostMapping("/refresh")
-	public ResponseEntity<Void> refresh(
+	public ResponseEntity<ApiResponse<TokenResponse>> refresh(
 	        @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
 	    TokenResponse res = authService.refresh(refreshToken);
@@ -89,7 +89,7 @@ public class AuthController {
 
 	    return ResponseEntity.ok()
 	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-	            .build();
+	            .body(ApiResponse.success("토큰 재발급 성공", res));
 	}
 		
 }
