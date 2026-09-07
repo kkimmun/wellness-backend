@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
+import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
 import com.kh.wellness.admin.course.model.dto.CourseStatusRequest;
 import com.kh.wellness.admin.course.model.service.AdminCourseService;
