@@ -14,6 +14,7 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.file.dto.FileSaveResult;
 import com.kh.wellness.file.service.FileService;
 import com.kh.wellness.file.service.S3Service;
+import com.kh.wellness.mail.model.dao.MailMapper;
 import com.kh.wellness.member.model.dao.MemberImgMapper;
 import com.kh.wellness.member.model.dao.MemberMapper;
 import com.kh.wellness.member.model.dto.MemberDto;
@@ -37,11 +38,14 @@ public class MemberService {
 	private final FileService fileService;
 	private final PasswordEncoder passwordEncoder;
 	private final S3Service s3Service;
+	private final MailMapper mailMapper;
 	
 	//멤버 등록
 	@Transactional
 	public void signUp(MemberDto member) {
 		countByMemberId(member.getMemberId());
+		checkVerifiedEmail(member.getMemberId());
+
 		Member memberEntity = Member.builder()
 				.memberName(member.getMemberName())
 				.role("USER")
@@ -65,6 +69,17 @@ public class MemberService {
 		if (result != 1) {
 			throw new BadRequestException("회원가입에 실패했습니다.");
 			
+		}
+
+		result = mailMapper.deleteVerifiedEmail(member.getMemberId());
+		if (result != 1) {
+			throw new BadRequestException("이메일 인증 확인에 실패했습니다. 다시 인증해주세요.");
+		}
+	}
+
+	private void checkVerifiedEmail(String memberId) {
+		if (mailMapper.checkVerifiedEmail(memberId) < 1) {
+			throw new BadRequestException("이메일 인증이 완료되지 않았습니다.");
 		}
 	}
 
