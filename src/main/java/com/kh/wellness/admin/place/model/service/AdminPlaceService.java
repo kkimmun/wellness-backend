@@ -1,7 +1,9 @@
 package com.kh.wellness.admin.place.model.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,6 +122,23 @@ public class AdminPlaceService {
 		reorderPlaceImages(placeNo);
 	}
 
+	@Transactional
+	public void updatePlaceImageOrder(Long placeNo, List<Long> imgNos) {
+		if (adminPlaceMapper.countActivePlace(placeNo) == 0) {
+			throw new NotFoundException("해당 장소가 존재하지 않습니다.");
+		}
+
+		List<PlaceImg> activeImages = adminPlaceMapper.selectPlaceImgList(placeNo);
+		validateImageOrder(activeImages, imgNos);
+
+		for (int index = 0; index < imgNos.size(); index++) {
+			int imgOrder = index + 1;
+			if (adminPlaceMapper.updatePlaceImgOrder(placeNo, imgNos.get(index), imgOrder) != 1) {
+				throw new InternalServerException("이미지 순서 변경에 실패했습니다.");
+			}
+		}
+	}
+
 	// 관리자 장소 일괄 삭제 (소프트) - 이미 삭제된 대상은 WHERE 조건에서 제외되어 카운트에 안 잡힘
 	@Transactional
 	public int deletePlaces(List<Long> placeNos) {
@@ -150,8 +169,28 @@ public class AdminPlaceService {
 			int order = index + 1;
 			PlaceImg image = activeImages.get(index);
 			if (!Integer.valueOf(order).equals(image.getImgOrder())) {
-				adminPlaceMapper.updatePlaceImgOrder(image.getImgNo(), order);
+				adminPlaceMapper.updatePlaceImgOrder(placeNo, image.getImgNo(), order);
 			}
+		}
+	}
+
+	private void validateImageOrder(List<PlaceImg> activeImages, List<Long> imgNos) {
+		if (imgNos == null || imgNos.isEmpty()) {
+			throw new BadRequestException("이미지 순서를 입력해야 합니다.");
+		}
+
+		Set<Long> requestedImgNos = new HashSet<>(imgNos);
+		if (requestedImgNos.size() != imgNos.size()) {
+			throw new BadRequestException("중복된 이미지 번호가 포함되어 있습니다.");
+		}
+
+		Set<Long> activeImgNos = new HashSet<>();
+		for (PlaceImg image : activeImages) {
+			activeImgNos.add(image.getImgNo());
+		}
+
+		if (activeImages.size() != imgNos.size() || !activeImgNos.equals(requestedImgNos)) {
+			throw new BadRequestException("현재 장소의 활성 이미지 전체를 순서대로 입력해야 합니다.");
 		}
 	}
 

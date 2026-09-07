@@ -39,7 +39,8 @@ public interface AdminPlaceMapper {
 
 	List<PlaceImg> selectPlaceImgList(Long placeNo);
 
-	int updatePlaceImgOrder(@Param("imgNo") Long imgNo, @Param("imgOrder") int imgOrder);
+	int updatePlaceImgOrder(@Param("placeNo") Long placeNo, @Param("imgNo") Long imgNo,
+			@Param("imgOrder") int imgOrder);
 
 	int softDeletePlaces(@Param("placeNos") List<Long> placeNos);
 
