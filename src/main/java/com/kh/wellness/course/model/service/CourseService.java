@@ -46,8 +46,8 @@ public class CourseService {
 	private final RouteService routeService;
 	
     private static final int PAGE_SIZE = 5;
+    private static final int MAX_WAYPOINT_RECOMMENDATIONS = 10;
     private static final double RESTAURANT_RADIUS_METERS = 1000;
-    private static final int RESTAURANT_LIMIT = 10;
 
     private final CourseMapper courseMapper;
     private final PlaceService placeService;
@@ -238,7 +238,6 @@ public class CourseService {
         routeRequest.setTransportType("WALK");
         routeRequest.setRouteOption(request.getRouteOption() == null || request.getRouteOption().isBlank()
                 ? "SHORTEST" : request.getRouteOption());
-        // 장소/좌표 검증과 실제 도보 경로 조회는 기존 길찾기 서비스를 재사용한다.
         RouteResponse response = routeService.findRoutes(routeRequest);
         if (response == null || response.getRoutes() == null || response.getRoutes().isEmpty()
                 || response.getRoutes().getFirst() == null
@@ -252,7 +251,6 @@ public class CourseService {
                 .filter(restaurant -> restaurant.getDistance() <= RESTAURANT_RADIUS_METERS + 1e-6)
                 .sorted(Comparator.comparingDouble(CourseRestaurantResponse::getDistance)
                         .thenComparing(restaurant -> restaurant.getPlace().getPlaceNo()))
-                .limit(RESTAURANT_LIMIT)
                 .toList();
     }
 
@@ -260,8 +258,12 @@ public class CourseService {
 		List<PlaceDto>places = courseMapper.selectByTags(request.getTags());
 	
 		RouteSearchRequest routeRequest = new RouteSearchRequest();
-		routeRequest.setStartX(request.getStartX());
-		routeRequest.setStartY(request.getStartY());
+		if (request.getStartPlaceNo() != null) {
+            routeRequest.setStartPlaceNo(request.getStartPlaceNo());
+        } else {
+            routeRequest.setStartX(request.getStartX());
+            routeRequest.setStartY(request.getStartY());
+        }
 		routeRequest.setEndPlaceNo(request.getEndPlaceNo());
 		routeRequest.setTransportType("WALK");
 		routeRequest.setRouteOption("BROAD_FIRST");
@@ -275,6 +277,10 @@ public class CourseService {
 		List<PlaceCandidate> candidates = new ArrayList<>();
 
 		for (PlaceDto place : places) {
+            if (place.getPlaceNo().equals(request.getStartPlaceNo())
+                    || place.getPlaceNo().equals(request.getEndPlaceNo())) {
+                continue;
+            }
 		    double distance = getMinDistanceFromPath(place, path);
 		    if (distance > 2000) {
 		        continue;
@@ -304,7 +310,7 @@ public class CourseService {
 		candidates.sort(
 			    Comparator.comparingDouble(PlaceCandidate::getTotalScore)
 			              .reversed());
-		return candidates;
+		return candidates.stream().limit(MAX_WAYPOINT_RECOMMENDATIONS).toList();
 
 	}
 
