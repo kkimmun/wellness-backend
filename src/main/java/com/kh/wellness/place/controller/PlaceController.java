@@ -22,7 +22,7 @@ import com.kh.wellness.place.model.dto.PlaceResponse;
 
 
 @RestController
-@RequestMapping("/api/place")
+@RequestMapping("/api/places")
 @RequiredArgsConstructor
 public class PlaceController {
 	private final RouteService routeService;
@@ -39,7 +39,7 @@ public class PlaceController {
         return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", response));
     }
 
-	@GetMapping("/{typeDetailNo}")
+	@GetMapping("/types/{typeDetailNo}")
 	public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPlaces(@PathVariable(name = "typeDetailNo")Long typeDetailNo){
 		
 		List<PlaceResponse> placeList = placeService.selectPlaces(typeDetailNo);

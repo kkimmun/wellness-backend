@@ -390,6 +390,40 @@ class CourseServiceTest {
     }
 
     @Test
+    void getWaypointsExcludesRegisteredEndpointsAndResolvesOriginByPlaceNumber() {
+        WaypointsRequest request = waypointsRequest(List.of(CourseTag.힐링));
+        request.setStartPlaceNo(10L);
+        PlaceDto origin = place(10L, "출발지", 126.7, 37.6, request.getTags());
+        PlaceDto destination = place(99L, "도착지", 126.72, 37.6, request.getTags());
+        PlaceDto middle = place(20L, "중간 관광지", 126.71, 37.6, request.getTags());
+        when(courseMapper.selectByTags(request.getTags())).thenReturn(List.of(origin, middle, destination));
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(126.7, 37.6), coordinate(126.72, 37.6)));
+
+        assertThat(courseService.getWaypoints(request)).extracting(item -> item.getPlace().getPlaceNo())
+                .containsExactly(20L);
+        ArgumentCaptor<RouteSearchRequest> captor = ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService).findRoutes(captor.capture());
+        assertThat(captor.getValue().getStartPlaceNo()).isEqualTo(10L);
+        assertThat(captor.getValue().getStartX()).isNull();
+        assertThat(captor.getValue().getStartY()).isNull();
+    }
+
+    @Test
+    void getWaypointsWithCurrentLocationExcludesDestinationAndKeepsNearbyPlaces() {
+        WaypointsRequest request = waypointsRequest(List.of(CourseTag.힐링));
+        PlaceDto destination = place(99L, "도착지", 126.72, 37.6, request.getTags());
+        PlaceDto nearby = place(20L, "주변 관광지", request.getStartX(), request.getStartY(), request.getTags());
+        when(courseMapper.selectByTags(request.getTags())).thenReturn(List.of(destination, nearby));
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(request.getStartX(), request.getStartY()),
+                        coordinate(126.72, 37.6)));
+
+        assertThat(courseService.getWaypoints(request)).extracting(item -> item.getPlace().getPlaceNo())
+                .containsExactly(20L);
+    }
+
+    @Test
     void getWaypointsThrowsWhenRouteResultIsEmpty() {
         WaypointsRequest request = waypointsRequest(List.of(CourseTag.힐링));
         when(courseMapper.selectByTags(request.getTags())).thenReturn(List.of());
@@ -494,6 +528,32 @@ class CourseServiceTest {
         verifyNoInteractions(courseMapper);
     }
 
+    @Test
+    void getWaypointsReturnsTenBestAfterDistanceAndEndpointFiltering() {
+        WaypointsRequest request = waypointsRequest(List.of(CourseTag.힐링, CourseTag.자연));
+        request.setStartPlaceNo(50L);
+        var places = new java.util.ArrayList<PlaceDto>();
+        // Low scores arrive first; the final candidate must still enter the top ten.
+        places.add(place(50L, "출발지", 0, 0, request.getTags()));
+        places.add(place(99L, "도착지", 0, 0, request.getTags()));
+        places.add(place(98L, "거리 초과", 0, 1, request.getTags()));
+        for (long i = 1; i <= 12; i++) {
+            places.add(place(i, "관광지 " + i, 0, 0,
+                    i == 12 ? request.getTags() : List.of(CourseTag.힐링)));
+        }
+        when(courseMapper.selectByTags(request.getTags())).thenReturn(places);
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponseWithPath(coordinate(-0.02, 0), coordinate(0.02, 0)));
+
+        var result = courseService.getWaypoints(request);
+
+        assertThat(result).extracting(item -> item.getPlace().getPlaceNo())
+                .containsExactly(12L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L);
+        assertThat(result).extracting(PlaceCandidate::getTotalScore)
+                .isSortedAccordingTo(java.util.Comparator.reverseOrder());
+    }
+
+
     private RouteSearchRequest restaurantRequest() {
         RouteSearchRequest request = new RouteSearchRequest();
         request.setStartPlaceNo(10L);
@@ -536,12 +596,13 @@ class CourseServiceTest {
 
     private WaypointsRequest waypointsRequest(List<CourseTag> tags) {
         return new WaypointsRequest(
-                30L,
+                99L,
                 126.7156,
                 37.6152,
                 tags,
                 180,
-                List.of());
+                List.of(),
+                null);
     }
 
     private PlaceDto place(
