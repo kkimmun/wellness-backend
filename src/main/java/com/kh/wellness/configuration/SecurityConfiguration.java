@@ -58,7 +58,6 @@ public class SecurityConfiguration {
 					"/api/places/tags",
 					"/api/places/*",
 					"/api/places/*/detail",
-					"/api/place/*",
 					"/api/routes",
 					"/api/routes/origins").permitAll();
 
