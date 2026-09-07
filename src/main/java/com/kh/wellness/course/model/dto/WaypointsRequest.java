@@ -34,4 +34,6 @@ public class WaypointsRequest {
     @Positive(message = "소요시간은 0보다 커야 합니다.")
     private int estimatedTime;
     private List<Long> waypoints;
+    @Positive(message = "올바른 출발 장소를 선택해야 합니다.")
+    private Long startPlaceNo;
 }
