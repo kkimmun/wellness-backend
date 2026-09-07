@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.file.dto.FileSaveResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @Service
@@ -25,11 +27,11 @@ public class FileService {
     private String region;
 
     public FileSaveResult store(MultipartFile file, String subDirectory) {
-        try {
-            if (!isImageFile(file)) {
-                throw new BadRequestException("이미지 파일만 업로드할 수 있습니다. (jpg, jpeg, png, gif, webp)");
-            }
+        if (!isImageFile(file)) {
+            throw new BadRequestException("이미지 파일만 업로드할 수 있습니다. (jpg, jpeg, png, gif, webp)");
+        }
 
+        try {
             String extension = getExtension(file);
             String saveName = UUID.randomUUID().toString() + extension;
 
@@ -43,10 +45,15 @@ public class FileService {
             String imgPath = "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + subDirectory + "/";
 
             return new FileSaveResult(saveName, imgPath);
-
-        } catch (Exception e) {
-            log.error("파일 저장 실패", e);
-            throw new BadRequestException("이미지 파일 저장에 실패했습니다.");
+        } catch (S3Exception e) {
+            log.error("S3 이미지 저장 실패: statusCode={}, errorCode={}",
+                    e.statusCode(),
+                    e.awsErrorDetails() == null ? null : e.awsErrorDetails().errorCode(),
+                    e);
+            throw new InternalServerException("이미지 저장소 권한 또는 설정을 확인해주세요.", e);
+        } catch (RuntimeException e) {
+            log.error("이미지 저장소 처리 실패", e);
+            throw new InternalServerException("이미지 저장소에 파일을 저장하지 못했습니다.", e);
         }
     }
 	

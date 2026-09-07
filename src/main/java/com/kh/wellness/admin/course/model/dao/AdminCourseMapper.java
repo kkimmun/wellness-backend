@@ -1,6 +1,7 @@
 package com.kh.wellness.admin.course.model.dao;
 
 import java.util.List;
+import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 
 
@@ -25,6 +26,8 @@ public interface AdminCourseMapper {
 	long countCourses(@Param("keyword") String keyword, @Param("active") String active);
 
 	int countExistingPlaces(List<Long> placeNos);
+
+	List<PlaceDto> selectPlacesByNos(List<Long> placeNos);
 
 	int insertCourse(Course course);
 

@@ -20,6 +20,7 @@ import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
+import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;
@@ -80,6 +81,9 @@ public class AdminCourseService {
         validateDuplicatePlace(request.getStartPlaceNo(),
         					   request.getWaypointPlaceNos(),
         					   request.getEndPlaceNo());
+        validateDuplicateCoordinates(request.getStartPlaceNo(),
+                                     request.getWaypointPlaceNos(),
+                                     request.getEndPlaceNo());
         List<Long> orderedWaypointPlaceNos = findShortestWaypointOrder(request);
         Course course = toCourse(request, null);
         int result = adminCourseMapper.insertCourse(course);
@@ -102,6 +106,9 @@ public class AdminCourseService {
         validateDuplicatePlace(request.getStartPlaceNo(),
                                request.getWaypointPlaceNos(),
                                request.getEndPlaceNo());
+        validateDuplicateCoordinates(request.getStartPlaceNo(),
+                                     request.getWaypointPlaceNos(),
+                                     request.getEndPlaceNo());
 
         List<Long> orderedWaypointPlaceNos = findShortestWaypointOrder(request);
         int result = adminCourseMapper.updateCourse(toCourse(request, courseNo));
@@ -283,6 +290,44 @@ public class AdminCourseService {
 
         if (!placeNos.add(endPlaceNo)) {
             throw new ConflictException("코스에 동일한 장소를 중복으로 선택할 수 없습니다.");
+        }
+    }
+
+    private void validateDuplicateCoordinates(
+            Long startPlaceNo,
+            List<Long> waypointPlaceNos,
+            Long endPlaceNo
+    ) {
+        List<Long> selectedPlaceNos = new ArrayList<>();
+        selectedPlaceNos.add(startPlaceNo);
+        if (waypointPlaceNos != null) {
+            selectedPlaceNos.addAll(waypointPlaceNos);
+        }
+        selectedPlaceNos.add(endPlaceNo);
+
+        Map<Long, PlaceDto> placesByNo = new HashMap<>();
+        for (PlaceDto place : adminCourseMapper.selectPlacesByNos(selectedPlaceNos)) {
+            placesByNo.put(place.getPlaceNo(), place);
+        }
+
+        for (int firstIndex = 0; firstIndex < selectedPlaceNos.size(); firstIndex++) {
+            PlaceDto first = placesByNo.get(selectedPlaceNos.get(firstIndex));
+            if (first == null || first.getXAxis() == null || first.getYAxis() == null) {
+                continue;
+            }
+            for (int secondIndex = firstIndex + 1; secondIndex < selectedPlaceNos.size(); secondIndex++) {
+                PlaceDto second = placesByNo.get(selectedPlaceNos.get(secondIndex));
+                if (second != null
+                        && second.getXAxis() != null
+                        && second.getYAxis() != null
+                        && Double.compare(first.getXAxis(), second.getXAxis()) == 0
+                        && Double.compare(first.getYAxis(), second.getYAxis()) == 0) {
+                    throw new ConflictException(String.format(
+                            "선택한 관광지 '%s'(%d)와 '%s'(%d)의 좌표가 같습니다. 둘 중 하나만 선택해주세요.",
+                            first.getPlaceName(), first.getPlaceNo(),
+                            second.getPlaceName(), second.getPlaceNo()));
+                }
+            }
         }
     }
 }

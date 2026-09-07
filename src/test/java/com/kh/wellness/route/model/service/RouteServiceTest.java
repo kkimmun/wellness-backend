@@ -22,10 +22,8 @@ import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
-import com.kh.wellness.route.model.dto.MapPlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
-import com.kh.wellness.route.model.vo.MapPlace;
 import com.kh.wellness.route.model.vo.Place;
 import com.kh.wellness.route.model.vo.TransportType;
 
@@ -64,34 +62,6 @@ class RouteServiceTest {
                 .xAxis(127.1)
                 .yAxis(37.6)
                 .build();
-    }
-
-    @Test
-    void 지도_핀은_DB의_삭제되지_않은_장소_조회결과를_반환한다() {
-        when(routeMapper.findMapPlaces()).thenReturn(List.of(
-                MapPlace.builder()
-                        .placeNo(7L)
-                        .placeName("김포장릉")
-                        .placeDescription("김포의 조선 왕릉")
-                        .addr("경기도 김포시 장릉로 79")
-                        .addrDetail("풍무동 666-3")
-                        .phone("031-984-2897")
-                        .type("관광지")
-                        .viewCount(12L)
-                        .xAxis(126.7109331831)
-                        .yAxis(37.61085802)
-                        .build()
-        ));
-
-        List<MapPlaceResponse> response = routeService.findMapPlaces();
-
-        assertThat(response).hasSize(1);
-        assertThat(response.get(0).getPlaceNo()).isEqualTo(7L);
-        assertThat(response.get(0).getPlaceName()).isEqualTo("김포장릉");
-        assertThat(response.get(0).getXAxis()).isEqualTo(126.7109331831);
-        assertThat(response.get(0).getYAxis()).isEqualTo(37.61085802);
-        verify(routeMapper).findMapPlaces();
-        verifyNoInteractions(kakaoRouteClient);
     }
 
     @Test

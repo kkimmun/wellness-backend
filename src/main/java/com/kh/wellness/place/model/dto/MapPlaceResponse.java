@@ -1,4 +1,4 @@
-package com.kh.wellness.route.model.dto;
+package com.kh.wellness.place.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,9 @@ public class MapPlaceResponse {
     private String addrDetail;
     private String phone;
     private String type;
+    private String typeDetail;
     private Long viewCount;
     private Double xAxis;
     private Double yAxis;
+    private String imageUrl;
 }

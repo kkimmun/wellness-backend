@@ -82,6 +82,21 @@
             </foreach>
     </select>
 
+    <select id="selectPlacesByNos" resultType="PlaceDto">
+        SELECT
+               PLACE_NO
+             , PLACE_NAME
+             , X_AXIS
+             , Y_AXIS
+          FROM
+               PLACE
+         WHERE
+               PLACE_NO IN
+            <foreach collection="list" item="placeNo" open="(" separator="," close=")">
+                #{placeNo}
+            </foreach>
+    </select>
+
     <insert id="insertCourse"
             useGeneratedKeys="true"
             keyProperty="courseNo"

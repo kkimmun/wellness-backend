@@ -38,6 +38,7 @@ import com.kh.wellness.admin.course.model.service.AdminCourseService;
 import com.kh.wellness.admin.course.model.vo.Course;
 import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 import com.kh.wellness.common.page.PageResponse;
+import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;
@@ -269,6 +270,25 @@ class AdminCourseServiceTest {
     }
 
     @Test
+    void saveCourseReportsPlacesWithDuplicateCoordinates() {
+        AdminCourseRequest request = request(List.of(5L, 8L));
+        when(adminCourseMapper.countExistingPlaces(anyList())).thenReturn(4);
+        when(adminCourseMapper.selectPlacesByNos(anyList())).thenReturn(List.of(
+                place(1L, "김포시청", 126.7000, 37.6000),
+                place(5L, "김포한강야생조류생태공원", 126.7100, 37.6100),
+                place(8L, "김포 사색의 길", 126.7100, 37.6100),
+                place(20L, "용화사", 126.7200, 37.6200)));
+
+        assertThatThrownBy(() -> adminCourseService.saveCourse(request))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("선택한 관광지 '김포한강야생조류생태공원'(5)와 '김포 사색의 길'(8)의 좌표가 같습니다. 둘 중 하나만 선택해주세요.");
+
+        verifyNoInteractions(courseService);
+        verify(adminCourseMapper, never()).insertCourse(any(Course.class));
+        verify(adminCourseMapper, never()).insertCourseWaypoint(any(CourseWaypoint.class));
+    }
+
+    @Test
     void deleteCourseDeletesWaypointsBeforeCourse() {
         when(adminCourseMapper.countCourseByNo(101L)).thenReturn(1);
         when(adminCourseMapper.deleteCourse(101L)).thenReturn(1);
@@ -313,6 +333,15 @@ class AdminCourseServiceTest {
         waypoint.setPlaceNo(placeNo);
         waypoint.setWaypointDescription(description);
         return waypoint;
+    }
+
+    private PlaceDto place(Long placeNo, String placeName, double xAxis, double yAxis) {
+        return PlaceDto.builder()
+                .placeNo(placeNo)
+                .placeName(placeName)
+                .xAxis(xAxis)
+                .yAxis(yAxis)
+                .build();
     }
 
     private AdminCourseRequest requestWithDescriptions(List<AdminCourseWaypointRequest> waypoints) {

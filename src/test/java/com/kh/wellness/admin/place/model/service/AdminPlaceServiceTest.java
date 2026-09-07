@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
@@ -105,13 +107,16 @@ class AdminPlaceServiceTest {
 	void getPlace_returnsDetailWithImages() {
 		AdminPlaceDetailResponse detail = new AdminPlaceDetailResponse();
 		detail.setPlaceName("김포아울렛");
+		PlaceImageResponse image = new PlaceImageResponse();
+		image.setImgNo(11L);
 		when(adminPlaceMapper.selectPlaceDetail(1L)).thenReturn(detail);
-		when(adminPlaceMapper.selectPlaceImages(1L)).thenReturn(List.of(new PlaceImageResponse()));
+		when(adminPlaceMapper.selectPlaceImages(1L)).thenReturn(List.of(image));
 
 		AdminPlaceDetailResponse result = adminPlaceService.getPlace(1L);
 
 		assertThat(result.getPlaceName()).isEqualTo("김포아울렛");
 		assertThat(result.getPlaceImages()).hasSize(1);
+		assertThat(result.getPlaceImages().getFirst().getImgNo()).isEqualTo(11L);
 	}
 
 	@Test
@@ -158,8 +163,11 @@ class AdminPlaceServiceTest {
 
 		ArgumentCaptor<PlaceImg> captor = ArgumentCaptor.forClass(PlaceImg.class);
 		verify(adminPlaceMapper, times(2)).insertPlaceImg(captor.capture());
+		verify(fileService, times(2)).store(any(MultipartFile.class), eq("places"));
 		assertThat(captor.getAllValues()).extracting(PlaceImg::getPlaceNo).containsOnly(10L);
 		assertThat(captor.getAllValues()).extracting(PlaceImg::getImgOrder).containsExactly(1, 2);
+		assertThat(captor.getAllValues()).extracting(PlaceImg::getImgPath)
+				.containsOnly("https://bucket/places/");
 	}
 
 	@Test
@@ -210,5 +218,66 @@ class AdminPlaceServiceTest {
 
 		verify(s3Service).deleteFile("places/s1.jpg");
 		verify(s3Service).deleteFile("places/s2.jpg");
+	}
+
+	// ---------- updatePlaceImageOrder ----------
+
+	@Test
+	@DisplayName("현재 장소의 활성 이미지 전체를 전달하면 요청 순서대로 이미지 순서를 변경한다")
+	void updatePlaceImageOrder_success() {
+		PlaceImg first = PlaceImg.builder().imgNo(11L).placeNo(1L).imgOrder(1).build();
+		PlaceImg second = PlaceImg.builder().imgNo(12L).placeNo(1L).imgOrder(2).build();
+		PlaceImg third = PlaceImg.builder().imgNo(13L).placeNo(1L).imgOrder(3).build();
+
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(first, second, third));
+		when(adminPlaceMapper.updatePlaceImgOrder(anyLong(), anyLong(), anyInt())).thenReturn(1);
+
+		adminPlaceService.updatePlaceImageOrder(1L, List.of(13L, 11L, 12L));
+
+		InOrder order = inOrder(adminPlaceMapper);
+		order.verify(adminPlaceMapper).updatePlaceImgOrder(1L, 13L, 1);
+		order.verify(adminPlaceMapper).updatePlaceImgOrder(1L, 11L, 2);
+		order.verify(adminPlaceMapper).updatePlaceImgOrder(1L, 12L, 3);
+	}
+
+	@Test
+	@DisplayName("이미지 순서에 중복된 이미지 번호가 있으면 변경하지 않는다")
+	void updatePlaceImageOrder_duplicateImgNo() {
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(11L).build(),
+				PlaceImg.builder().imgNo(12L).build()));
+
+		assertThatThrownBy(() -> adminPlaceService.updatePlaceImageOrder(1L, List.of(11L, 11L)))
+				.isInstanceOf(BadRequestException.class);
+
+		verify(adminPlaceMapper, never()).updatePlaceImgOrder(anyLong(), anyLong(), anyInt());
+	}
+
+	@Test
+	@DisplayName("다른 장소 이미지가 섞이거나 활성 이미지가 누락되면 변경하지 않는다")
+	void updatePlaceImageOrder_mismatchedImages() {
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(11L).build(),
+				PlaceImg.builder().imgNo(12L).build()));
+
+		assertThatThrownBy(() -> adminPlaceService.updatePlaceImageOrder(1L, List.of(11L, 99L)))
+				.isInstanceOf(BadRequestException.class);
+
+		verify(adminPlaceMapper, never()).updatePlaceImgOrder(anyLong(), anyLong(), anyInt());
+	}
+
+	@Test
+	@DisplayName("순서를 변경할 장소가 없으면 NotFoundException 을 던진다")
+	void updatePlaceImageOrder_placeNotFound() {
+		when(adminPlaceMapper.countActivePlace(99L)).thenReturn(0);
+
+		assertThatThrownBy(() -> adminPlaceService.updatePlaceImageOrder(99L, List.of(11L)))
+				.isInstanceOf(NotFoundException.class);
+
+		verify(adminPlaceMapper, never()).selectPlaceImgList(anyLong());
+		verify(adminPlaceMapper, never()).updatePlaceImgOrder(anyLong(), anyLong(), anyInt());
 	}
 }
