@@ -9,5 +9,6 @@ public class PlaceImageDto {
     private String originalName;
     private String saveName;
     private String imgPath;
+    private String imageUrl;
     private Integer imgOrder;
 }

@@ -4,110 +4,222 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
- 
-	<select id="selectByPlaceNo"
-	        resultType="PlaceDto">
-		SELECT 
-		       P.PLACE_NO
-		     , P.PLACE_NAME
-		     , P.PLACE_DESCRIPTION
-		     , P.ADDR
-		     , P.X_AXIS
-		     , P.Y_AXIS
-		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
-		  FROM
-		       PLACE P
-		  LEFT
-		  JOIN
-		       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO
-		   AND
-		       PI.IMG_ORDER = 1
-		 WHERE
-		       P.PLACE_NO = #{placeNo}
-	</select>
+    <sql id="representativeImageUrl">
+        (
+            SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                   KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+            FROM PLACE_IMG PI
+            WHERE PI.PLACE_NO = P.PLACE_NO
+              AND PI.DEL_YN = 'N'
+        )
+    </sql>
+
+    <select id="selectByPlaceNo" resultType="PlaceDto">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        WHERE P.PLACE_NO = #{placeNo}
+          AND P.DEL_YN = 'N'
+    </select>
 
     <select id="selectPlaceDetail" resultType="com.kh.wellness.place.model.dto.PlaceDetailDto">
-        SELECT
-            P.PLACE_NO AS placeNo,
-            P.PLACE_NAME AS placeName,
-            P.PLACE_DESCRIPTION AS placeDescription,
-            P.ADDR AS addr,
-            P.ADDR_DETAIL AS addrDetail,
-            P.PHONE_NUMBER AS phoneNumber,
-            P.VIEW_COUNT AS viewCount,
-            P.X_AXIS AS xAxis,
-            P.Y_AXIS AS yAxis,
-            P.TYPE_DETAIL_NO AS typeDetailNo,
-            TD.TYPE_DETAIL AS typeDetail,
-            T.TYPE AS type,
-            (SELECT COUNT(*) FROM PLACE_REVIEW R WHERE R.PLACE_NO = P.PLACE_NO AND R.DEL_YN = 'N') AS reviewCount,
-            (SELECT NVL(ROUND(AVG(R.RATING), 1), 0.0) FROM PLACE_REVIEW R WHERE R.PLACE_NO = P.PLACE_NO AND R.DEL_YN = 'N') AS avgRating,
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM PLACE_BOOKMARK PB
-                    WHERE PB.PLACE_NO = P.PLACE_NO
-                      AND PB.MEMBER_NO = #{memberNo}
-                )
-                THEN 'Y'
-                ELSE 'N'
-            END AS bookmarkYn
+        SELECT P.PLACE_NO AS placeNo,
+               P.PLACE_NAME AS placeName,
+               P.PLACE_DESCRIPTION AS placeDescription,
+               P.ADDR AS addr,
+               P.ADDR_DETAIL AS addrDetail,
+               P.PHONE_NUMBER AS phoneNumber,
+               P.VIEW_COUNT AS viewCount,
+               P.X_AXIS AS xAxis,
+               P.Y_AXIS AS yAxis,
+               P.TYPE_DETAIL_NO AS typeDetailNo,
+               TD.TYPE_DETAIL_CONTENT AS typeDetail,
+               T.TYPE AS type,
+               (SELECT COUNT(*)
+                  FROM PLACE_REVIEW R
+                 WHERE R.PLACE_NO = P.PLACE_NO
+                   AND R.DEL_YN = 'N') AS reviewCount,
+               (SELECT NVL(ROUND(AVG(R.RATING), 1), 0.0)
+                  FROM PLACE_REVIEW R
+                 WHERE R.PLACE_NO = P.PLACE_NO
+                   AND R.DEL_YN = 'N') AS avgRating,
+               CASE
+                   WHEN #{memberNo} IS NOT NULL AND EXISTS (
+                       SELECT 1
+                         FROM PLACE_BOOKMARK PB
+                        WHERE PB.PLACE_NO = P.PLACE_NO
+                          AND PB.MEMBER_NO = #{memberNo}
+                   ) THEN 'Y'
+                   ELSE 'N'
+               END AS bookmarkYn
         FROM PLACE P
-        LEFT JOIN TYPE_DETAIL TD
-            ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
-        LEFT JOIN TYPE T
-            ON TD.TYPE_NO = T.TYPE_NO
+        LEFT JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
         WHERE P.PLACE_NO = #{placeNo}
           AND P.DEL_YN = 'N'
     </select>
 
     <select id="selectPlaceImages" resultType="com.kh.wellness.place.model.dto.PlaceImageDto">
-        SELECT
-            IMG_NO AS imgNo,
-            PLACE_NO AS placeNo,
-            ORIGINAL_NAME AS originalName,
-            SAVE_NAME AS saveName,
-            IMG_PATH AS imgPath,
-            IMG_ORDER AS imgOrder
+        SELECT IMG_NO AS imgNo,
+               PLACE_NO AS placeNo,
+               ORIGINAL_NAME AS originalName,
+               SAVE_NAME AS saveName,
+               IMG_PATH AS imgPath,
+               IMG_PATH || SAVE_NAME AS imageUrl,
+               IMG_ORDER AS imgOrder
         FROM PLACE_IMG
         WHERE PLACE_NO = #{placeNo}
           AND DEL_YN = 'N'
-        ORDER BY IMG_ORDER
+        ORDER BY IMG_ORDER, IMG_NO
     </select>
 
     <select id="selectPlaceTags" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
-        SELECT
-            T.TAG_NO AS tagNo,
-            T.TAG_CONTENT AS tagContent
+        SELECT T.TAG_NO AS tagNo,
+               T.TAG_CONTENT AS tagContent
         FROM PLACE_TAG PT
-        JOIN TAG T
-            ON PT.TAG_NO = T.TAG_NO
+        JOIN TAG T ON PT.TAG_NO = T.TAG_NO
         WHERE PT.PLACE_NO = #{placeNo}
         ORDER BY T.TAG_NO
     </select>
 
-	<select id="selectPlaces"
-        resultType="com.kh.wellness.place.model.dto.PlaceResponse">
-		SELECT 
-			P.PLACE_NO
-		     , P.PLACE_NAME
-		     , P.PLACE_DESCRIPTION
-		     , P.ADDR
-		     , P.X_AXIS
-		     , P.Y_AXIS
-		     , PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
-		FROM
-			TYPE_DETAIL T
-		LEFT
-		JOIN
-			PLACE P ON P.TYPE_DETAIL_NO = T.TYPE_DETAIL_NO
-		LEFT
-		JOIN
-			PLACE_IMG PI ON PI.PLACE_NO = P.PLACE_NO
-			            AND PI.IMG_ORDER = 1
-		WHERE
-			T.TYPE_DETAIL_NO = #{typeDetailNo}
-			AND P.DEL_YN = 'N'
-		ORDER BY P.PLACE_NO
-	</select>
+    <select id="selectPlaces" resultType="com.kh.wellness.place.model.dto.PlaceResponse">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        WHERE P.TYPE_DETAIL_NO = #{typeDetailNo}
+          AND P.DEL_YN = 'N'
+        ORDER BY P.PLACE_NO
+    </select>
+
+    <select id="findMapPlaces" resultType="MapPlace">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.ADDR_DETAIL,
+               P.PHONE_NUMBER AS PHONE,
+               T.TYPE,
+               TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
+               P.VIEW_COUNT,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        LEFT JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
+        WHERE P.DEL_YN = 'N'
+        ORDER BY P.PLACE_NO
+    </select>
+
+    <select id="findMapPlacesByType" resultType="MapPlace">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.ADDR_DETAIL,
+               P.PHONE_NUMBER AS PHONE,
+               T.TYPE,
+               TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
+               P.VIEW_COUNT,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
+        WHERE P.DEL_YN = 'N'
+          AND (T.TYPE = #{type} OR TD.TYPE_DETAIL_CONTENT = #{type})
+        ORDER BY P.PLACE_NO
+    </select>
+
+    <select id="findMapPlacesByTag" resultType="MapPlace">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.ADDR_DETAIL,
+               P.PHONE_NUMBER AS PHONE,
+               T.TYPE,
+               TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
+               P.VIEW_COUNT,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        LEFT JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        LEFT JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
+        WHERE P.DEL_YN = 'N'
+          AND EXISTS (
+              SELECT 1
+                FROM PLACE_TAG PT
+                JOIN TAG TG ON PT.TAG_NO = TG.TAG_NO
+               WHERE PT.PLACE_NO = P.PLACE_NO
+                 AND TG.TAG_CONTENT = #{tag}
+          )
+        ORDER BY P.PLACE_NO
+    </select>
+
+    <!-- 타입과 태그를 동시에 지정하면 두 조건을 모두 만족하는 장소만 반환한다. -->
+    <select id="findMapPlacesByFilters" resultType="MapPlace">
+        SELECT P.PLACE_NO,
+               P.PLACE_NAME,
+               P.PLACE_DESCRIPTION,
+               P.ADDR,
+               P.ADDR_DETAIL,
+               P.PHONE_NUMBER AS PHONE,
+               T.TYPE,
+               TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
+               P.VIEW_COUNT,
+               P.X_AXIS,
+               P.Y_AXIS,
+               <include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM PLACE P
+        JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+        JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
+        WHERE P.DEL_YN = 'N'
+        <if test="typeNo != null">
+          AND T.TYPE_NO = #{typeNo}
+        </if>
+        <if test="typeDetailNo != null">
+          AND TD.TYPE_DETAIL_NO = #{typeDetailNo}
+        </if>
+        <if test="tagNo != null">
+          AND EXISTS (
+              SELECT 1
+                FROM PLACE_TAG PT
+               WHERE PT.PLACE_NO = P.PLACE_NO
+                 AND PT.TAG_NO = #{tagNo}
+          )
+        </if>
+        ORDER BY P.PLACE_NO
+    </select>
+
+    <select id="findPlaceTypeOptions"
+            resultType="com.kh.wellness.place.model.dto.PlaceTypeOptionResponse">
+        SELECT T.TYPE_NO AS typeNo,
+               T.TYPE AS type,
+               TD.TYPE_DETAIL_NO AS typeDetailNo,
+               TD.TYPE_DETAIL_CONTENT AS typeDetailContent
+        FROM TYPE T
+        LEFT JOIN TYPE_DETAIL TD ON T.TYPE_NO = TD.TYPE_NO
+        ORDER BY T.TYPE_NO, TD.TYPE_DETAIL_NO
+    </select>
+
+    <select id="findPlaceTagOptions" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
+        SELECT TAG_NO AS tagNo,
+               TAG_CONTENT AS tagContent
+        FROM TAG
+        ORDER BY TAG_NO
+    </select>
+
 </mapper>
