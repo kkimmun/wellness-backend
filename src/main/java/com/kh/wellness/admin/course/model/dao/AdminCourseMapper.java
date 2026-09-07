@@ -15,9 +15,9 @@ import com.kh.wellness.admin.course.model.vo.CourseWaypoint;
 @Mapper
 public interface AdminCourseMapper {
 
-    AdminCourseDetailResponse selectCourseDetail(@Param("courseNo") Long courseNo);
+    AdminCourseDetailResponse selectCourseDetail(Long courseNo);
 
-    List<WaypointDto> selectWaypoints(@Param("courseNo") Long courseNo);
+    List<WaypointDto> selectWaypoints(Long courseNo);
 
 	List<AdminCourseListResponse> selectCourses(@Param("keyword") String keyword, @Param("active") String active,
 			@Param("offset") long offset, @Param("size") int size);
