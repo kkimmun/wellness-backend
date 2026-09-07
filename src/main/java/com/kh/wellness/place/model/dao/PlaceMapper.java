@@ -17,7 +17,6 @@ public interface PlaceMapper {
     
     PlaceDto selectByPlaceNo(Long placeNo);
 
-    // 고객님 코드 (상세보기)
     PlaceDetailDto selectPlaceDetail(@Param("placeNo") Long placeNo, @Param("memberNo") Long memberNo);
     List<PlaceImageDto> selectPlaceImages(@Param("placeNo") Long placeNo);
     List<PlaceTagDto> selectPlaceTags(@Param("placeNo") Long placeNo);
