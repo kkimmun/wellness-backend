@@ -54,6 +54,7 @@ public class SecurityConfiguration {
 	            requests.requestMatchers(HttpMethod.GET,
 					"/api/places/pins",
 					"/api/places/types",
+					"/api/places/types/*",
 					"/api/places/tags",
 					"/api/places/*",
 					"/api/places/*/detail",
@@ -64,8 +65,7 @@ public class SecurityConfiguration {
 	            // 회원 상세 - 로그인 필요
 	            requests.requestMatchers("/api/members/detail").authenticated();
 
-	            // 코스 조회는 비회원도 사용할 수 있다.
-	            requests.requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll();
+	            requests.requestMatchers("/api/courses/**").permitAll();
 
 	            // 관리자 API - ADMIN만 접근
 	            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");

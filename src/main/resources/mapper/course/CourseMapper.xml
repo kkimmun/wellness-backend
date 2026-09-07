@@ -121,6 +121,7 @@
     	     , T.TAG_CONTENT
     	  FROM 
     	       PLACE P
+          JOIN TYPE_DETAIL TD ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
     	  JOIN
     	       PLACE_TAG PT ON P.PLACE_NO = PT.PLACE_NO
     	  JOIN
@@ -130,6 +131,7 @@
     	       PLACE_IMG PI ON P.PLACE_NO = PI.PLACE_NO AND PI.IMG_ORDER = 1
     	 WHERE
     	       P.DEL_YN = 'N'
+           AND TD.TYPE_NO IN (1, 3, 8, 9)
     	   AND
     	       T.TAG_CONTENT IN
     	       <foreach collection="tags"
