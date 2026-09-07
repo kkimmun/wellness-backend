@@ -108,10 +108,7 @@ public class CourseService {
 	}
 
     public RouteResponse getRecommendedRoute(RouteSearchRequest request) {
-        validateSelectedPlaces(request);
-        List<Long> waypointPlaceNos = request.getWaypointPlaceNos() == null
-                ? new ArrayList<>()
-                : new ArrayList<>(request.getWaypointPlaceNos());
+        List<Long> waypointPlaceNos = validateAndCompressSelectedPlaces(request);
         List<List<Long>> waypointOrders = new ArrayList<>();
         collectWaypointOrders(waypointPlaceNos, 0, waypointOrders);
 
@@ -139,16 +136,41 @@ public class CourseService {
         return shortestRoute;
     }
 
-    private void validateSelectedPlaces(RouteSearchRequest request) {
+    private List<Long> validateAndCompressSelectedPlaces(RouteSearchRequest request) {
         try {
             validateSelectedPlace(request.getStartPlaceNo());
             validateSelectedPlace(request.getEndPlaceNo());
-            if (request.getWaypointPlaceNos() != null) {
-                request.getWaypointPlaceNos().forEach(this::validateSelectedPlace);
-            }
+            return compressWaypointCoordinates(request.getWaypointPlaceNos());
         } catch (NotFoundException exception) {
             throw new NotFoundException("선택한 관광지 정보를 찾을 수 없습니다.");
         }
+    }
+
+    private List<Long> compressWaypointCoordinates(List<Long> waypointPlaceNos) {
+        if (waypointPlaceNos == null || waypointPlaceNos.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> uniquePlaceNos = new ArrayList<>();
+        List<PlaceDto> uniquePlaces = new ArrayList<>();
+        for (Long placeNo : waypointPlaceNos) {
+            PlaceDto place = placeService.selectByPlaceNo(placeNo);
+            boolean duplicateCoordinate = place != null
+                    && place.getXAxis() != null
+                    && place.getYAxis() != null
+                    && uniquePlaces.stream().anyMatch(uniquePlace ->
+                            uniquePlace.getXAxis() != null
+                                    && uniquePlace.getYAxis() != null
+                                    && Double.compare(uniquePlace.getXAxis(), place.getXAxis()) == 0
+                                    && Double.compare(uniquePlace.getYAxis(), place.getYAxis()) == 0);
+            if (!duplicateCoordinate) {
+                uniquePlaceNos.add(placeNo);
+                if (place != null) {
+                    uniquePlaces.add(place);
+                }
+            }
+        }
+        return uniquePlaceNos;
     }
 
     private void validateSelectedPlace(Long placeNo) {

@@ -317,6 +317,35 @@ class CourseServiceTest {
     }
 
     @Test
+    void getRecommendedRouteKeepsFirstSelectedWaypointWhenCoordinatesAreEqual() {
+        RouteSearchRequest request = routeRequest(List.of(10L, 15L, 20L));
+        PlaceDto first = place(10L, "먼저 선택한 장소", 126.7000, 37.6000,
+                List.of(CourseTag.힐링));
+        PlaceDto duplicate = place(15L, "같은 좌표의 장소", 126.7000, 37.6000,
+                List.of(CourseTag.힐링));
+        PlaceDto other = place(20L, "다른 장소", 126.7100, 37.6100,
+                List.of(CourseTag.힐링));
+        when(placeService.selectByPlaceNo(5L)).thenReturn(
+                place(5L, "출발지", 126.6900, 37.5900, List.of()));
+        when(placeService.selectByPlaceNo(10L)).thenReturn(first);
+        when(placeService.selectByPlaceNo(15L)).thenReturn(duplicate);
+        when(placeService.selectByPlaceNo(20L)).thenReturn(other);
+        when(placeService.selectByPlaceNo(25L)).thenReturn(
+                place(25L, "도착지", 126.7200, 37.6200, List.of()));
+        when(routeService.findRoutes(any(RouteSearchRequest.class)))
+                .thenReturn(routeResponse(8_000));
+
+        courseService.getRecommendedRoute(request);
+
+        ArgumentCaptor<RouteSearchRequest> captor = ArgumentCaptor.forClass(RouteSearchRequest.class);
+        verify(routeService, times(2)).findRoutes(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(RouteSearchRequest::getWaypointPlaceNos)
+                .containsExactlyInAnyOrder(List.of(10L, 20L), List.of(20L, 10L));
+        assertThat(request.getWaypointPlaceNos()).containsExactly(10L, 15L, 20L);
+    }
+
+    @Test
     void getWaypointsCalculatesScoresAndSortsCandidates() {
         WaypointsRequest request = waypointsRequest(List.of(CourseTag.힐링, CourseTag.자연));
         PlaceDto partialMatch = place(10L, "애기봉", 126.7000, 37.6000,
