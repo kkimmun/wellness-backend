@@ -17,4 +17,5 @@ public class PlaceImageResponse {
 	private String originalName;
 	private String saveName;
 	private String imageUrl;
+	private PlaceImageLicenseResponse license;
 }

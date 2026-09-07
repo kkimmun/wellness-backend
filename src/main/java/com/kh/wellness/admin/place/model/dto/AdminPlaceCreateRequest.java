@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -42,4 +43,7 @@ public class AdminPlaceCreateRequest {
 
 	// 이미지는 선택 (0장 등록 허용)
 	private List<MultipartFile> imageFiles;
+
+	// imageFiles 와 같은 인덱스의 신규 이미지 라이선스 정보
+	private List<@Valid PlaceImageLicenseInput> imageLicenses;
 }
