@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.place.model.dto;
+package com.kh.wellness.place.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,9 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PlaceImageResponse {
 
-	private Integer imgOrder;
-	private String imgPath;
-	private String originalName;
-	private String saveName;
-	private String imageUrl;
+    private Integer imgOrder;
+    private String imageUrl;
 }

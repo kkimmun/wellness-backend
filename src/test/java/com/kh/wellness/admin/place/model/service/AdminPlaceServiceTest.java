@@ -158,8 +158,11 @@ class AdminPlaceServiceTest {
 
 		ArgumentCaptor<PlaceImg> captor = ArgumentCaptor.forClass(PlaceImg.class);
 		verify(adminPlaceMapper, times(2)).insertPlaceImg(captor.capture());
+		verify(fileService, times(2)).store(any(MultipartFile.class), eq("places"));
 		assertThat(captor.getAllValues()).extracting(PlaceImg::getPlaceNo).containsOnly(10L);
 		assertThat(captor.getAllValues()).extracting(PlaceImg::getImgOrder).containsExactly(1, 2);
+		assertThat(captor.getAllValues()).extracting(PlaceImg::getImgPath)
+				.containsOnly("https://bucket/places/");
 	}
 
 	@Test

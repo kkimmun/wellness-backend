@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.plan.model.dao.PlanMapper">
+
+<insert id = "savePlan">
+	INSERT 
+		INTO 
+			PLAN_SESSION 
+			(
+		    	MEMBER_NO,
+		    	PLACE_NO,
+		    	PLACE_ORDER
+		) VALUES 
+			(
+		    	#{memberNo},
+		   		#{placeNo},
+		    	#{placeOrder}
+		)
+</insert>
+<delete id = "deletePlan">
+	DELETE
+		FROM
+			PLAN_SESSION
+		WHERE
+			MEMBER_NO = #{memberNo}
+</delete>
+
+
+</mapper>

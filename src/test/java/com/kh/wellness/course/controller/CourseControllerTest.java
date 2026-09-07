@@ -1,6 +1,7 @@
 package com.kh.wellness.course.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.kh.wellness.course.model.dto.CourseRestaurantResponse;
 import com.kh.wellness.course.model.dto.PlaceDto;
+import com.kh.wellness.course.model.dto.WaypointsRequest;
 import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
@@ -56,6 +59,37 @@ class CourseControllerTest {
                                 {"startX":126.7,"startY":37.6,"endPlaceNo":20,"transportType":"WALK"}
                                 """))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    void acceptsWaypointRequestWithDatabaseOriginAndKoreanTags() throws Exception {
+        when(courseService.getWaypoints(any(WaypointsRequest.class))).thenReturn(List.of());
+
+        mockMvc.perform(post("/api/courses/waypoints")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "startX": 126.7155,
+                                  "startY": 37.6153,
+                                  "startPlaceNo": 412,
+                                  "endPlaceNo": 108,
+                                  "tags": ["역사", "힐링", "전통"],
+                                  "estimatedTime": 120
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray());
+
+        ArgumentCaptor<WaypointsRequest> captor = ArgumentCaptor.forClass(WaypointsRequest.class);
+        verify(courseService).getWaypoints(captor.capture());
+        WaypointsRequest request = captor.getValue();
+        org.assertj.core.api.Assertions.assertThat(request.getStartPlaceNo()).isEqualTo(412L);
+        org.assertj.core.api.Assertions.assertThat(request.getEndPlaceNo()).isEqualTo(108L);
+        org.assertj.core.api.Assertions.assertThat(request.getTags())
+                .extracting(Enum::name)
+                .containsExactly("역사", "힐링", "전통");
+        org.assertj.core.api.Assertions.assertThat(request.getEstimatedTime()).isEqualTo(120);
     }
 
     @Test
