@@ -20,6 +20,7 @@ import com.kh.wellness.admin.place.model.dto.AdminPlaceCreateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
+import com.kh.wellness.admin.place.model.dto.PlaceImageOrderRequest;
 import com.kh.wellness.admin.place.model.dto.PlaceNosRequest;
 import com.kh.wellness.admin.place.model.service.AdminPlaceService;
 import com.kh.wellness.common.api.ApiResponse;
@@ -79,6 +80,17 @@ public class AdminPlaceController {
 		adminPlaceService.updatePlace(placeNo, request, deleteImgNos, imageFiles);
 
 		return ResponseEntity.status(200).body(ApiResponse.success("게시글 수정 완료", null));
+	}
+
+	@PatchMapping("/{placeNo}/images/order")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Void>> updatePlaceImageOrder(
+			@PathVariable(name = "placeNo") Long placeNo,
+			@Valid @RequestBody PlaceImageOrderRequest request) {
+
+		adminPlaceService.updatePlaceImageOrder(placeNo, request.getImgNos());
+
+		return ResponseEntity.status(200).body(ApiResponse.success("이미지 순서 변경 완료", null));
 	}
 
 	@DeleteMapping
