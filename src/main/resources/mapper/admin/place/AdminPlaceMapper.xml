@@ -52,7 +52,8 @@
 
 	<select id="selectPlaceImages" resultType="PlaceImageResponse">
 		SELECT
-			IMG_ORDER
+			IMG_NO
+			,IMG_ORDER
 			,IMG_PATH
 			,ORIGINAL_NAME
 			,SAVE_NAME
@@ -207,7 +208,11 @@
 		SET
 			IMG_ORDER = #{imgOrder}
 		WHERE
+			PLACE_NO = #{placeNo}
+		AND
 			IMG_NO = #{imgNo}
+		AND
+			DEL_YN = 'N'
 	</update>
 
 	<update id="softDeletePlaces">

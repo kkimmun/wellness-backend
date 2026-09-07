@@ -11,6 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PlaceImageResponse {
 
+	private Long imgNo;
 	private Integer imgOrder;
 	private String imgPath;
 	private String originalName;
