@@ -29,9 +29,14 @@ import com.kh.wellness.admin.place.model.dao.AdminPlaceMapper;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceCreateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateResponse;
 import com.kh.wellness.admin.place.model.dto.PlaceImageResponse;
+import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseInput;
+import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseRequest;
 import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
+import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
@@ -144,6 +149,28 @@ class AdminPlaceServiceTest {
 		return request;
 	}
 
+	private PlaceImageLicenseInput newImageLicense() {
+		return new PlaceImageLicenseInput(
+				true,
+				"공공누리",
+				"https://example.com/source",
+				"김포시",
+				"KOGL TYPE1",
+				"https://www.kogl.or.kr/info/licenseType1.do",
+				"김포시 제공, 공공누리 제1유형");
+	}
+
+	private PlaceImageLicenseRequest imageLicense(Long imgNo) {
+		return new PlaceImageLicenseRequest(
+				imgNo,
+				"공공누리",
+				"https://example.com/source",
+				"김포시",
+				"KOGL TYPE1",
+				"https://www.kogl.or.kr/info/licenseType1.do",
+				"김포시 제공, 공공누리 제1유형");
+	}
+
 	@Test
 	@DisplayName("장소 등록 성공 시 PLACE 저장 후 이미지 순서를 부여해 PLACE_IMG 를 저장한다")
 	void savePlace_success() {
@@ -157,7 +184,11 @@ class AdminPlaceServiceTest {
 		});
 		when(fileService.store(any(), eq("places")))
 				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
-		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenReturn(1);
+		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
+			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
+			image.setImgNo(100L + image.getImgOrder());
+			return 1;
+		});
 
 		adminPlaceService.savePlace(createRequest(1L, first, second));
 
@@ -209,15 +240,93 @@ class AdminPlaceServiceTest {
 		when(fileService.store(any(), eq("places")))
 				.thenReturn(new FileSaveResult("s1.jpg", "https://bucket/places/"))
 				.thenReturn(new FileSaveResult("s2.jpg", "https://bucket/places/"));
-		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class)))
-				.thenReturn(1)
-				.thenReturn(0);
+		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
+			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
+			if (image.getImgOrder() == 1) {
+				image.setImgNo(101L);
+				return 1;
+			}
+			return 0;
+		});
 
 		assertThatThrownBy(() -> adminPlaceService.savePlace(createRequest(1L, first, second)))
 				.isInstanceOf(InternalServerException.class);
 
 		verify(s3Service).deleteFile("places/s1.jpg");
 		verify(s3Service).deleteFile("places/s2.jpg");
+	}
+
+	@Test
+	@DisplayName("신규 이미지에 라이선스가 입력되면 생성된 IMG_NO로 라이선스를 저장한다")
+	void savePlace_withImageLicense() {
+		MultipartFile file = new MockMultipartFile("imageFiles", "a.jpg", "image/jpeg", "a".getBytes());
+		AdminPlaceCreateRequest request = createRequest(1L, file);
+		request.setImageLicenses(List.of(newImageLicense()));
+
+		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
+		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
+			invocation.getArgument(0, Place.class).setPlaceNo(10L);
+			return 1;
+		});
+		when(fileService.store(file, "places"))
+				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
+		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
+			invocation.getArgument(0, PlaceImg.class).setImgNo(101L);
+			return 1;
+		});
+		when(adminPlaceMapper.insertPlaceLicense(any(PlaceLicense.class))).thenReturn(1);
+
+		adminPlaceService.savePlace(request);
+
+		ArgumentCaptor<PlaceLicense> captor = ArgumentCaptor.forClass(PlaceLicense.class);
+		verify(adminPlaceMapper).insertPlaceLicense(captor.capture());
+		assertThat(captor.getValue().getImgNo()).isEqualTo(101L);
+		assertThat(captor.getValue().getSourceName()).isEqualTo("공공누리");
+		assertThat(captor.getValue().getAuthorName()).isEqualTo("김포시");
+	}
+
+	@Test
+	@DisplayName("라이선스를 사용하면서 필수값이 없으면 장소와 이미지를 저장하지 않는다")
+	void savePlace_invalidImageLicense() {
+		MultipartFile file = new MockMultipartFile("imageFiles", "a.jpg", "image/jpeg", "a".getBytes());
+		AdminPlaceCreateRequest request = createRequest(1L, file);
+		PlaceImageLicenseInput license = newImageLicense();
+		license.setAttributionText(" ");
+		request.setImageLicenses(List.of(license));
+
+		assertThatThrownBy(() -> adminPlaceService.savePlace(request))
+				.isInstanceOf(BadRequestException.class);
+
+		verify(adminPlaceMapper, never()).insertPlace(any());
+		verify(fileService, never()).store(any(), any());
+	}
+
+	// ---------- updatePlace ----------
+
+	@Test
+	@DisplayName("장소 수정 시 새 이미지 번호를 업로드 순서대로 반환한다")
+	void updatePlace_returnsNewImageNumbers() {
+		MultipartFile first = new MockMultipartFile("imageFiles", "a.jpg", "image/jpeg", "a".getBytes());
+		MultipartFile second = new MockMultipartFile("imageFiles", "b.jpg", "image/jpeg", "b".getBytes());
+		AdminPlaceUpdateRequest request = new AdminPlaceUpdateRequest();
+
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectMaxImgOrder(1L)).thenReturn(0);
+		when(fileService.store(any(), eq("places")))
+				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
+		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
+			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
+			image.setImgNo(100L + image.getImgOrder());
+			return 1;
+		});
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(101L).imgOrder(1).build(),
+				PlaceImg.builder().imgNo(102L).imgOrder(2).build()));
+
+		AdminPlaceUpdateResponse result = adminPlaceService.updatePlace(
+				1L, request, null, List.of(first, second));
+
+		assertThat(result.getNewImgNos()).containsExactly(101L, 102L);
 	}
 
 	// ---------- updatePlaceImageOrder ----------
@@ -279,5 +388,52 @@ class AdminPlaceServiceTest {
 
 		verify(adminPlaceMapper, never()).selectPlaceImgList(anyLong());
 		verify(adminPlaceMapper, never()).updatePlaceImgOrder(anyLong(), anyLong(), anyInt());
+	}
+
+	// ---------- replacePlaceImageLicenses ----------
+
+	@Test
+	@DisplayName("현재 장소 이미지의 라이선스 목록을 전체 교체한다")
+	void replacePlaceImageLicenses_success() {
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(11L).build(),
+				PlaceImg.builder().imgNo(12L).build()));
+		when(adminPlaceMapper.insertPlaceLicense(any(PlaceLicense.class))).thenReturn(1);
+
+		adminPlaceService.replacePlaceImageLicenses(1L, List.of(imageLicense(12L)));
+
+		verify(adminPlaceMapper).deletePlaceLicensesByPlaceNo(1L);
+		ArgumentCaptor<PlaceLicense> captor = ArgumentCaptor.forClass(PlaceLicense.class);
+		verify(adminPlaceMapper).insertPlaceLicense(captor.capture());
+		assertThat(captor.getValue().getImgNo()).isEqualTo(12L);
+		assertThat(captor.getValue().getLicenseCode()).isEqualTo("KOGL TYPE1");
+	}
+
+	@Test
+	@DisplayName("빈 라이선스 목록을 저장하면 현재 장소의 라이선스를 모두 제거한다")
+	void replacePlaceImageLicenses_emptyList() {
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(11L).build()));
+
+		adminPlaceService.replacePlaceImageLicenses(1L, List.of());
+
+		verify(adminPlaceMapper).deletePlaceLicensesByPlaceNo(1L);
+		verify(adminPlaceMapper, never()).insertPlaceLicense(any());
+	}
+
+	@Test
+	@DisplayName("다른 장소 이미지의 라이선스가 포함되면 기존 라이선스를 변경하지 않는다")
+	void replacePlaceImageLicenses_mismatchedImage() {
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
+				PlaceImg.builder().imgNo(11L).build()));
+
+		assertThatThrownBy(() -> adminPlaceService.replacePlaceImageLicenses(1L, List.of(imageLicense(99L))))
+				.isInstanceOf(BadRequestException.class);
+
+		verify(adminPlaceMapper, never()).deletePlaceLicensesByPlaceNo(anyLong());
+		verify(adminPlaceMapper, never()).insertPlaceLicense(any());
 	}
 }

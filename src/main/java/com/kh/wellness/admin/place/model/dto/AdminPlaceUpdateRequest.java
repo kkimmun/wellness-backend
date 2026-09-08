@@ -1,5 +1,8 @@
 package com.kh.wellness.admin.place.model.dto;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -30,6 +33,9 @@ public class AdminPlaceUpdateRequest {
 	private Double xAxis;
 
 	private Double yAxis;
+
+	// imageFiles 와 같은 인덱스의 신규 이미지 라이선스 정보
+	private List<@Valid PlaceImageLicenseInput> imageLicenses;
 
 	public boolean hasFieldToUpdate() {
 		return typeDetailNo != null
