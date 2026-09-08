@@ -14,8 +14,12 @@ import com.kh.wellness.admin.place.model.dto.AdminPlaceCreateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateResponse;
+import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseInput;
+import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseRequest;
 import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
+import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 import com.kh.wellness.common.page.PageResponse;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.InternalServerException;
@@ -69,6 +73,8 @@ public class AdminPlaceService {
 
 	@Transactional
 	public void savePlace(AdminPlaceCreateRequest request) {
+		validateNewImageLicenses(request.getImageFiles(), request.getImageLicenses());
+
 		if (adminPlaceMapper.countTypeDetailByNo(request.getTypeDetailNo()) == 0) {
 			throw new BadRequestException("존재하지 않는 분류입니다.");
 		}
@@ -87,12 +93,12 @@ public class AdminPlaceService {
 			throw new InternalServerException("장소 등록에 실패했습니다.");
 		}
 
-		uploadPlaceImages(place.getPlaceNo(), request.getImageFiles(), 1);
+		uploadPlaceImages(place.getPlaceNo(), request.getImageFiles(), request.getImageLicenses(), 1);
 	}
 
 	// 관리자 장소 수정 (PATCH - 보낸 필드만 수정, 이미지는 부분 편집)
 	@Transactional
-	public void updatePlace(Long placeNo, AdminPlaceUpdateRequest request, List<Long> deleteImgNos,
+	public AdminPlaceUpdateResponse updatePlace(Long placeNo, AdminPlaceUpdateRequest request, List<Long> deleteImgNos,
 			List<MultipartFile> imageFiles) {
 
 		if (adminPlaceMapper.countActivePlace(placeNo) == 0) {
@@ -103,6 +109,8 @@ public class AdminPlaceService {
 				&& adminPlaceMapper.countTypeDetailByNo(request.getTypeDetailNo()) == 0) {
 			throw new BadRequestException("존재하지 않는 분류입니다.");
 		}
+
+		validateNewImageLicenses(imageFiles, request.getImageLicenses());
 
 		normalizeUpdateRequest(request);
 		if (request.hasFieldToUpdate() && adminPlaceMapper.updatePlace(placeNo, request) != 1) {
@@ -116,10 +124,13 @@ public class AdminPlaceService {
 
 		// ② 신규 이미지는 남아있는 이미지 뒤 순번으로 업로드
 		int startOrder = adminPlaceMapper.selectMaxImgOrder(placeNo) + 1;
-		uploadPlaceImages(placeNo, imageFiles, startOrder);
+		List<Long> newImgNos = uploadPlaceImages(
+				placeNo, imageFiles, request.getImageLicenses(), startOrder);
 
 		// ③ 활성 이미지 IMG_ORDER 를 1..N 으로 재정렬 (유지 이미지가 앞, 신규가 뒤)
 		reorderPlaceImages(placeNo);
+
+		return new AdminPlaceUpdateResponse(newImgNos);
 	}
 
 	@Transactional
@@ -135,6 +146,35 @@ public class AdminPlaceService {
 			int imgOrder = index + 1;
 			if (adminPlaceMapper.updatePlaceImgOrder(placeNo, imgNos.get(index), imgOrder) != 1) {
 				throw new InternalServerException("이미지 순서 변경에 실패했습니다.");
+			}
+		}
+	}
+
+	@Transactional
+	public void replacePlaceImageLicenses(Long placeNo, List<PlaceImageLicenseRequest> licenses) {
+		if (adminPlaceMapper.countActivePlace(placeNo) == 0) {
+			throw new NotFoundException("해당 장소가 존재하지 않습니다.");
+		}
+
+		Set<Long> activeImgNos = new HashSet<>();
+		for (PlaceImg image : adminPlaceMapper.selectPlaceImgList(placeNo)) {
+			activeImgNos.add(image.getImgNo());
+		}
+
+		Set<Long> requestedImgNos = new HashSet<>();
+		for (PlaceImageLicenseRequest license : licenses) {
+			if (!requestedImgNos.add(license.getImgNo())) {
+				throw new BadRequestException("중복된 이미지 라이선스가 포함되어 있습니다.");
+			}
+			if (!activeImgNos.contains(license.getImgNo())) {
+				throw new BadRequestException("현재 장소의 활성 이미지에만 라이선스를 저장할 수 있습니다.");
+			}
+		}
+
+		adminPlaceMapper.deletePlaceLicensesByPlaceNo(placeNo);
+		for (PlaceImageLicenseRequest license : licenses) {
+			if (adminPlaceMapper.insertPlaceLicense(toPlaceLicense(license)) != 1) {
+				throw new InternalServerException("이미지 라이선스 저장에 실패했습니다.");
 			}
 		}
 	}
@@ -194,13 +234,15 @@ public class AdminPlaceService {
 		}
 	}
 
-	private void uploadPlaceImages(Long placeNo, List<MultipartFile> imageFiles, int startOrder) {
+	private List<Long> uploadPlaceImages(Long placeNo, List<MultipartFile> imageFiles,
+			List<PlaceImageLicenseInput> imageLicenses, int startOrder) {
 		if (imageFiles == null || imageFiles.isEmpty()) {
-			return;
+			return List.of();
 		}
 
 		// 트랜잭션 롤백은 DB만 되돌리므로, 실패 시 이미 올라간 S3 객체는 직접 삭제한다.
 		List<String> uploadedKeys = new ArrayList<>();
+		List<Long> newImgNos = new ArrayList<>();
 		try {
 			for (int index = 0; index < imageFiles.size(); index++) {
 				MultipartFile file = imageFiles.get(index);
@@ -218,11 +260,89 @@ public class AdminPlaceService {
 				if (adminPlaceMapper.insertPlaceImg(placeImg) != 1) {
 					throw new InternalServerException("장소 이미지 등록에 실패했습니다.");
 				}
+				if (placeImg.getImgNo() == null) {
+					throw new InternalServerException("생성된 이미지 번호를 가져오지 못했습니다.");
+				}
+				newImgNos.add(placeImg.getImgNo());
+
+				PlaceImageLicenseInput license = getImageLicense(imageLicenses, index);
+				if (license != null && license.isEnabled()) {
+					if (adminPlaceMapper.insertPlaceLicense(toPlaceLicense(placeImg.getImgNo(), license)) != 1) {
+						throw new InternalServerException("이미지 라이선스 저장에 실패했습니다.");
+					}
+				}
 			}
+			return List.copyOf(newImgNos);
 		} catch (RuntimeException e) {
 			deleteUploadedImages(uploadedKeys);
 			throw e;
 		}
+	}
+
+	private void validateNewImageLicenses(List<MultipartFile> imageFiles,
+			List<PlaceImageLicenseInput> imageLicenses) {
+		if (imageLicenses == null || imageLicenses.isEmpty()) {
+			return;
+		}
+
+		int imageCount = imageFiles == null ? 0 : imageFiles.size();
+		if (imageLicenses.size() != imageCount) {
+			throw new BadRequestException("이미지와 라이선스 정보 개수가 일치하지 않습니다.");
+		}
+
+		for (PlaceImageLicenseInput license : imageLicenses) {
+			if (license != null && license.isEnabled()) {
+				validateRequiredLicenseFields(license);
+			}
+		}
+	}
+
+	private void validateRequiredLicenseFields(PlaceImageLicenseInput license) {
+		if (isBlank(license.getSourceName())
+				|| isBlank(license.getSourcePageUrl())
+				|| isBlank(license.getLicenseCode())
+				|| isBlank(license.getAttributionText())) {
+			throw new BadRequestException("출처명, 출처 페이지 URL, 라이선스 코드, 귀속 표기 문구는 필수입니다.");
+		}
+	}
+
+	private PlaceImageLicenseInput getImageLicense(List<PlaceImageLicenseInput> imageLicenses, int index) {
+		if (imageLicenses == null || index >= imageLicenses.size()) {
+			return null;
+		}
+		return imageLicenses.get(index);
+	}
+
+	private PlaceLicense toPlaceLicense(Long imgNo, PlaceImageLicenseInput license) {
+		return PlaceLicense.builder()
+				.imgNo(imgNo)
+				.sourceName(license.getSourceName().trim())
+				.sourcePageUrl(license.getSourcePageUrl().trim())
+				.authorName(normalizeOptional(license.getAuthorName()))
+				.licenseCode(license.getLicenseCode().trim())
+				.licenseUrl(normalizeOptional(license.getLicenseUrl()))
+				.attributionText(license.getAttributionText().trim())
+				.build();
+	}
+
+	private PlaceLicense toPlaceLicense(PlaceImageLicenseRequest license) {
+		return PlaceLicense.builder()
+				.imgNo(license.getImgNo())
+				.sourceName(license.getSourceName().trim())
+				.sourcePageUrl(license.getSourcePageUrl().trim())
+				.authorName(normalizeOptional(license.getAuthorName()))
+				.licenseCode(license.getLicenseCode().trim())
+				.licenseUrl(normalizeOptional(license.getLicenseUrl()))
+				.attributionText(license.getAttributionText().trim())
+				.build();
+	}
+
+	private String normalizeOptional(String value) {
+		return isBlank(value) ? null : value.trim();
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.isBlank();
 	}
 
 	private void deleteUploadedImages(List<String> keys) {

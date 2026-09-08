@@ -39,11 +39,18 @@ public class PlanService {
 		
 	}
 
+	@Transactional
 	public void editPlan(Long memberNo, List<PlanPlaceRequestDto> planRequest) {
 
-	    planMapper.deletePlan(memberNo);
+	    deletePlan(memberNo);
 
 	    savePlan(memberNo, planRequest);
+	}
+
+	public void deletePlan(Long memberNo) {
+		
+		planMapper.deletePlan(memberNo);
+		
 	}
 	
 }
