@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.wellness.review.model.dao.ReviewMapper">
+
+	<resultMap id="ratingCountMap" type="RatingCountDto">
+		<result property="rating" column="RATING" />
+		<result property="count" column="CNT" />
+	</resultMap>
+
+	<select id="countActivePlace" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<insert id="insertReview"
+			useGeneratedKeys="true"
+			keyProperty="reviewNo"
+			keyColumn="REVIEW_NO">
+		INSERT INTO
+			PLACE_REVIEW (
+				MEMBER_NO
+				,PLACE_NO
+				,REVIEW_CONTENT
+				,RATING
+				,CREATE_DATE
+				,DEL_YN
+			)
+		VALUES (
+			#{memberNo}
+			,#{placeNo}
+			,#{reviewContent}
+			,#{rating}
+			,SYSDATE
+			,'N'
+		)
+	</insert>
+
+	<insert id="insertReviewImg"
+			useGeneratedKeys="true"
+			keyProperty="imgNo"
+			keyColumn="IMG_NO">
+		INSERT INTO
+			REVIEW_IMG (
+				REVIEW_NO
+				,ORIGINAL_NAME
+				,SAVE_NAME
+				,IMG_PATH
+				,IMG_ORDER
+				,CREATE_DATE
+				,DEL_YN
+			)
+		VALUES (
+			#{reviewNo}
+			,#{originalName}
+			,#{saveName}
+			,#{imgPath}
+			,#{imgOrder}
+			,SYSDATE
+			,'N'
+		)
+	</insert>
+
+	<select id="selectCreateDate" resultType="string">
+		SELECT
+			TO_CHAR(CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS')
+		FROM
+			PLACE_REVIEW
+		WHERE
+			REVIEW_NO = #{reviewNo}
+	</select>
+
+	<select id="selectReviewForAuth" resultType="Review">
+		SELECT
+			REVIEW_NO
+			,MEMBER_NO
+			,PLACE_NO
+			,DEL_YN
+		FROM
+			PLACE_REVIEW
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<select id="selectReviewDetail" resultType="ReviewDetailResponse">
+		SELECT
+			REVIEW_NO
+			,PLACE_NO
+			,MEMBER_NO
+			,RATING
+			,REVIEW_CONTENT
+			,TO_CHAR(CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		FROM
+			PLACE_REVIEW
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<update id="updateReview">
+		UPDATE
+			PLACE_REVIEW
+		SET
+			RATING = #{rating}
+			,REVIEW_CONTENT = #{reviewContent}
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			DEL_YN = 'N'
+	</update>
+
+	<update id="softDeleteReview">
+		UPDATE
+			PLACE_REVIEW
+		SET
+			DEL_YN = 'Y'
+			,DELETE_DATE = SYSDATE
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			DEL_YN = 'N'
+	</update>
+
+	<select id="selectReviewImgList" resultType="ReviewImg">
+		SELECT
+			IMG_NO
+			,REVIEW_NO
+			,ORIGINAL_NAME
+			,SAVE_NAME
+			,IMG_PATH
+			,IMG_ORDER
+		FROM
+			REVIEW_IMG
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			DEL_YN = 'N'
+		ORDER BY
+			IMG_ORDER
+			,IMG_NO
+	</select>
+
+	<update id="softDeleteReviewImages">
+		UPDATE
+			REVIEW_IMG
+		SET
+			DEL_YN = 'Y'
+		WHERE
+			REVIEW_NO = #{reviewNo}
+		AND
+			DEL_YN = 'N'
+	</update>
+
+	<select id="countReviews" resultType="long">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE_REVIEW
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<select id="selectReviewSummary" resultType="ReviewSummaryDto">
+		SELECT
+			NVL(ROUND(AVG(RATING), 1), 0.0) AS AVG_RATING
+			,COUNT(*) AS TOTAL_REVIEW_COUNT
+		FROM
+			PLACE_REVIEW
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
+	<select id="selectRatingDistribution" resultMap="ratingCountMap">
+		SELECT
+			RATING
+			,COUNT(*) AS CNT
+		FROM
+			PLACE_REVIEW
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			DEL_YN = 'N'
+		GROUP BY
+			RATING
+	</select>
+
+	<select id="selectReviews" resultType="ReviewItemDto">
+		SELECT
+			R.REVIEW_NO
+			,R.MEMBER_NO
+			,M.MEMBER_NAME AS NICKNAME
+			,CASE
+				WHEN M.SAVE_NAME IS NOT NULL THEN M.IMG_PATH || M.SAVE_NAME
+				ELSE NULL
+			END AS PROFILE_IMG_PATH
+			,R.RATING
+			,R.REVIEW_CONTENT
+			,TO_CHAR(R.CREATE_DATE, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		FROM
+			PLACE_REVIEW R
+		JOIN
+			WELLNESS_MEMBER M
+		ON
+			R.MEMBER_NO = M.MEMBER_NO
+		WHERE
+			R.PLACE_NO = #{placeNo}
+		AND
+			R.DEL_YN = 'N'
+		ORDER BY
+			R.CREATE_DATE DESC
+			,R.REVIEW_NO DESC
+		OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+	</select>
+
+	<select id="selectReviewImagesByReviewNos" resultType="ReviewImageDto">
+		SELECT
+			REVIEW_NO
+			,IMG_NO
+			,IMG_ORDER
+			,IMG_PATH || SAVE_NAME AS IMAGE_URL
+		FROM
+			REVIEW_IMG
+		WHERE
+			DEL_YN = 'N'
+		AND
+			REVIEW_NO IN
+			<foreach collection="reviewNos" item="reviewNo" open="(" separator="," close=")">
+				#{reviewNo}
+			</foreach>
+		ORDER BY
+			REVIEW_NO
+			,IMG_ORDER
+			,IMG_NO
+	</select>
+
+</mapper>

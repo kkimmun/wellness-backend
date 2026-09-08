@@ -1,4 +1,4 @@
-package com.kh.wellness.admin.place.model.vo;
+package com.kh.wellness.review.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,10 +10,10 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceImg {
+public class ReviewImg {
 
 	private Long imgNo;
-	private Long placeNo;
+	private Long reviewNo;
 	private String originalName;
 	private String saveName;
 	private String imgPath;
