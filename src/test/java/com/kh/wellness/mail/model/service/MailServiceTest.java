@@ -75,6 +75,33 @@ class MailServiceTest {
 	}
 
 	@Test
+	@DisplayName("이미 가입된 회원의 주소로 인증 메일을 요청하면 메일을 보내지 않고 BadRequestException 을 던진다")
+	void sendAuthMail_memberAlreadyExists() {
+		when(mailMapper.checkMemberExists("user@wellness.com")).thenReturn(1);
+
+		assertThatThrownBy(() -> mailService.sendAuthMail(authMailDto()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("이미 기등록된 사용자가 존재합니다.");
+
+		verify(sender, never()).send(any(MimeMessage.class));
+		verify(mailMapper, never()).saveAuthMailCode(any());
+	}
+
+	@Test
+	@DisplayName("이미 인증 메일이 발송된 주소로 다시 요청하면 메일을 보내지 않고 BadRequestException 을 던진다")
+	void sendAuthMail_authMailAlreadySent() {
+		when(mailMapper.checkMemberExists("user@wellness.com")).thenReturn(0);
+		when(mailMapper.checkEmailExists(any(AuthMailDto.class))).thenReturn(1);
+
+		assertThatThrownBy(() -> mailService.sendAuthMail(authMailDto()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("이미 인증메일이 발송되었습니다.");
+
+		verify(sender, never()).send(any(MimeMessage.class));
+		verify(mailMapper, never()).saveAuthMailCode(any());
+	}
+
+	@Test
 	@DisplayName("인증코드 저장 결과가 없으면 BadRequestException 을 던진다")
 	void sendAuthMail_saveFail() throws Exception {
 		when(sender.createMimeMessage()).thenReturn(newMimeMessage());

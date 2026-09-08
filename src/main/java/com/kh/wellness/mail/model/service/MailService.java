@@ -63,6 +63,7 @@ public class MailService {
         return mailEntity;
     }
 
+    @Transactional
     public void sendAuthMail(AuthMailDto email) throws MessagingException {
     	
     	 int checkUserExist = mailMapper.checkMemberExists(email.getEmailAddr());
@@ -92,9 +93,16 @@ public class MailService {
 
     public void resendAuthMail(AuthMailDto email) throws MessagingException {
 
-        mailMapper.deleteAuthMail(email);
+        deleteAuthMail(email);
 
         sendAuthMail(email);
+    }
+    
+    @Transactional
+    public void deleteAuthMail(AuthMailDto email) throws MessagingException {
+
+        mailMapper.deleteAuthMail(email);
+
     }
 
     @Transactional(noRollbackFor = BadRequestException.class)

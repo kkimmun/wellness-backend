@@ -221,5 +221,24 @@
         FROM TAG
         ORDER BY TAG_NO
     </select>
-
+    <select id = "selectPrimaryPlaces">
+    	SELECT
+    		P.PLACE_NO
+    		,P.PLACE_NAME
+    		,P.ADDR
+    		,P.X_AXIS
+    		,P.Y_AXIS
+    		,P.TYPE_DETAIL_NO
+            ,<include refid="representativeImageUrl"/> AS IMAGE_URL
+        FROM
+        	PLACE P
+    	LEFT JOIN
+			TYPE_DETAIL TD
+    	ON
+    			P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+    	WHERE
+    		P.TYPE_DETAIL_NO = #{typeDetailNo}
+    	ORDER BY
+    		P.PLACE_NO ASC
+    </select>
 </mapper>

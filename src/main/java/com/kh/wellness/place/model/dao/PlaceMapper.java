@@ -40,4 +40,6 @@ public interface PlaceMapper {
     List<PlaceTypeOptionResponse> findPlaceTypeOptions();
 
     List<PlaceTagDto> findPlaceTagOptions();
+
+	List<PlaceResponse> selectPrimaryPlaces(Long typeDetailNo);
 }

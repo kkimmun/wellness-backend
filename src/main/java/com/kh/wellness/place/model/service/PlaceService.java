@@ -140,4 +140,15 @@ public class PlaceService {
                 .imageUrl(place.getImageUrl())
                 .build();
     }
+
+	public List<PlaceResponse> selectPrimaryPlaces(Long typeDetailNo) {
+		
+		List<PlaceResponse> list = placeMapper.selectPrimaryPlaces(typeDetailNo);
+		
+		if(list == null || list.isEmpty()) {
+			throw new BadRequestException("리스트 조회에 실패하였습니다.");
+		}
+		
+		return list;
+	}
 }

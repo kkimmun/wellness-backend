@@ -52,6 +52,7 @@ public class SecurityConfiguration {
 
 	            // 지도 핀·장소 검색·길찾기는 회원과 비회원 모두 사용하는 프론트 조회 API
 	            requests.requestMatchers(HttpMethod.GET,
+	            	"/api/places",
 					"/api/places/pins",
 					"/api/places/types",
 					"/api/places/types/*",
