@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.recommendation.course.model.dao.CourseRecommendationMapper">
+
+    <select id="findAllCandidates"
+            resultType="com.kh.wellness.recommendation.course.model.dto.CourseRecommendationCandidateRow">
+        SELECT P.PLACE_NO AS placeNo,
+               P.PLACE_NAME AS placeName,
+               P.PLACE_DESCRIPTION AS placeDescription,
+               P.ADDR AS addr,
+               P.ADDR_DETAIL AS addrDetail,
+               P.X_AXIS AS xAxis,
+               P.Y_AXIS AS yAxis,
+               T.TYPE_NO AS typeNo,
+               T.TYPE AS type,
+               TD.TYPE_DETAIL_NO AS typeDetailNo,
+               TD.TYPE_DETAIL_CONTENT AS typeDetail,
+               P.VIEW_COUNT AS viewCount,
+               (
+                   SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                          KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+                   FROM PLACE_IMG PI
+                   WHERE PI.PLACE_NO = P.PLACE_NO
+                     AND PI.DEL_YN = 'N'
+               ) AS imageUrl,
+               TG.TAG_NO AS tagNo,
+               TG.TAG_CONTENT AS tagContent
+        FROM PLACE P
+        JOIN TYPE_DETAIL TD ON TD.TYPE_DETAIL_NO = P.TYPE_DETAIL_NO
+        JOIN TYPE T ON T.TYPE_NO = TD.TYPE_NO
+        LEFT JOIN PLACE_TAG PT ON PT.PLACE_NO = P.PLACE_NO
+        LEFT JOIN TAG TG ON TG.TAG_NO = PT.TAG_NO
+        WHERE P.DEL_YN = 'N'
+          AND P.X_AXIS IS NOT NULL
+          AND P.Y_AXIS IS NOT NULL
+        ORDER BY P.PLACE_NO, TG.TAG_NO
+    </select>
+
+</mapper>
