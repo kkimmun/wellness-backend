@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.plan.model.dao.PlanMapper;
+import com.kh.wellness.plan.model.dto.PlanDetailResponse;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
 import com.kh.wellness.plan.model.vo.Plan;
 
@@ -51,6 +52,11 @@ public class PlanService {
 		
 		planMapper.deletePlan(memberNo);
 		
+	}
+
+	public List<PlanDetailResponse> findNearbyPlaces(Long memberNo, Double xAxis, Double yAxis, Integer radius) {
+		
+		return planMapper.findNearbyPlaces(memberNo, xAxis, yAxis, radius);
 	}
 	
 }
