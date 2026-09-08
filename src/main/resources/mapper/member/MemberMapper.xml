@@ -91,7 +91,7 @@
     AND
         DEL_YN = 'N'
 </update>
-<select id="findById" parameterType="long" resultType="com.kh.wellness.member.model.vo.MemberImg">
+<select id="findById" parameterType="long" resultType="MemberImg">
 	SELECT
 		IMG_NO
 		,MEMBER_NO

@@ -1,5 +1,6 @@
 package com.kh.wellness.admin.place.model.vo;
 
+import org.apache.ibatis.type.Alias;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Alias("AdminPlace")
 public class Place {
 
 	private Long placeNo;

@@ -13,7 +13,7 @@
 		<result property="saveName" column="SAVE_NAME" />
 		<result property="imageUrl" column="IMAGE_URL" />
 		<association property="license"
-				javaType="com.kh.wellness.admin.place.model.dto.PlaceImageLicenseResponse"
+				javaType="PlaceImageLicenseResponse"
 				notNullColumn="LICENSE_IMG_NO">
 			<result property="sourceName" column="LICENSE_SOURCE_NAME" />
 			<result property="sourcePageUrl" column="LICENSE_SOURCE_PAGE_URL" />
@@ -217,7 +217,7 @@
 			DEL_YN = 'N'
 	</select>
 
-	<select id="selectPlaceImgList" resultType="com.kh.wellness.admin.place.model.vo.PlaceImg">
+	<select id="selectPlaceImgList" resultType="PlaceImg">
 		SELECT
 			IMG_NO
 			,PLACE_NO
@@ -236,7 +236,7 @@
 			,IMG_NO
 	</select>
 
-	<select id="selectActivePlaceImg" resultType="com.kh.wellness.admin.place.model.vo.PlaceImg">
+	<select id="selectActivePlaceImg" resultType="PlaceImg">
 		SELECT
 			IMG_NO
 			,PLACE_NO

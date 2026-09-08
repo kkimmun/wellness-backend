@@ -4,7 +4,7 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
-    <resultMap id="placeImageDtoMap" type="com.kh.wellness.place.model.dto.PlaceImageDto">
+    <resultMap id="placeImageDtoMap" type="PlaceImageDto">
         <id property="imgNo" column="IMG_NO" />
         <result property="placeNo" column="PLACE_NO" />
         <result property="originalName" column="ORIGINAL_NAME" />
@@ -13,7 +13,7 @@
         <result property="imageUrl" column="IMAGE_URL" />
         <result property="imgOrder" column="IMG_ORDER" />
         <association property="license"
-                     javaType="com.kh.wellness.place.model.dto.PlaceImageLicenseDto"
+                     javaType="PlaceImageLicenseDto"
                      notNullColumn="LICENSE_IMG_NO">
             <result property="sourceName" column="LICENSE_SOURCE_NAME" />
             <result property="sourcePageUrl" column="LICENSE_SOURCE_PAGE_URL" />
@@ -47,7 +47,7 @@
           AND P.DEL_YN = 'N'
     </select>
 
-    <select id="selectPlaceDetail" resultType="com.kh.wellness.place.model.dto.PlaceDetailDto">
+    <select id="selectPlaceDetail" resultType="PlaceDetailDto">
         SELECT P.PLACE_NO AS placeNo,
                P.PLACE_NAME AS placeName,
                P.PLACE_DESCRIPTION AS placeDescription,
@@ -106,7 +106,7 @@
         ORDER BY PI.IMG_ORDER, PI.IMG_NO
     </select>
 
-    <select id="selectPlaceTags" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
+    <select id="selectPlaceTags" resultType="PlaceTagDto">
         SELECT T.TAG_NO AS tagNo,
                T.TAG_CONTENT AS tagContent
         FROM PLACE_TAG PT
@@ -115,7 +115,7 @@
         ORDER BY T.TAG_NO
     </select>
 
-    <select id="selectPlaces" resultType="com.kh.wellness.place.model.dto.PlaceResponse">
+    <select id="selectPlaces" resultType="PublicPlaceResponse">
         SELECT P.PLACE_NO,
                P.PLACE_NAME,
                P.PLACE_DESCRIPTION,
@@ -233,7 +233,7 @@
     </select>
 
     <select id="findPlaceTypeOptions"
-            resultType="com.kh.wellness.place.model.dto.PlaceTypeOptionResponse">
+            resultType="PlaceTypeOptionResponse">
         SELECT T.TYPE_NO AS typeNo,
                T.TYPE AS type,
                TD.TYPE_DETAIL_NO AS typeDetailNo,
@@ -243,7 +243,7 @@
         ORDER BY T.TYPE_NO, TD.TYPE_DETAIL_NO
     </select>
 
-    <select id="findPlaceTagOptions" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
+    <select id="findPlaceTagOptions" resultType="PlaceTagDto">
         SELECT TAG_NO AS tagNo,
                TAG_CONTENT AS tagContent
         FROM TAG

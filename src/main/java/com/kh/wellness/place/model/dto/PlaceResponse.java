@@ -1,5 +1,6 @@
 package com.kh.wellness.place.model.dto;
 
+import org.apache.ibatis.type.Alias;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Alias("PublicPlaceResponse")
 public class PlaceResponse {
 	private Long placeNo;
 	private String placeName;
