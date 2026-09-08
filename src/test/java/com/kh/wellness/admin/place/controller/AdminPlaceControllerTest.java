@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -92,5 +93,14 @@ class AdminPlaceControllerTest {
 				.andExpect(status().isOk());
 
 		verify(adminPlaceService).replacePlaceImageLicenses(any(), any());
+	}
+
+	@Test
+	@DisplayName("장소 이미지 삭제 요청을 서비스에 전달한다")
+	void deletePlaceImage() throws Exception {
+		mockMvc.perform(delete("/api/admin/places/1/images/11"))
+				.andExpect(status().isOk());
+
+		verify(adminPlaceService).deletePlaceImage(1L, 11L);
 	}
 }

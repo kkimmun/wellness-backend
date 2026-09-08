@@ -107,6 +107,17 @@ public class AdminPlaceController {
 		return ResponseEntity.status(200).body(ApiResponse.success("이미지 라이선스 저장 완료", null));
 	}
 
+	@DeleteMapping("/{placeNo}/images/{imgNo}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Void>> deletePlaceImage(
+			@PathVariable(name = "placeNo") Long placeNo,
+			@PathVariable(name = "imgNo") Long imgNo) {
+
+		adminPlaceService.deletePlaceImage(placeNo, imgNo);
+
+		return ResponseEntity.status(200).body(ApiResponse.success("이미지 삭제 완료", null));
+	}
+
 	@DeleteMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<Void>> deletePlaces(@Valid @RequestBody PlaceNosRequest request) {

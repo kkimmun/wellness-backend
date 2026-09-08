@@ -11,4 +11,5 @@ public class PlaceImageDto {
     private String imgPath;
     private String imageUrl;
     private Integer imgOrder;
+    private PlaceImageLicenseDto license;
 }

@@ -436,4 +436,53 @@ class AdminPlaceServiceTest {
 		verify(adminPlaceMapper, never()).deletePlaceLicensesByPlaceNo(anyLong());
 		verify(adminPlaceMapper, never()).insertPlaceLicense(any());
 	}
+
+	// ---------- deletePlaceImage ----------
+
+	@Test
+	@DisplayName("마지막 참조인 장소 이미지를 삭제하면 라이선스와 S3 객체도 삭제한다")
+	void deletePlaceImage_lastReferenceDeletesS3Object() {
+		PlaceImg image = PlaceImg.builder()
+				.imgNo(11L)
+				.placeNo(1L)
+				.imgPath("https://bucket/places/")
+				.saveName("shared.png")
+				.build();
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectActivePlaceImg(1L, 11L)).thenReturn(image);
+		when(adminPlaceMapper.hardDeletePlaceImage(1L, 11L)).thenReturn(1);
+		when(adminPlaceMapper.countActiveImageReferences("https://bucket/places/", "shared.png"))
+				.thenReturn(0);
+
+		adminPlaceService.deletePlaceImage(1L, 11L);
+
+		InOrder order = inOrder(adminPlaceMapper, s3Service);
+		order.verify(adminPlaceMapper).deletePlaceLicense(11L);
+		order.verify(adminPlaceMapper).hardDeletePlaceImage(1L, 11L);
+		order.verify(adminPlaceMapper).countActiveImageReferences("https://bucket/places/", "shared.png");
+		order.verify(s3Service).deleteFile("places/shared.png");
+	}
+
+	@Test
+	@DisplayName("다른 장소가 같은 S3 객체를 참조하면 이미지 행만 삭제하고 객체는 유지한다")
+	void deletePlaceImage_sharedReferenceKeepsS3Object() {
+		PlaceImg image = PlaceImg.builder()
+				.imgNo(11L)
+				.placeNo(1L)
+				.imgPath("https://bucket/places/")
+				.saveName("shared.png")
+				.build();
+		when(adminPlaceMapper.countActivePlace(1L)).thenReturn(1);
+		when(adminPlaceMapper.selectActivePlaceImg(1L, 11L)).thenReturn(image);
+		when(adminPlaceMapper.hardDeletePlaceImage(1L, 11L)).thenReturn(1);
+		when(adminPlaceMapper.countActiveImageReferences("https://bucket/places/", "shared.png"))
+				.thenReturn(1);
+
+		adminPlaceService.deletePlaceImage(1L, 11L);
+
+		verify(adminPlaceMapper).deletePlaceLicense(11L);
+		verify(adminPlaceMapper).hardDeletePlaceImage(1L, 11L);
+		verify(s3Service, never()).deleteFile(any());
+	}
+
 }

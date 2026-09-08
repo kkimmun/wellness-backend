@@ -4,6 +4,26 @@
 
 <mapper namespace="com.kh.wellness.place.model.dao.PlaceMapper">
 
+    <resultMap id="placeImageDtoMap" type="com.kh.wellness.place.model.dto.PlaceImageDto">
+        <id property="imgNo" column="IMG_NO" />
+        <result property="placeNo" column="PLACE_NO" />
+        <result property="originalName" column="ORIGINAL_NAME" />
+        <result property="saveName" column="SAVE_NAME" />
+        <result property="imgPath" column="IMG_PATH" />
+        <result property="imageUrl" column="IMAGE_URL" />
+        <result property="imgOrder" column="IMG_ORDER" />
+        <association property="license"
+                     javaType="com.kh.wellness.place.model.dto.PlaceImageLicenseDto"
+                     notNullColumn="LICENSE_IMG_NO">
+            <result property="sourceName" column="LICENSE_SOURCE_NAME" />
+            <result property="sourcePageUrl" column="LICENSE_SOURCE_PAGE_URL" />
+            <result property="authorName" column="LICENSE_AUTHOR_NAME" />
+            <result property="licenseCode" column="LICENSE_CODE" />
+            <result property="licenseUrl" column="LICENSE_URL" />
+            <result property="attributionText" column="LICENSE_ATTRIBUTION_TEXT" />
+        </association>
+    </resultMap>
+
     <sql id="representativeImageUrl">
         (
             SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
@@ -64,18 +84,26 @@
           AND P.DEL_YN = 'N'
     </select>
 
-    <select id="selectPlaceImages" resultType="com.kh.wellness.place.model.dto.PlaceImageDto">
-        SELECT IMG_NO AS imgNo,
-               PLACE_NO AS placeNo,
-               ORIGINAL_NAME AS originalName,
-               SAVE_NAME AS saveName,
-               IMG_PATH AS imgPath,
-               IMG_PATH || SAVE_NAME AS imageUrl,
-               IMG_ORDER AS imgOrder
-        FROM PLACE_IMG
-        WHERE PLACE_NO = #{placeNo}
-          AND DEL_YN = 'N'
-        ORDER BY IMG_ORDER, IMG_NO
+    <select id="selectPlaceImages" resultMap="placeImageDtoMap">
+        SELECT PI.IMG_NO,
+               PI.PLACE_NO,
+               PI.ORIGINAL_NAME,
+               PI.SAVE_NAME,
+               PI.IMG_PATH,
+               PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL,
+               PI.IMG_ORDER,
+               PL.IMG_NO AS LICENSE_IMG_NO,
+               PL.SOURCE_NAME AS LICENSE_SOURCE_NAME,
+               PL.SOURCE_PAGE_URL AS LICENSE_SOURCE_PAGE_URL,
+               PL.AUTHOR_NAME AS LICENSE_AUTHOR_NAME,
+               PL.LICENSE_CODE,
+               PL.LICENSE_URL,
+               PL.ATTRIBUTION_TEXT AS LICENSE_ATTRIBUTION_TEXT
+        FROM PLACE_IMG PI
+        LEFT JOIN PLACE_LICENSE PL ON PI.IMG_NO = PL.IMG_NO
+        WHERE PI.PLACE_NO = #{placeNo}
+          AND PI.DEL_YN = 'N'
+        ORDER BY PI.IMG_ORDER, PI.IMG_NO
     </select>
 
     <select id="selectPlaceTags" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
