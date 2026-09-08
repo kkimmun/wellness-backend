@@ -24,6 +24,8 @@ import com.kh.wellness.configuration.SecurityConfiguration;
 import com.kh.wellness.configuration.filter.JwtFilter;
 import com.kh.wellness.place.model.dto.MapPlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
+import com.kh.wellness.place.model.dto.PlaceImageDto;
+import com.kh.wellness.place.model.dto.PlaceImageLicenseDto;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
 import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.service.PlaceService;
@@ -53,11 +55,29 @@ class PlaceControllerTest {
 
     @Test
     void anonymousDetailRequestUsesDetailPathWithoutCategoryCollision() throws Exception {
+        PlaceImageLicenseDto license = new PlaceImageLicenseDto();
+        license.setSourceName("김포시");
+        license.setSourcePageUrl("https://example.com/source");
+        license.setAuthorName("김포시 문화예술과");
+        license.setLicenseCode("KOGL TYPE1");
+        license.setLicenseUrl("https://www.kogl.or.kr/info/licenseType1.do");
+        license.setAttributionText("사진: 김포시, 공공누리 제1유형");
+        PlaceImageDto image = new PlaceImageDto();
+        image.setImageUrl("https://bucket/places/temple.jpg");
+        image.setLicense(license);
         when(placeService.getPlaceDetail(106L, null)).thenReturn(
-                PlaceDetailResponse.builder().placeNo(106L).placeName("금정사").build());
+                PlaceDetailResponse.builder()
+                        .placeNo(106L)
+                        .placeName("금정사")
+                        .placeImages(List.of(image))
+                        .build());
         mvc.perform(get("/api/places/106/detail"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.placeNo").value(106));
+                .andExpect(jsonPath("$.data.placeNo").value(106))
+                .andExpect(jsonPath("$.data.placeImages[0].license.sourceName").value("김포시"))
+                .andExpect(jsonPath("$.data.placeImages[0].license.licenseCode").value("KOGL TYPE1"))
+                .andExpect(jsonPath("$.data.placeImages[0].license.attributionText")
+                        .value("사진: 김포시, 공공누리 제1유형"));
         verify(placeService).getPlaceDetail(106L, null);
         verify(placeService, never()).selectPlaces(anyLong());
     }
