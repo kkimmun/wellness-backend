@@ -75,4 +75,14 @@ public class PlaceController {
             @PathVariable(name = "typeDetailNo") Long typeDetailNo) {
         return ResponseEntity.ok(ApiResponse.success("조회 성공", placeService.selectPlaces(typeDetailNo)));
     }
+    
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PlaceResponse>>> selectPrimaryPlaces(
+            @RequestParam(name = "typeDetailNo") Long typeDetailNo) {
+    	
+    	List<PlaceResponse> list = placeService.selectPrimaryPlaces(typeDetailNo);
+    	
+        return ResponseEntity.ok(ApiResponse.success("조회 성공", list));
+    }
+    
 }

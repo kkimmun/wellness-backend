@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PlaceResponse {
 	private Long placeNo;
+	private Long typeDetailNo;
 	private String placeName;
 	private String placeDescription;
 	private String addr;

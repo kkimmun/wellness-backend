@@ -11,6 +11,7 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.mail.model.service.MailService;
 import com.kh.wellness.member.model.dto.AuthMailDto;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -50,7 +51,7 @@ public class MailController {
 	}
 	
 	@Delete("/auth/verification")
-	public ResponseEntity<ApiResponse<Void>> deleteAuthMail(@RequestBody AuthMailDto email){
+	public ResponseEntity<ApiResponse<Void>> deleteAuthMail(@RequestBody AuthMailDto email) throws MessagingException {
 		
 		mailService.deleteAuthMail(email);
 		

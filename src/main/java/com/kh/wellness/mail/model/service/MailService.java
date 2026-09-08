@@ -75,7 +75,7 @@ public class MailService {
         int checkEmailExist = mailMapper.checkEmailExists(email);
         
         if(checkEmailExist > 0) {
-        	deleteAuthMail(email);
+        	throw new BadRequestException("이미 인증메일이 발송되었습니다.");
         }
         
         AuthMail mailEntity = mailTemplate(email);
