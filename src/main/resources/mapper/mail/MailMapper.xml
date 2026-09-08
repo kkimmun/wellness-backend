@@ -52,7 +52,15 @@
 		WHERE
 			EMAIL_ADDR = #{emailAddr}
 	</delete>
-
+	
+	<delete id="deleteAuthMail">
+		DELETE
+		FROM
+			AUTH_EMAIL
+		WHERE
+			EMAIL_ADDR = #{emailAddr}
+	</delete>
+	
 	<delete id="authMailCleanup">
 		DELETE
 		FROM

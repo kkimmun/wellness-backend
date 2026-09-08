@@ -1,5 +1,6 @@
 package com.kh.wellness.mail.controller;
 
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +45,14 @@ public class MailController {
 	public ResponseEntity<ApiResponse<Void>> verifyEmailCode(@RequestBody AuthMailDto email){
 		
 		mailService.verifyEmailCode(email);
+		
+		return ResponseEntity.status(200).body(ApiResponse.success("인증 성공", null));
+	}
+	
+	@Delete("/auth/verification")
+	public ResponseEntity<ApiResponse<Void>> deleteAuthMail(@RequestBody AuthMailDto email){
+		
+		mailService.deleteAuthMail(email);
 		
 		return ResponseEntity.status(200).body(ApiResponse.success("인증 성공", null));
 	}
