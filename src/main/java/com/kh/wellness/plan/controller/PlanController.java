@@ -62,12 +62,11 @@ public class PlanController {
 	@GetMapping("/nearby")
 	public ResponseEntity<ApiResponse<List<PlanDetailResponse>>> findNearbyPlaces(@AuthenticationPrincipal CustomUserDetails userDetails,
 	        @RequestParam(name = "xAxis") Double xAxis,
-	        @RequestParam(name = "yAxis") Double yAxis,
-	        @RequestParam(name = "radius" ,defaultValue = "3000") Integer radius){
+	        @RequestParam(name = "yAxis") Double yAxis){
 		
 		Long memberNo = userDetails.getMemberNo();
 		
-		List<PlanDetailResponse> list = planService.findNearbyPlaces(memberNo, xAxis, yAxis, radius);
+		List<PlanDetailResponse> list = planService.findNearbyPlaces(memberNo, xAxis, yAxis);
 		
 		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", list));
 	}

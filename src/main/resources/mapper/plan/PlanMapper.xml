@@ -27,63 +27,62 @@
 			MEMBER_NO = #{memberNo}
 </delete>
 <select id = "findNearbyPlaces" resultType="PlanDetailResponse">
-		SELECT
-		    P.PLACE_NO
-		    ,P.PLACE_NAME
-		    ,P.PLACE_DESCRIPTION
-		    ,P.X_AXIS
-		    ,P.Y_AXIS
-		    ,P.ADDR
-		    ,P.ADDR_DETAIL
-		    ,6371000 * 2 * ASIN(
-		        SQRT(
-		            POWER(
-		                SIN(
-		                    (Y_AXIS - #{yAxis}) * 3.141592653589793 / 180 / 2
-		                ),
-		                2
-		            )
-		            +
-		            COS(#{yAxis} * 3.141592653589793 / 180)
-		            * COS(Y_AXIS * 3.141592653589793 / 180)
-		            * POWER(
-		                SIN(
-		                    (X_AXIS - #{xAxis}) * 3.141592653589793 / 180 / 2
-		                ),
-		                2
-		            )
-		        )
-		    ) AS DISTANCE
-		    ,T.TYPE_NO
-		    ,TD.TYPE_DETAIL_NO
-		    ,PI.IMG_NO
-		    ,PI.IMG_PATH
-		FROM 
-			PLACE P
-		LEFT JOIN
-			TYPE_DETAIL TD
-		ON
-			P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
-		LEFT JOIN
-			TYPE T
-		ON
-			TD.TYPE_NO = T.TYPE_NO
-		LEFT JOIN (
-		    SELECT PLACE_NO, IMG_NO, IMG_PATH
-		    FROM (
-		        SELECT
-		            PLACE_NO
-		            ,IMG_NO
-		            ,IMG_PATH
-		            ,ROW_NUMBER() OVER (
-		                PARTITION BY PLACE_NO
-		                ORDER BY IMG_NO
-		            ) AS RN
-		        FROM PLACE_IMG
-		    )
-		    WHERE RN = 1
-		) PI
-		    ON P.PLACE_NO = PI.PLACE_NO
+	SELECT *
+	FROM (
+	    SELECT
+	        P.PLACE_NO
+	        ,P.PLACE_NAME
+	        ,P.PLACE_DESCRIPTION
+	        ,P.X_AXIS
+	        ,P.Y_AXIS
+	        ,P.ADDR
+	        ,P.ADDR_DETAIL
+	        ,6371000 * 2 * ASIN(
+	            SQRT(
+	                POWER(
+	                    SIN(
+	                        (P.Y_AXIS - #{yAxis}) * 3.141592653589793 / 180 / 2
+	                    ),
+	                    2
+	                )
+	                +
+	                COS(#{yAxis} * 3.141592653589793 / 180)
+	                * COS(P.Y_AXIS * 3.141592653589793 / 180)
+	                * POWER(
+	                    SIN(
+	                        (P.X_AXIS - #{xAxis}) * 3.141592653589793 / 180 / 2
+	                    ),
+	                    2
+	                )
+	            )
+	        ) AS DISTANCE
+	        ,T.TYPE_NO
+	        ,TD.TYPE_DETAIL_NO
+	        ,PI.IMG_NO
+	        ,PI.IMG_PATH
+	    FROM PLACE P
+	    LEFT JOIN TYPE_DETAIL TD
+	        ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+	    LEFT JOIN TYPE T
+	        ON TD.TYPE_NO = T.TYPE_NO
+	    LEFT JOIN (
+	        SELECT PLACE_NO, IMG_NO, IMG_PATH
+	        FROM (
+	            SELECT
+	                PLACE_NO
+	                ,IMG_NO
+	                ,IMG_PATH
+	                ,ROW_NUMBER() OVER (
+	                    PARTITION BY PLACE_NO
+	                    ORDER BY IMG_NO
+	                ) AS RN
+	            FROM PLACE_IMG
+	        )
+	        WHERE RN = 1
+	    ) PI
+	        ON P.PLACE_NO = PI.PLACE_NO
+	)
+	WHERE DISTANCE &lt;= 3000
 </select>
 
 

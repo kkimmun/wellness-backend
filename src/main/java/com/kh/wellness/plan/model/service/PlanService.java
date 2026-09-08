@@ -54,9 +54,9 @@ public class PlanService {
 		
 	}
 
-	public List<PlanDetailResponse> findNearbyPlaces(Long memberNo, Double xAxis, Double yAxis, Integer radius) {
+	public List<PlanDetailResponse> findNearbyPlaces(Long memberNo, Double xAxis, Double yAxis) {
 		
-		return planMapper.findNearbyPlaces(memberNo, xAxis, yAxis, radius);
+		return planMapper.findNearbyPlaces(memberNo, xAxis, yAxis);
 	}
 	
 }
