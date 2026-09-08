@@ -565,7 +565,12 @@ class RouteServiceTest {
     @Test
     void 도착장소_좌표가_없으면_외부_API를_호출하지_않는다() {
         RouteSearchRequest request = request("WALK", "SHORTEST");
-        destination.setYAxis(null);
+        destination = Place.builder()
+                .placeNo(10L)
+                .placeName("김포아트빌리지")
+                .address("경기 김포시 모담공원로 170")
+                .xAxis(127.1)
+                .build();
         when(routeMapper.findPlaceByNo(1L)).thenReturn(origin);
         when(routeMapper.findPlaceByNo(10L)).thenReturn(destination);
 

@@ -61,6 +61,12 @@ public class SecurityConfiguration {
 					"/api/places/*/detail",
 					"/api/routes",
 					"/api/routes/origins").permitAll();
+	            
+	            // 리뷰
+	            requests.requestMatchers(
+	            	    HttpMethod.GET,
+	            	    "/api/places/*/reviews"
+	            	).permitAll();
 
 	            // 회원 상세 - 로그인 필요
 	            requests.requestMatchers("/api/members/detail").authenticated();

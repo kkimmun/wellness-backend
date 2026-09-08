@@ -23,6 +23,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.wellness.admin.place.model.dao.AdminPlaceMapper;
@@ -179,14 +180,14 @@ class AdminPlaceServiceTest {
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
 		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			invocation.getArgument(0, Place.class).setPlaceNo(10L);
+			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(any(), eq("places")))
 				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
 		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
 			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
-			image.setImgNo(100L + image.getImgOrder());
+			ReflectionTestUtils.setField(image, "imgNo", 100L + image.getImgOrder());
 			return 1;
 		});
 
@@ -234,7 +235,7 @@ class AdminPlaceServiceTest {
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
 		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			invocation.getArgument(0, Place.class).setPlaceNo(10L);
+			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(any(), eq("places")))
@@ -243,7 +244,7 @@ class AdminPlaceServiceTest {
 		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
 			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
 			if (image.getImgOrder() == 1) {
-				image.setImgNo(101L);
+				ReflectionTestUtils.setField(image, "imgNo", 101L);
 				return 1;
 			}
 			return 0;
@@ -265,13 +266,13 @@ class AdminPlaceServiceTest {
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
 		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			invocation.getArgument(0, Place.class).setPlaceNo(10L);
+			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(file, "places"))
 				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
 		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
-			invocation.getArgument(0, PlaceImg.class).setImgNo(101L);
+			ReflectionTestUtils.setField(invocation.getArgument(0, PlaceImg.class), "imgNo", 101L);
 			return 1;
 		});
 		when(adminPlaceMapper.insertPlaceLicense(any(PlaceLicense.class))).thenReturn(1);
@@ -316,7 +317,7 @@ class AdminPlaceServiceTest {
 				.thenReturn(new FileSaveResult("saved.jpg", "https://bucket/places/"));
 		when(adminPlaceMapper.insertPlaceImg(any(PlaceImg.class))).thenAnswer(invocation -> {
 			PlaceImg image = invocation.getArgument(0, PlaceImg.class);
-			image.setImgNo(100L + image.getImgOrder());
+			ReflectionTestUtils.setField(image, "imgNo", 100L + image.getImgOrder());
 			return 1;
 		});
 		when(adminPlaceMapper.selectPlaceImgList(1L)).thenReturn(List.of(
