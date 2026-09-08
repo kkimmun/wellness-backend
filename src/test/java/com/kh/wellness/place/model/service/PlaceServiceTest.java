@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.place.model.dao.PlaceMapper;
@@ -21,6 +22,7 @@ import com.kh.wellness.place.model.dto.MapPlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceDetailDto;
 import com.kh.wellness.place.model.dto.PlaceDetailResponse;
 import com.kh.wellness.place.model.dto.PlaceImageDto;
+import com.kh.wellness.place.model.dto.PlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceTagDto;
 import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.vo.MapPlace;
@@ -129,6 +131,68 @@ class PlaceServiceTest {
         assertThat(placeService.findPlaceTagOptions())
                 .extracting(PlaceTagDto::getTagContent)
                 .containsExactly("가족");
+    }
+
+    @Test
+    void 관광지_번호로_조회하면_해당_장소를_반환한다() {
+        PlaceDto place = PlaceDto.builder().placeNo(7L).placeName("김포장릉").build();
+        when(placeMapper.selectByPlaceNo(7L)).thenReturn(place);
+
+        assertThat(placeService.selectByPlaceNo(7L).getPlaceName()).isEqualTo("김포장릉");
+    }
+
+    @Test
+    void 없는_관광지_번호로_조회하면_404_예외를_발생시킨다() {
+        when(placeMapper.selectByPlaceNo(9999L)).thenReturn(null);
+
+        assertThatThrownBy(() -> placeService.selectByPlaceNo(9999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("존재하지 않는 관광지입니다.");
+    }
+
+    @Test
+    void 상세타입에_해당하는_장소가_없으면_404_예외를_발생시킨다() {
+        when(placeMapper.selectPlaces(18L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> placeService.selectPlaces(18L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("존재하지 않는 관광지입니다.");
+    }
+
+    @Test
+    void 음수_필터_번호로_지도_장소를_조회하면_400_예외를_발생시킨다() {
+        assertThatThrownBy(() -> placeService.findMapPlaces(-1L, null, null))
+                .isInstanceOf(BadRequestException.class);
+        verifyNoInteractions(placeMapper);
+    }
+
+    @Test
+    void 주요_관광지_목록은_DB_조회결과를_그대로_반환한다() {
+        PlaceResponse place = new PlaceResponse();
+        place.setPlaceNo(7L);
+        place.setPlaceName("김포장릉");
+        when(placeMapper.selectPrimaryPlaces(18L)).thenReturn(List.of(place));
+
+        assertThat(placeService.selectPrimaryPlaces(18L))
+                .extracting(PlaceResponse::getPlaceName)
+                .containsExactly("김포장릉");
+    }
+
+    @Test
+    void 주요_관광지_목록이_비어있으면_400_예외를_발생시킨다() {
+        when(placeMapper.selectPrimaryPlaces(18L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> placeService.selectPrimaryPlaces(18L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("리스트 조회에 실패하였습니다.");
+    }
+
+    @Test
+    void 주요_관광지_목록이_null이면_400_예외를_발생시킨다() {
+        when(placeMapper.selectPrimaryPlaces(18L)).thenReturn(null);
+
+        assertThatThrownBy(() -> placeService.selectPrimaryPlaces(18L))
+                .isInstanceOf(BadRequestException.class);
     }
 
     private MapPlace mapPlace() {
