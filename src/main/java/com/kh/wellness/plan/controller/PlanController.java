@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +42,16 @@ public class PlanController {
 		Long memberNo = userDetails.getMemberNo();
 		
 		planService.editPlan(memberNo, planRequest);
+	
+		return ResponseEntity.status(200).body(ApiResponse.success("요청에 성공하였습니다.", null));
+	}
+	
+	@DeleteMapping
+	public ResponseEntity<ApiResponse<Void>> deletePlan(@AuthenticationPrincipal CustomUserDetails userDetails) {
+		
+		Long memberNo = userDetails.getMemberNo();
+		
+		planService.deletePlan(memberNo);
 	
 		return ResponseEntity.status(200).body(ApiResponse.success("요청에 성공하였습니다.", null));
 	}
