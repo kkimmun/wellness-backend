@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.wellness.auth.model.dto.AccessTokenDto;
 import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResponse;
 import com.kh.wellness.auth.model.dto.LoginResult;
@@ -74,7 +75,7 @@ public class AuthController {
 	}
 	
 	@PostMapping("/refresh")
-	public ResponseEntity<ApiResponse<TokenResponse>> refresh(
+	public ResponseEntity<ApiResponse<AccessTokenDto>> refresh(
 	        @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
 	    TokenResponse res = authService.refresh(refreshToken);
@@ -87,9 +88,11 @@ public class AuthController {
 			    .sameSite("Lax")
 			    .build();
 
+	    AccessTokenDto accessToken = new AccessTokenDto(res.getAccessToken());
+
 	    return ResponseEntity.ok()
 	            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-	            .body(ApiResponse.success("토큰 재발급 성공", res));
+	            .body(ApiResponse.success("토큰 재발급 성공", accessToken));
 	}
 		
 }
