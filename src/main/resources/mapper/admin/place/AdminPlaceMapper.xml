@@ -5,6 +5,25 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.wellness.admin.place.model.dao.AdminPlaceMapper">
 
+	<resultMap id="placeImageResponseMap" type="PlaceImageResponse">
+		<id property="imgNo" column="IMG_NO" />
+		<result property="imgOrder" column="IMG_ORDER" />
+		<result property="imgPath" column="IMG_PATH" />
+		<result property="originalName" column="ORIGINAL_NAME" />
+		<result property="saveName" column="SAVE_NAME" />
+		<result property="imageUrl" column="IMAGE_URL" />
+		<association property="license"
+				javaType="com.kh.wellness.admin.place.model.dto.PlaceImageLicenseResponse"
+				notNullColumn="LICENSE_IMG_NO">
+			<result property="sourceName" column="LICENSE_SOURCE_NAME" />
+			<result property="sourcePageUrl" column="LICENSE_SOURCE_PAGE_URL" />
+			<result property="authorName" column="LICENSE_AUTHOR_NAME" />
+			<result property="licenseCode" column="LICENSE_CODE" />
+			<result property="licenseUrl" column="LICENSE_URL" />
+			<result property="attributionText" column="LICENSE_ATTRIBUTION_TEXT" />
+		</association>
+	</resultMap>
+
 	<select id="countPlaces" resultType="long">
 		SELECT
 			COUNT(*)
@@ -50,22 +69,34 @@
 			PLACE_NO = #{placeNo}
 	</select>
 
-	<select id="selectPlaceImages" resultType="PlaceImageResponse">
+	<select id="selectPlaceImages" resultMap="placeImageResponseMap">
 		SELECT
-			IMG_NO
-			,IMG_ORDER
-			,IMG_PATH
-			,ORIGINAL_NAME
-			,SAVE_NAME
-			,IMG_PATH || SAVE_NAME AS IMAGE_URL
+			PI.IMG_NO
+			,PI.IMG_ORDER
+			,PI.IMG_PATH
+			,PI.ORIGINAL_NAME
+			,PI.SAVE_NAME
+			,PI.IMG_PATH || PI.SAVE_NAME AS IMAGE_URL
+			,PL.IMG_NO AS LICENSE_IMG_NO
+			,PL.SOURCE_NAME AS LICENSE_SOURCE_NAME
+			,PL.SOURCE_PAGE_URL AS LICENSE_SOURCE_PAGE_URL
+			,PL.AUTHOR_NAME AS LICENSE_AUTHOR_NAME
+			,PL.LICENSE_CODE
+			,PL.LICENSE_URL
+			,PL.ATTRIBUTION_TEXT AS LICENSE_ATTRIBUTION_TEXT
 		FROM
-			PLACE_IMG
+			PLACE_IMG PI
+		LEFT JOIN
+			PLACE_LICENSE PL
+		ON
+			PI.IMG_NO = PL.IMG_NO
 		WHERE
-			PLACE_NO = #{placeNo}
+			PI.PLACE_NO = #{placeNo}
 		AND
-			DEL_YN = 'N'
+			PI.DEL_YN = 'N'
 		ORDER BY
-			IMG_ORDER
+			PI.IMG_ORDER
+			,PI.IMG_NO
 	</select>
 
 	<select id="countTypeDetailByNo" resultType="int">
@@ -106,7 +137,10 @@
 		)
 	</insert>
 
-	<insert id="insertPlaceImg">
+	<insert id="insertPlaceImg"
+			useGeneratedKeys="true"
+			keyProperty="imgNo"
+			keyColumn="IMG_NO">
 		INSERT INTO
 			PLACE_IMG (
 				PLACE_NO
@@ -214,6 +248,39 @@
 		AND
 			DEL_YN = 'N'
 	</update>
+
+	<delete id="deletePlaceLicensesByPlaceNo">
+		DELETE FROM
+			PLACE_LICENSE
+		WHERE
+			IMG_NO IN (
+				SELECT IMG_NO
+				FROM PLACE_IMG
+				WHERE PLACE_NO = #{placeNo}
+			)
+	</delete>
+
+	<insert id="insertPlaceLicense">
+		INSERT INTO
+			PLACE_LICENSE (
+				IMG_NO
+				,SOURCE_NAME
+				,SOURCE_PAGE_URL
+				,AUTHOR_NAME
+				,LICENSE_CODE
+				,LICENSE_URL
+				,ATTRIBUTION_TEXT
+			)
+		VALUES (
+			#{imgNo}
+			,#{sourceName}
+			,#{sourcePageUrl}
+			,#{authorName}
+			,#{licenseCode}
+			,#{licenseUrl}
+			,#{attributionText}
+		)
+	</insert>
 
 	<update id="softDeletePlaces">
 		UPDATE

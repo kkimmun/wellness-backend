@@ -11,6 +11,7 @@ import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
 import com.kh.wellness.admin.place.model.dto.PlaceImageResponse;
 import com.kh.wellness.admin.place.model.vo.Place;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
+import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 
 @Mapper
 public interface AdminPlaceMapper {
@@ -41,6 +42,10 @@ public interface AdminPlaceMapper {
 
 	int updatePlaceImgOrder(@Param("placeNo") Long placeNo, @Param("imgNo") Long imgNo,
 			@Param("imgOrder") int imgOrder);
+
+	int deletePlaceLicensesByPlaceNo(Long placeNo);
+
+	int insertPlaceLicense(PlaceLicense placeLicense);
 
 	int softDeletePlaces(@Param("placeNos") List<Long> placeNos);
 
