@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 public class CourseRecommendationService {
 
     private static final double EARTH_RADIUS_METERS = 6_371_000;
-    private static final double MAX_LEG_DISTANCE_METERS = 3_000;
     private static final int DEFAULT_PLACE_COUNT = 5;
     private static final int MIN_PLACE_COUNT = 3;
     private static final int MAX_PLACE_COUNT = 10;
@@ -66,7 +65,7 @@ public class CourseRecommendationService {
                 candidates);
         if (selected == null) {
             throw new NotFoundException(
-                    "선택한 조건과 반경 3km 규칙을 만족하는 다른 추천 코스가 없습니다.");
+                    "선택한 조건과 타입별 추천 거리 규칙을 만족하는 다른 추천 코스가 없습니다.");
         }
         return toResponse(selected, requestedTagNos);
     }
@@ -90,7 +89,7 @@ public class CourseRecommendationService {
                                 candidate,
                                 distanceMeters(state.lastX, state.lastY,
                                         candidate.xAxis, candidate.yAxis)))
-                        .filter(item -> item.distance <= MAX_LEG_DISTANCE_METERS)
+                        .filter(item -> item.distance <= maxLegDistanceMeters(item.candidate))
                         .sorted(Comparator
                                 .comparingInt((CandidateDistance item) ->
                                         preferredPlaceNos.contains(item.candidate.placeNo) ? 0 : 1)
@@ -319,6 +318,24 @@ public class CourseRecommendationService {
                 * Math.pow(Math.sin(longitudeDistance / 2), 2);
         double centralAngle = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
         return EARTH_RADIUS_METERS * centralAngle;
+    }
+
+    private double maxLegDistanceMeters(Candidate destination) {
+        if (destination == null || destination.typeNo == null) return 3_000;
+        return switch (destination.typeNo.intValue()) {
+            case 1 -> 10_000; // 주요관광지
+            case 2 -> 2_000;  // 의료기관
+            case 3 -> 8_000;  // 관광지
+            case 4 -> 2_000;  // 체육시설
+            case 5 -> 10_000; // 종교시설
+            case 6 -> 3_000;  // 음식점
+            case 7 -> 8_000;  // 체험
+            case 8 -> 5_000;  // 문화시설
+            case 9 -> 8_000;  // 자연/생태
+            case 10 -> 2_000; // 복지시설
+            case 11 -> 3_000; // 공공시설
+            default -> 3_000;
+        };
     }
 
     private enum Group {

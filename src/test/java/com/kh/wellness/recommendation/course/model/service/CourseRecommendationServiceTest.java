@@ -81,6 +81,34 @@ class CourseRecommendationServiceTest {
                 .isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void 주요관광지는_출발지에서_3km를_넘어도_10km_이내면_추천할_수_있다() {
+        when(mapper.findAllCandidates()).thenReturn(List.of(
+                rowWithTypeNo(1L, "먼 주요관광지", "주요관광지", 1L, 126.7650, 37.6153, 11L),
+                rowWithTypeNo(2L, "인근 음식점", "음식점", 6L, 126.7660, 37.6153, 4L),
+                rowWithTypeNo(3L, "인근 관광지", "관광지", 3L, 126.7670, 37.6153, 10L)));
+        CourseRecommendationRequest request = request();
+        request.setPlaceCount(3);
+        request.setPreferredPlaceNos(List.of(1L));
+
+        var result = service.recommend(7L, request);
+
+        assertThat(result.getPlaces()).extracting("placeNo").contains(1L);
+    }
+
+    @Test
+    void 음식점은_출발지와_이전장소에서_3km를_넘으면_추천하지_않는다() {
+        when(mapper.findAllCandidates()).thenReturn(List.of(
+                rowWithTypeNo(1L, "가까운 관광지", "관광지", 3L, 126.7160, 37.6153, 11L),
+                rowWithTypeNo(2L, "가까운 주요관광지", "주요관광지", 1L, 126.7170, 37.6153, 10L),
+                rowWithTypeNo(3L, "먼 음식점", "음식점", 6L, 126.7650, 37.6153, 4L)));
+        CourseRecommendationRequest request = request();
+        request.setPlaceCount(3);
+
+        assertThatThrownBy(() -> service.recommend(7L, request))
+                .isInstanceOf(NotFoundException.class);
+    }
+
     private CourseRecommendationRequest request() {
         CourseRecommendationRequest request = new CourseRecommendationRequest();
         request.setStartX(126.7155);
@@ -109,6 +137,20 @@ class CourseRecommendationServiceTest {
         row.setViewCount(10L);
         row.setTagNo(tagNo);
         row.setTagContent("태그 " + tagNo);
+        return row;
+    }
+
+    private CourseRecommendationCandidateRow rowWithTypeNo(
+            Long placeNo,
+            String name,
+            String type,
+            Long typeNo,
+            double xAxis,
+            double yAxis,
+            Long tagNo) {
+        CourseRecommendationCandidateRow row = row(
+                placeNo, name, type, xAxis, yAxis, tagNo);
+        row.setTypeNo(typeNo);
         return row;
     }
 }
