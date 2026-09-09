@@ -81,8 +81,22 @@
 	        WHERE RN = 1
 	    ) PI
 	        ON P.PLACE_NO = PI.PLACE_NO
-	)
-	WHERE DISTANCE &lt;= 3000
+		)
+		WHERE DISTANCE &lt;=
+	        CASE TYPE_NO
+            WHEN 1 THEN 10000 <!-- 주요관광지 -->
+            WHEN 2 THEN 2000 <!-- 의료기관 -->
+            WHEN 3 THEN 8000 <!-- 관광지 -->
+            WHEN 4 THEN 2000 <!-- 체육 시설 -->
+            WHEN 5 THEN 10000 <!-- 종교 시설 -->
+            WHEN 6 THEN 3000 <!-- 음식점 -->
+            WHEN 7 THEN 8000 <!-- 체험 -->
+            WHEN 8 THEN 5000 <!-- 문화시설 -->
+            WHEN 9 THEN 8000 <!-- 자연생태 -->
+            WHEN 10 THEN 2000 <!-- 복지 시설 -->
+            WHEN 11 THEN 3000 <!-- 공공시설  -->
+            ELSE 3000
+        END
 </select>
 
 
