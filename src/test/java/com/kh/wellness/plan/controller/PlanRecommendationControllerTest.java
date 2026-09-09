@@ -1,4 +1,4 @@
-package com.kh.wellness.plan.recommendation.controller;
+package com.kh.wellness.plan.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.exception.UnauthorizedException;
-import com.kh.wellness.plan.recommendation.dto.NearbyPlaceRecommendationResponse;
-import com.kh.wellness.plan.recommendation.service.PlanRecommendationService;
+import com.kh.wellness.plan.model.dto.NearbyPlaceRecommendationResponse;
+import com.kh.wellness.plan.model.service.PlanRecommendationService;
 
 import static org.mockito.Mockito.mock;
 

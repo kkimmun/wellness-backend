@@ -1,4 +1,4 @@
-package com.kh.wellness.plan.recommendation.controller;
+package com.kh.wellness.plan.controller;
 
 import java.util.List;
 
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.exception.UnauthorizedException;
-import com.kh.wellness.plan.recommendation.dto.NearbyPlaceRecommendationResponse;
-import com.kh.wellness.plan.recommendation.service.PlanRecommendationService;
+import com.kh.wellness.plan.model.dto.NearbyPlaceRecommendationResponse;
+import com.kh.wellness.plan.model.service.PlanRecommendationService;
 
 import lombok.RequiredArgsConstructor;
 
