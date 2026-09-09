@@ -25,6 +25,10 @@ public interface MailMapper {
 	int authMailCleanup();
 
 	int checkEmailExists(AuthMailDto email);
+
+	int checkVerifiedEmail(String emailAddr);
+
+	int deleteVerifiedEmail(String emailAddr);
 	
 	int checkMemberExists(String emailAddr);
 }

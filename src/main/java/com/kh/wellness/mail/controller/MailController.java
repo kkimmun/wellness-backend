@@ -21,25 +21,17 @@ public class MailController {
 	private final MailService mailService;
 		
 	@PostMapping("/auth")
-	public ResponseEntity<String> sendAuthMail(@RequestBody AuthMailDto emailDto){			
-		try {
-			mailService.sendAuthMail(emailDto);	
-			return ResponseEntity.ok("난수 메일 발송 성공");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(500).body("난수 생성 실패, 다시 시도해주세요.");
-		}		
+	public ResponseEntity<ApiResponse<Void>> sendAuthMail(@RequestBody AuthMailDto emailDto)
+			throws MessagingException {
+		mailService.sendAuthMail(emailDto);
+		return ResponseEntity.ok(ApiResponse.success("인증 메일 발송 성공", null));
 	}
 	
 	@PostMapping("/auth/resend")
-	public ResponseEntity<String> resendAuthMail(@RequestBody AuthMailDto emailDto){			
-		try {
-			mailService.resendAuthMail(emailDto);	
-			return ResponseEntity.ok("난수 메일 발송 성공");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(500).body("난수 생성 실패, 다시 시도해주세요.");
-		}		
+	public ResponseEntity<ApiResponse<Void>> resendAuthMail(@RequestBody AuthMailDto emailDto)
+			throws MessagingException {
+		mailService.resendAuthMail(emailDto);
+		return ResponseEntity.ok(ApiResponse.success("인증 메일 재발송 성공", null));
 	}
 	
 	@PostMapping("/auth/verification")

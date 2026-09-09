@@ -179,6 +179,27 @@ public class AdminPlaceService {
 		}
 	}
 
+	@Transactional
+	public void deletePlaceImage(Long placeNo, Long imgNo) {
+		if (adminPlaceMapper.countActivePlace(placeNo) == 0) {
+			throw new NotFoundException("해당 장소가 존재하지 않습니다.");
+		}
+
+		PlaceImg image = adminPlaceMapper.selectActivePlaceImg(placeNo, imgNo);
+		if (image == null) {
+			throw new NotFoundException("해당 장소의 활성 이미지가 존재하지 않습니다.");
+		}
+
+		adminPlaceMapper.deletePlaceLicense(imgNo);
+		if (adminPlaceMapper.hardDeletePlaceImage(placeNo, imgNo) != 1) {
+			throw new InternalServerException("장소 이미지 삭제에 실패했습니다.");
+		}
+
+		if (adminPlaceMapper.countActiveImageReferences(image.getImgPath(), image.getSaveName()) == 0) {
+			s3Service.deleteFile(PLACE_IMAGE_DIRECTORY + "/" + image.getSaveName());
+		}
+	}
+
 	// 관리자 장소 일괄 삭제 (소프트) - 이미 삭제된 대상은 WHERE 조건에서 제외되어 카운트에 안 잡힘
 	@Transactional
 	public int deletePlaces(List<Long> placeNos) {

@@ -22,6 +22,7 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.exception.UnauthorizedException;
 import com.kh.wellness.exception.ValidationException;
 
+import jakarta.mail.MessagingException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -120,6 +121,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.internalServerError(e.getMessage(), null));
+    }
+
+    // 인증 메일 발송 실패
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMessagingException(
+            MessagingException e) {
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.internalServerError(
+                        "인증 메일 발송에 실패했습니다.",
+                        null
+                ));
     }
 
     // @Valid RequestBody 검증 실패

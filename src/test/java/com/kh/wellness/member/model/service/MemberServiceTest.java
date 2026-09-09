@@ -29,6 +29,7 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.file.dto.FileSaveResult;
 import com.kh.wellness.file.service.FileService;
 import com.kh.wellness.file.service.S3Service;
+import com.kh.wellness.mail.model.dao.MailMapper;
 import com.kh.wellness.member.model.dao.MemberImgMapper;
 import com.kh.wellness.member.model.dao.MemberMapper;
 import com.kh.wellness.member.model.dto.MemberDto;
@@ -56,6 +57,9 @@ class MemberServiceTest {
 	@Mock
 	private S3Service s3Service;
 
+	@Mock
+	private MailMapper mailMapper;
+
 	@InjectMocks
 	private MemberService memberService;
 
@@ -74,9 +78,11 @@ class MemberServiceTest {
 	void signUp_success() {
 		MemberDto dto = signUpDto();
 		when(memberMapper.countByMemberId("new@wellness.com")).thenReturn(0);
+		when(mailMapper.checkVerifiedEmail("new@wellness.com")).thenReturn(1);
 		when(memberMapper.insertMember(any())).thenReturn(1);
 		when(passwordEncoder.encode("rawPwd1")).thenReturn("ENCODED");
 		when(memberMapper.signUpNormalMember(any())).thenReturn(1);
+		when(mailMapper.deleteVerifiedEmail("new@wellness.com")).thenReturn(1);
 
 		memberService.signUp(dto);
 
@@ -84,6 +90,22 @@ class MemberServiceTest {
 		verify(memberMapper).signUpNormalMember(captor.capture());
 		assertThat(captor.getValue().getMemberId()).isEqualTo("new@wellness.com");
 		assertThat(captor.getValue().getMemberPwd()).isEqualTo("ENCODED");
+		verify(mailMapper).deleteVerifiedEmail("new@wellness.com");
+	}
+
+	@Test
+	@DisplayName("이메일 인증이 완료되지 않았으면 회원가입을 거부한다")
+	void signUp_unverifiedEmail() {
+		MemberDto dto = signUpDto();
+		when(memberMapper.countByMemberId("new@wellness.com")).thenReturn(0);
+		when(mailMapper.checkVerifiedEmail("new@wellness.com")).thenReturn(0);
+
+		assertThatThrownBy(() -> memberService.signUp(dto))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("이메일 인증이 완료되지 않았습니다.");
+
+		verify(memberMapper, never()).insertMember(any());
+		verify(memberMapper, never()).signUpNormalMember(any());
 	}
 
 	@Test
@@ -105,6 +127,7 @@ class MemberServiceTest {
 	void signUp_insertMemberFail() {
 		MemberDto dto = signUpDto();
 		when(memberMapper.countByMemberId("new@wellness.com")).thenReturn(0);
+		when(mailMapper.checkVerifiedEmail("new@wellness.com")).thenReturn(1);
 		when(memberMapper.insertMember(any())).thenReturn(0);
 
 		assertThatThrownBy(() -> memberService.signUp(dto))
@@ -119,6 +142,7 @@ class MemberServiceTest {
 	void signUp_normalMemberFail() {
 		MemberDto dto = signUpDto();
 		when(memberMapper.countByMemberId("new@wellness.com")).thenReturn(0);
+		when(mailMapper.checkVerifiedEmail("new@wellness.com")).thenReturn(1);
 		when(memberMapper.insertMember(any())).thenReturn(1);
 		when(passwordEncoder.encode("rawPwd1")).thenReturn("ENCODED");
 		when(memberMapper.signUpNormalMember(any())).thenReturn(0);

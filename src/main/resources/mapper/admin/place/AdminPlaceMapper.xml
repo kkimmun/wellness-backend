@@ -236,6 +236,24 @@
 			,IMG_NO
 	</select>
 
+	<select id="selectActivePlaceImg" resultType="com.kh.wellness.admin.place.model.vo.PlaceImg">
+		SELECT
+			IMG_NO
+			,PLACE_NO
+			,ORIGINAL_NAME
+			,SAVE_NAME
+			,IMG_PATH
+			,IMG_ORDER
+		FROM
+			PLACE_IMG
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			IMG_NO = #{imgNo}
+		AND
+			DEL_YN = 'N'
+	</select>
+
 	<update id="updatePlaceImgOrder">
 		UPDATE
 			PLACE_IMG
@@ -259,6 +277,37 @@
 				WHERE PLACE_NO = #{placeNo}
 			)
 	</delete>
+
+	<delete id="deletePlaceLicense">
+		DELETE FROM
+			PLACE_LICENSE
+		WHERE
+			IMG_NO = #{imgNo}
+	</delete>
+
+	<delete id="hardDeletePlaceImage">
+		DELETE FROM
+			PLACE_IMG
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			IMG_NO = #{imgNo}
+		AND
+			DEL_YN = 'N'
+	</delete>
+
+	<select id="countActiveImageReferences" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE_IMG
+		WHERE
+			IMG_PATH = #{imgPath}
+		AND
+			SAVE_NAME = #{saveName}
+		AND
+			DEL_YN = 'N'
+	</select>
 
 	<insert id="insertPlaceLicense">
 		INSERT INTO

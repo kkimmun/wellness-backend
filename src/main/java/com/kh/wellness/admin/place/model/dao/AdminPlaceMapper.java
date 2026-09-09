@@ -40,10 +40,18 @@ public interface AdminPlaceMapper {
 
 	List<PlaceImg> selectPlaceImgList(Long placeNo);
 
+	PlaceImg selectActivePlaceImg(@Param("placeNo") Long placeNo, @Param("imgNo") Long imgNo);
+
 	int updatePlaceImgOrder(@Param("placeNo") Long placeNo, @Param("imgNo") Long imgNo,
 			@Param("imgOrder") int imgOrder);
 
 	int deletePlaceLicensesByPlaceNo(Long placeNo);
+
+	int deletePlaceLicense(Long imgNo);
+
+	int hardDeletePlaceImage(@Param("placeNo") Long placeNo, @Param("imgNo") Long imgNo);
+
+	int countActiveImageReferences(@Param("imgPath") String imgPath, @Param("saveName") String saveName);
 
 	int insertPlaceLicense(PlaceLicense placeLicense);
 
