@@ -71,7 +71,4 @@ public class PlanController {
 		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", list));
 	}
 		
-		
-	
-
 }
