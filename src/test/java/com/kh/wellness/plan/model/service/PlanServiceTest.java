@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.plan.model.dao.PlanMapper;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
+import com.kh.wellness.plan.model.dto.PlanPlaceResponseDto;
 import com.kh.wellness.plan.model.vo.Plan;
 
 @ExtendWith(MockitoExtension.class)
@@ -127,6 +128,15 @@ class PlanServiceTest {
         verify(planMapper).deletePlan(100L);
         verify(planMapper, never()).savePlan(any(Plan.class));
     }
+
+	@Test
+	void findSavedPlan은_회원의_저장된_계획을_순서대로_조회한다() {
+		List<PlanPlaceResponseDto> expected = List.of(new PlanPlaceResponseDto());
+		when(planMapper.findSavedPlan(100L)).thenReturn(expected);
+
+		assertThat(planService.findSavedPlan(100L)).isSameAs(expected);
+		verify(planMapper).findSavedPlan(100L);
+	}
 
     private PlanPlaceRequestDto requestDto(Long placeNo) {
         return new PlanPlaceRequestDto(placeNo, null);

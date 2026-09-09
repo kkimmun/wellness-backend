@@ -26,6 +26,34 @@
 		WHERE
 			MEMBER_NO = #{memberNo}
 </delete>
+<select id="findSavedPlan" resultType="PlanPlaceResponseDto">
+	SELECT PS.PLACE_NO,
+	       PS.PLACE_ORDER,
+	       P.PLACE_NAME,
+	       P.PLACE_DESCRIPTION,
+	       P.ADDR,
+	       P.ADDR_DETAIL,
+	       P.X_AXIS,
+	       P.Y_AXIS,
+	       T.TYPE_NO,
+	       TD.TYPE_DETAIL_NO,
+	       T.TYPE,
+	       TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
+	       (
+	           SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
+	                  KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+	             FROM PLACE_IMG PI
+	            WHERE PI.PLACE_NO = P.PLACE_NO
+	              AND PI.DEL_YN = 'N'
+	       ) AS IMAGE_URL
+	  FROM PLAN_SESSION PS
+	  JOIN PLACE P ON P.PLACE_NO = PS.PLACE_NO
+	  LEFT JOIN TYPE_DETAIL TD ON TD.TYPE_DETAIL_NO = P.TYPE_DETAIL_NO
+	  LEFT JOIN TYPE T ON T.TYPE_NO = TD.TYPE_NO
+	 WHERE PS.MEMBER_NO = #{memberNo}
+	   AND P.DEL_YN = 'N'
+	 ORDER BY PS.PLACE_ORDER
+</select>
 <select id = "findNearbyPlaces" resultType="PlanDetailResponse">
 	SELECT *
 	FROM (

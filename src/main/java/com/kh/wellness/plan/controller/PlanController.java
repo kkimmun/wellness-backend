@@ -17,6 +17,7 @@ import com.kh.wellness.auth.model.vo.CustomUserDetails;
 import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
+import com.kh.wellness.plan.model.dto.PlanPlaceResponseDto;
 import com.kh.wellness.plan.model.service.PlanService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,16 @@ public class PlanController {
 		planService.deletePlan(memberNo);
 	
 		return ResponseEntity.status(200).body(ApiResponse.success("요청에 성공하였습니다.", null));
+	}
+
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<PlanPlaceResponseDto>>> findSavedPlan(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+		Long memberNo = userDetails.getMemberNo();
+		List<PlanPlaceResponseDto> plan = planService.findSavedPlan(memberNo);
+
+		return ResponseEntity.status(200).body(ApiResponse.success("계획 조회 성공", plan));
 	}
 	
 	@GetMapping("/nearby")

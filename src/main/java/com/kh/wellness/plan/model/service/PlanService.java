@@ -9,6 +9,7 @@ import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.plan.model.dao.PlanMapper;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
+import com.kh.wellness.plan.model.dto.PlanPlaceResponseDto;
 import com.kh.wellness.plan.model.vo.Plan;
 
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,15 @@ public class PlanService {
 	    savePlan(memberNo, planRequest);
 	}
 
+	@Transactional
 	public void deletePlan(Long memberNo) {
 		
 		planMapper.deletePlan(memberNo);
 		
+	}
+
+	public List<PlanPlaceResponseDto> findSavedPlan(Long memberNo) {
+		return planMapper.findSavedPlan(memberNo);
 	}
 
 	public List<PlanDetailResponse> findNearbyPlaces(Long memberNo, Double xAxis, Double yAxis) {
