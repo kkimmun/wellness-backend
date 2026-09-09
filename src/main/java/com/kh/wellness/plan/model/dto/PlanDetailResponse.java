@@ -13,12 +13,14 @@ import lombok.ToString;
 @ToString
 public class PlanDetailResponse {
     private Long placeNo;
+    private Long typeDetailNo;
+    private Long typeNo;
     private String placeName;
     private String placeDescription;
     private String addr;
     private String addrDetail;
+    private Long distance;
     private Double xAxis;
     private Double yAxis;
-    private Long typeDetailNo;
     private String imgPath;
 }
