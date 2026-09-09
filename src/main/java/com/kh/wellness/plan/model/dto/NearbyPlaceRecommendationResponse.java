@@ -1,4 +1,4 @@
-package com.kh.wellness.plan.recommendation.dto;
+package com.kh.wellness.plan.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

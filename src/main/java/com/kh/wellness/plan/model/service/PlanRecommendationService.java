@@ -1,4 +1,4 @@
-package com.kh.wellness.plan.recommendation.service;
+package com.kh.wellness.plan.model.service;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,9 +15,8 @@ import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.place.model.dto.MapPlaceResponse;
 import com.kh.wellness.place.model.dto.PlaceTypeOptionResponse;
 import com.kh.wellness.place.model.service.PlaceService;
+import com.kh.wellness.plan.model.dto.NearbyPlaceRecommendationResponse;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
-import com.kh.wellness.plan.model.service.PlanService;
-import com.kh.wellness.plan.recommendation.dto.NearbyPlaceRecommendationResponse;
 
 import lombok.RequiredArgsConstructor;
 
