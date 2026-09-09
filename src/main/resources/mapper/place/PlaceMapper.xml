@@ -216,10 +216,21 @@
         JOIN TYPE T ON TD.TYPE_NO = T.TYPE_NO
         WHERE P.DEL_YN = 'N'
         <if test="typeNo != null">
-          AND T.TYPE_NO = #{typeNo}
+          AND T.TYPE = (
+              SELECT SELECTED_TYPE.TYPE
+                FROM TYPE SELECTED_TYPE
+               WHERE SELECTED_TYPE.TYPE_NO = #{typeNo}
+          )
         </if>
         <if test="typeDetailNo != null">
-          AND TD.TYPE_DETAIL_NO = #{typeDetailNo}
+          AND (T.TYPE, TD.TYPE_DETAIL_CONTENT) = (
+              SELECT SELECTED_TYPE.TYPE,
+                     SELECTED_DETAIL.TYPE_DETAIL_CONTENT
+                FROM TYPE_DETAIL SELECTED_DETAIL
+                JOIN TYPE SELECTED_TYPE
+                  ON SELECTED_TYPE.TYPE_NO = SELECTED_DETAIL.TYPE_NO
+               WHERE SELECTED_DETAIL.TYPE_DETAIL_NO = #{typeDetailNo}
+          )
         </if>
         <if test="tagNo != null">
           AND EXISTS (
@@ -234,13 +245,14 @@
 
     <select id="findPlaceTypeOptions"
             resultType="com.kh.wellness.place.model.dto.PlaceTypeOptionResponse">
-        SELECT T.TYPE_NO AS typeNo,
+        SELECT MIN(T.TYPE_NO) AS typeNo,
                T.TYPE AS type,
-               TD.TYPE_DETAIL_NO AS typeDetailNo,
+               MIN(TD.TYPE_DETAIL_NO) AS typeDetailNo,
                TD.TYPE_DETAIL_CONTENT AS typeDetailContent
         FROM TYPE T
         LEFT JOIN TYPE_DETAIL TD ON T.TYPE_NO = TD.TYPE_NO
-        ORDER BY T.TYPE_NO, TD.TYPE_DETAIL_NO
+        GROUP BY T.TYPE, TD.TYPE_DETAIL_CONTENT
+        ORDER BY MIN(T.TYPE_NO), MIN(TD.TYPE_DETAIL_NO)
     </select>
 
     <select id="findPlaceTagOptions" resultType="com.kh.wellness.place.model.dto.PlaceTagDto">
