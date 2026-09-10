@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -99,14 +97,17 @@ class PlanServiceTest {
     }
 
     @Test
-    void editPlan은_회원의_기존_계획을_삭제한_뒤_새_계획을_저장한다() {
+    void editPlan은_기존_계획을_삭제하지_않고_요청한_장소를_저장한다() {
         when(planMapper.savePlan(any(Plan.class))).thenReturn(1);
 
         planService.editPlan(100L, List.of(requestDto(11L), requestDto(22L)));
 
-        InOrder inOrder = inOrder(planMapper);
-        inOrder.verify(planMapper).deletePlan(100L);
-        inOrder.verify(planMapper, times(2)).savePlan(any(Plan.class));
+        verify(planMapper, never()).deletePlan(any());
+        ArgumentCaptor<Plan> captor = ArgumentCaptor.forClass(Plan.class);
+        verify(planMapper, times(2)).savePlan(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(Plan::getMemberNo, Plan::getPlaceNo, Plan::getPlaceOrder)
+                .containsExactly(tuple(100L, 11L, 1), tuple(100L, 22L, 2));
     }
 
     @Test
@@ -117,15 +118,15 @@ class PlanServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("저장에 실패하였습니다.");
 
-        verify(planMapper).deletePlan(100L);
+        verify(planMapper, never()).deletePlan(any());
+        verify(planMapper).savePlan(any(Plan.class));
     }
 
     @Test
-    void editPlan은_빈_리스트를_받으면_기존_계획만_삭제한다() {
+    void editPlan은_빈_리스트를_받으면_DB를_변경하지_않는다() {
         planService.editPlan(100L, List.of());
 
-        verify(planMapper).deletePlan(100L);
-        verify(planMapper, never()).savePlan(any(Plan.class));
+        verifyNoInteractions(planMapper);
     }
 
     private PlanPlaceRequestDto requestDto(Long placeNo) {
