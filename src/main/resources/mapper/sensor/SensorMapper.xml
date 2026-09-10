@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.wellness.sensor.model.dao.SensorMapper">
+<select id="sensorInfoRequest" parameterType="Long"
+		resultType="SensorResponseDto">
+	SELECT
+	    S.SENSOR_NO,
+	    I.INFO_NO,
+	    I.STEP_COUNT,
+	    I.COLLECT_TIME
+	FROM
+	    SENSOR S
+	JOIN
+	    SENSOR_INFO I ON S.SENSOR_NO = I.SENSOR_NO
+	WHERE
+	    S.MEMBER_NO = #{memberNo}
+	ORDER BY
+	    I.COLLECT_TIME ASC
+</select>
+
+<insert id="insertSensorData">
+	INSERT INTO SENSOR_INFO (
+	    SENSOR_NO
+	    , STEP_COUNT
+	    , COLLECT_TIME
+	)
+	VALUES (
+	    #{sensorNo}
+	    , #{stepCount}
+	    , #{collectTime}
+	)
+</insert>
+<delete id = "sensorCleanup">
+    DELETE
+        FROM SENSOR_INFO
+    		WHERE COLLECT_TIME &lt; TRUNC(SYSDATE)
+</delete>
+
+</mapper>

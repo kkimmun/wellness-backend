@@ -84,7 +84,7 @@
 			,#{authYn}
 		)
 	</insert>
-	<select id="checkMemberExists">
+	<select id="checkMemberExists" >
 	SELECT
 		COUNT(*)
 	FROM
