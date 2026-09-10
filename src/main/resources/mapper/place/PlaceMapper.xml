@@ -25,12 +25,19 @@
     </resultMap>
 
     <sql id="representativeImageUrl">
-        (
-            SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
-                   KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
-            FROM PLACE_IMG PI
-            WHERE PI.PLACE_NO = P.PLACE_NO
-              AND PI.DEL_YN = 'N'
+        COALESCE(
+            (SELECT MAX(PI.IMG_PATH || PI.SAVE_NAME)
+                    KEEP (DENSE_RANK FIRST ORDER BY PI.IMG_ORDER, PI.IMG_NO)
+             FROM PLACE_IMG PI
+             WHERE PI.PLACE_NO = P.PLACE_NO AND PI.DEL_YN = 'N'
+               AND PI.SAVE_NAME IS NOT NULL),
+            (SELECT MAX(RI.IMG_PATH || RI.SAVE_NAME)
+                    KEEP (DENSE_RANK FIRST ORDER BY R.CREATE_DATE DESC, R.REVIEW_NO DESC,
+                          RI.IMG_ORDER, RI.IMG_NO)
+             FROM PLACE_REVIEW R
+             JOIN REVIEW_IMG RI ON RI.REVIEW_NO = R.REVIEW_NO
+             WHERE R.PLACE_NO = P.PLACE_NO AND R.DEL_YN = 'N'
+               AND RI.DEL_YN = 'N' AND RI.SAVE_NAME IS NOT NULL)
         )
     </sql>
 
@@ -50,6 +57,7 @@
     <select id="selectPlaceDetail" resultType="com.kh.wellness.place.model.dto.PlaceDetailDto">
         SELECT P.PLACE_NO AS placeNo,
                P.PLACE_NAME AS placeName,
+               <include refid="representativeImageUrl"/> AS imageUrl,
                P.PLACE_DESCRIPTION AS placeDescription,
                P.ADDR AS addr,
                P.ADDR_DETAIL AS addrDetail,

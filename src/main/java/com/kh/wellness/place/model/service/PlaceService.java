@@ -52,6 +52,7 @@ public class PlaceService {
         return PlaceDetailResponse.builder()
                 .placeNo(placeDetail.getPlaceNo())
                 .placeName(placeDetail.getPlaceName())
+                .imageUrl(placeDetail.getImageUrl())
                 .placeDescription(placeDetail.getPlaceDescription())
                 .addr(placeDetail.getAddr())
                 .addrDetail(placeDetail.getAddrDetail())
