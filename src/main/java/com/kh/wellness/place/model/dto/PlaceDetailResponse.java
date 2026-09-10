@@ -12,6 +12,7 @@ import lombok.Setter;
 public class PlaceDetailResponse {
     private Long placeNo;
     private String placeName;
+    private String imageUrl;
     private String placeDescription;
     private String addr;
     private String addrDetail;
