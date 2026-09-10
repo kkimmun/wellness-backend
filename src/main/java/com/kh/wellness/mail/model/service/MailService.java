@@ -71,21 +71,14 @@ public class MailService {
          if(checkUserExist > 0) {
          	throw new BadRequestException("이미 기등록된 사용자가 존재합니다.");
          }
-         
-         int resultTime = mailMapper.verifyEmailTime(email);
-
-         if (resultTime > 0) {
-             throw new BadRequestException("이미 인증메일이 발송되었습니다");
-         }
-         
+                  
          deleteExpiredEmail(email);
 
-         
-        int checkEmailExist = mailMapper.checkEmailExists(email);
+        /* int checkEmailExist = mailMapper.checkEmailExists(email);
         
         if(checkEmailExist > 0) {
         	throw new BadRequestException("이미 인증메일이 발송되었습니다.");
-        }
+        } */
         
         AuthMail mailEntity = mailTemplate(email);
 
