@@ -31,6 +31,17 @@ class MemberProfileControllerTest {
     @Test void anonymousRequestIsDenied() throws Exception {
         mvc.perform(get("/api/members/profile")).andExpect(status().isUnauthorized()); verifyNoInteractions(service);
     }
+    @Test void profileReturnsCompleteImageUrlWithoutStorageName() throws Exception {
+        login();
+        var profile = new MemberProfileResponse();
+        profile.setImgPath("https://example.com/profile/");
+        profile.setSaveName("saved image.png");
+        when(service.getProfile(7L)).thenReturn(profile);
+        mvc.perform(get("/api/members/profile"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.imgPath").value("https://example.com/profile/saved%20image.png"))
+            .andExpect(jsonPath("$.data.saveName").doesNotExist());
+    }
     @Test void targetMemberComesFromPrincipalNotBody() throws Exception {
         login(); when(service.updateName(7L, "새닉네임")).thenReturn(new MemberProfileResponse());
         mvc.perform(patch("/api/members/profile").contentType("application/json").content("{\"memberName\":\"새닉네임\",\"memberNo\":999}"))

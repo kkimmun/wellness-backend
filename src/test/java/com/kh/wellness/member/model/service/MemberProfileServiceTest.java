@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.file.service.FileService;
+import com.kh.wellness.file.service.S3Service;
 import com.kh.wellness.file.dto.FileSaveResult;
 import com.kh.wellness.member.model.dao.MemberProfileMapper;
 import com.kh.wellness.member.model.dto.MemberProfileResponse;
@@ -23,9 +24,10 @@ class MemberProfileServiceTest {
     @Mock MemberProfileMapper mapper;
     @Mock TokenMapper tokens;
     @Mock FileService files;
+    @Mock S3Service storage;
     final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(4);
     MemberProfileService service;
-    @BeforeEach void setup() { service = new MemberProfileService(mapper, encoder, tokens, files); }
+    @BeforeEach void setup() { service = new MemberProfileService(mapper, encoder, tokens, files, storage); }
     PasswordUpdateRequest request(String old, String next) {
         var result = new PasswordUpdateRequest(); result.setCurrentPassword(old); result.setNewPassword(next); return result;
     }
