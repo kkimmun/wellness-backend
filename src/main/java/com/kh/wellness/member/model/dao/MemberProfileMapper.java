@@ -6,9 +6,10 @@ import com.kh.wellness.member.model.dto.MemberProfileResponse;
 
 @Mapper
 public interface MemberProfileMapper {
-    MemberProfileResponse findProfile(@Param("memberNo") Long memberNo);
+    MemberProfileResponse findProfile(Long memberNo);
+    MemberProfileResponse findProfileForUpdate(Long memberNo);
     int updateName(@Param("memberNo") Long memberNo, @Param("memberName") String memberName);
-    String findPassword(@Param("memberNo") Long memberNo);
+    String findPassword(Long memberNo);
     int updatePassword(@Param("memberNo") Long memberNo, @Param("oldHash") String oldHash,
                        @Param("newHash") String newHash);
     int updatePhoto(@Param("memberNo") Long memberNo, @Param("originalName") String originalName,

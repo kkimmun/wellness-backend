@@ -9,6 +9,12 @@
       LEFT JOIN WELLNESS_NORMAL_MEMBER N ON N.MEMBER_NO = M.MEMBER_NO
      WHERE M.MEMBER_NO = #{memberNo} AND M.DEL_YN = 'N'
   </select>
+  <!-- 같은 회원의 동시 사진 교체/삭제가 각각 직전 파일을 읽도록 행 잠금을 유지한다. -->
+  <select id="findProfileForUpdate" resultType="com.kh.wellness.member.model.dto.MemberProfileResponse">
+    SELECT MEMBER_NO, IMG_PATH, SAVE_NAME FROM WELLNESS_MEMBER
+     WHERE MEMBER_NO = #{memberNo} AND DEL_YN = 'N'
+     FOR UPDATE
+  </select>
   <update id="updateName">
     UPDATE WELLNESS_MEMBER SET MEMBER_NAME = #{memberName}
      WHERE MEMBER_NO = #{memberNo} AND DEL_YN = 'N'
