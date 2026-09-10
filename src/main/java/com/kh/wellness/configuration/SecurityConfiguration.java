@@ -72,6 +72,11 @@ public class SecurityConfiguration {
 	            requests.requestMatchers("/api/members/detail").authenticated();
 
 	            requests.requestMatchers("/api/courses/**").permitAll();
+	            
+	            // 센서(만보기) 단말 데이터 수신 - 토큰 없는 IoT 기기 호출이라 허용
+	            requests.requestMatchers(HttpMethod.POST, "/api/sensors/response").permitAll();
+	            // 센서 조회는 로그인 필요
+	            requests.requestMatchers(HttpMethod.GET, "/api/sensors").authenticated();
 
 	            // 관리자 API - ADMIN만 접근
 	            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
@@ -98,7 +103,9 @@ public class SecurityConfiguration {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://192.168.51.9:5173"));
+		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", 
+				"http://192.168.51.9:5173",
+			    "https://gimpo-wellness.com"));
 		configuration.setAllowedMethods(Arrays.asList("POST", "PATCH", "DELETE", "GET", "PUT", "OPTIONS"));
 
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
