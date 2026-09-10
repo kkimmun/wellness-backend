@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.wellness.member.model.dao.MemberProfileMapper">
+  <!-- 배포용 회원 상세 조회와 동일한 WELLNESS_MEMBER 이미지 컬럼을 사용한다. -->
+  <select id="findProfile" resultType="com.kh.wellness.member.model.dto.MemberProfileResponse">
+    SELECT M.MEMBER_NO, N.MEMBER_ID, M.MEMBER_NAME, M.ROLE, M.SOCIAL_PROVIDER,
+           M.IMG_PATH, M.SAVE_NAME, M.ENROLL_DATE
+      FROM WELLNESS_MEMBER M
+      LEFT JOIN WELLNESS_NORMAL_MEMBER N ON N.MEMBER_NO = M.MEMBER_NO
+     WHERE M.MEMBER_NO = #{memberNo} AND M.DEL_YN = 'N'
+  </select>
+  <update id="updateName">
+    UPDATE WELLNESS_MEMBER SET MEMBER_NAME = #{memberName}
+     WHERE MEMBER_NO = #{memberNo} AND DEL_YN = 'N'
+  </update>
+  <select id="findPassword" resultType="string">
+    SELECT N.MEMBER_PWD FROM WELLNESS_NORMAL_MEMBER N
+      JOIN WELLNESS_MEMBER M ON M.MEMBER_NO = N.MEMBER_NO
+     WHERE N.MEMBER_NO = #{memberNo} AND M.DEL_YN = 'N' AND M.SOCIAL_PROVIDER = 'BASIC'
+  </select>
+  <update id="updatePassword">
+    UPDATE WELLNESS_NORMAL_MEMBER SET MEMBER_PWD = #{newHash}
+     WHERE MEMBER_NO = #{memberNo} AND MEMBER_PWD = #{oldHash}
+       AND EXISTS (SELECT 1 FROM WELLNESS_MEMBER M
+                    WHERE M.MEMBER_NO = #{memberNo} AND M.DEL_YN = 'N' AND M.SOCIAL_PROVIDER = 'BASIC')
+  </update>
+  <update id="updatePhoto">
+    UPDATE WELLNESS_MEMBER
+       SET ORIGINAL_NAME = #{originalName,jdbcType=VARCHAR},
+           SAVE_NAME = #{saveName,jdbcType=VARCHAR}, IMG_PATH = #{imgPath,jdbcType=VARCHAR}
+     WHERE MEMBER_NO = #{memberNo} AND DEL_YN = 'N'
+  </update>
+</mapper>
