@@ -32,7 +32,7 @@
 	    , #{collectTime}
 	)
 </insert>
-<delete id = "sensorCleanUp">
+<delete id = "sensorCleanup">
     DELETE
         FROM SENSOR_INFO
     		WHERE COLLECT_TIME &lt; TRUNC(SYSDATE)
