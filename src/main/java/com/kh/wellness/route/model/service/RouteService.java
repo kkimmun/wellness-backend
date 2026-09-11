@@ -66,7 +66,6 @@ public class RouteService {
                 transportType
         );
         validateDistinctRoutePoints(origin, destination, waypoints);
-        log.info("request={}, origin={}, destination={}, waypoints={}", request.toString(), origin.toString(), destination.toString(), waypoints.toString());
         return switch (transportType) {
             case CAR -> findCarRoutes(request, origin, destination);
             case PUBLIC_TRANSIT -> findPublicTransitRoutes(request, origin, destination);
