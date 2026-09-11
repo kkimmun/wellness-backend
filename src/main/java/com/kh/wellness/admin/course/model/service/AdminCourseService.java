@@ -30,6 +30,7 @@ import com.kh.wellness.route.model.dto.PlaceResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
