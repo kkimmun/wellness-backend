@@ -76,7 +76,6 @@ public class AdminCourseService {
 
     @Transactional
     public void saveCourse(AdminCourseRequest request) {
-    	log.info("request@@@@@@@@@@@@@@@{}",request);
         if (!request.isWaypointSelectionConsistent()) {
             throw new BadRequestException("중간 관광지 번호 목록과 상세 목록이 일치해야 합니다.");
         }
