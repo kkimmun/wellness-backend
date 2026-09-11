@@ -249,5 +249,17 @@
 			,IMG_ORDER
 			,IMG_NO
 	</select>
+		<select id="hasReview" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			PLACE_REVIEW
+		WHERE
+			PLACE_NO = #{placeNo}
+		AND
+			MEMBER_NO = #{memberNo}
+		AND
+			DEL_YN = 'N'
+	</select>
 
 </mapper>

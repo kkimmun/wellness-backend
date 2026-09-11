@@ -53,4 +53,6 @@ public interface ReviewMapper {
 			@Param("size") int size);
 
 	List<ReviewImageDto> selectReviewImagesByReviewNos(@Param("reviewNos") List<Long> reviewNos);
+
+	int hasReview(@Param("memberNo") Long memberNo, @Param("placeNo") Long placeNo);
 }

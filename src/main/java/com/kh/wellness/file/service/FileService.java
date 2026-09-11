@@ -1,5 +1,7 @@
 package com.kh.wellness.file.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -68,26 +70,43 @@ public class FileService {
 
 	// 이미지 파일인지 검증
 	private boolean isImageFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            return false;
-        }
-        
-       // log.info("파일명 = {}", file.getOriginalFilename());
-       // log.info("Content-Type = {}", file.getContentType());
-       // log.info("Size = {}", file.getSize());
+	    if (file == null || file.isEmpty()) {
+	        return false;
+	    }
 
-        String contentType = file.getContentType();
-                
-        // MIME 타입 체크
-        if (contentType == null || !contentType.startsWith("image/")) {
-        	return false;
-        } 
+	    // 1) MIME 체크
+	    String contentType = file.getContentType();
+	    if (contentType == null || !contentType.startsWith("image/")) {
+	        return false;
+	    }
 
-        // 확장자 체크
-        String extension = getExtension(file).toLowerCase();
-        return extension.equals(".jpg") || extension.equals(".jpeg")
-        		|| extension.equals(".png") || extension.equals(".gif")
-        		|| extension.equals(".webp");
-    }
+	    // 2) 확장자 체크
+	    String extension = getExtension(file).toLowerCase();
+	    boolean extOk = extension.equals(".jpg") || extension.equals(".jpeg")
+	            || extension.equals(".png") || extension.equals(".gif")
+	            || extension.equals(".webp");
+	    if (!extOk) {
+	        return false;
+	    }
+
+	    // 3) 매직 넘버 검사
+	    try (InputStream is = file.getInputStream()) {
+	        byte[] head = is.readNBytes(12);
+	        if (head.length < 12) {
+	            return false;
+	        }
+	        boolean jpg  = head[0]==(byte)0xFF && head[1]==(byte)0xD8 && head[2]==(byte)0xFF;
+	        boolean png  = head[0]==(byte)0x89 && head[1]==0x50 && head[2]==0x4E && head[3]==0x47;
+	        boolean gif  = head[0]==0x47 && head[1]==0x49 && head[2]==0x46;
+	        boolean webp = head[0]==0x52 && head[1]==0x49 && head[2]==0x46 && head[3]==0x46
+	                    && head[8]==0x57 && head[9]==0x45 && head[10]==0x42 && head[11]==0x50;
+	        return ((extension.equals(".jpg") || extension.equals(".jpeg")) && jpg)
+	                || (extension.equals(".png") && png)
+	                || (extension.equals(".gif") && gif)
+	                || (extension.equals(".webp") && webp);
+	    } catch (IOException e) {
+	        return false;
+	    }
+	}
 	
 }
