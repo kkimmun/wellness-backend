@@ -32,7 +32,6 @@ import tools.jackson.databind.JsonNode;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class RouteService {
 
     private static final List<String> BICYCLE_TIME_ROUTE_MODES = List.of(
