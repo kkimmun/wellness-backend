@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.wellness.bookmark.model.dao.BookmarkMapper;
+import com.kh.wellness.bookmark.model.dto.BookmarkStatusResponse;
 import com.kh.wellness.bookmark.model.dto.BookmarkToggleResponse;
 import com.kh.wellness.bookmark.model.vo.PlaceBookmark;
 import com.kh.wellness.exception.InternalServerException;
@@ -46,6 +47,22 @@ public class BookmarkService {
 		}
 
 		return BookmarkToggleResponse.builder()
+				.placeNo(placeNo)
+				.bookmarked(bookmarked)
+				.build();
+	}
+
+	/**
+	 * 현재 회원의 장소 북마크 여부를 조회한다.
+	 */
+	@Transactional(readOnly = true)
+	public BookmarkStatusResponse getBookmarkStatus(Long memberNo, Long placeNo) {
+		requireLogin(memberNo);
+		requireActivePlace(placeNo);
+
+		boolean bookmarked = bookmarkMapper.countBookmark(memberNo, placeNo) > 0;
+
+		return BookmarkStatusResponse.builder()
 				.placeNo(placeNo)
 				.bookmarked(bookmarked)
 				.build();
