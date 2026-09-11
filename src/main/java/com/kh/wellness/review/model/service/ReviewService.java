@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ForbiddenException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
@@ -51,6 +52,12 @@ public class ReviewService {
 	public ReviewCreateResponse createReview(Long memberNo, Long placeNo, ReviewCreateRequest request) {
 		requireLogin(memberNo);
 		requireActivePlace(placeNo);
+		
+		int reviewCount = reviewMapper.hasReview(memberNo, placeNo);
+		
+		if(reviewCount > 0) {
+			throw new BadRequestException("리뷰가 존재합니다.");
+		}
 
 		Review review = Review.builder()
 				.memberNo(memberNo)
@@ -201,7 +208,7 @@ public class ReviewService {
 			return;
 		}
 
-		// 트랜잭션 롤백은 DB만 되돌리므로, 실패 시 이미 올라간 S3 객체는 직접 삭제한다.
+		// 트랜잭션 롤백은 DB만 되돌리므로, 실패 시 이미 올라간 S3 객체는 직접 삭제
 		String uploadedKey = null;
 		try {
 			FileSaveResult stored = fileService.store(file, REVIEW_IMAGE_DIRECTORY);
