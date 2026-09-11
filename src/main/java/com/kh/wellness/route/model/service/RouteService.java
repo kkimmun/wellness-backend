@@ -26,6 +26,7 @@ import com.kh.wellness.route.model.vo.TransitType;
 import com.kh.wellness.route.model.vo.TransportType;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.JsonNode;
 
 @Service
@@ -64,7 +65,6 @@ public class RouteService {
                 transportType
         );
         validateDistinctRoutePoints(origin, destination, waypoints);
-
         return switch (transportType) {
             case CAR -> findCarRoutes(request, origin, destination);
             case PUBLIC_TRANSIT -> findPublicTransitRoutes(request, origin, destination);

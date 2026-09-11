@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class CourseService {
 
 	private final RouteService routeService;
@@ -114,7 +113,6 @@ public class CourseService {
 
         RouteResponse shortestRoute = null;
         int shortestDistance = Integer.MAX_VALUE;
-
         for (List<Long> waypointOrder : waypointOrders) {
             try {
                 RouteResponse candidate = routeService.findRoutes(
@@ -126,7 +124,6 @@ public class CourseService {
                     shortestRoute = candidate;
                 }
             } catch (NotFoundException ignored) {
-                // 해당 경유 순서에 경로가 없으면 나머지 순서를 계속 비교한다.
             }
         }
 
