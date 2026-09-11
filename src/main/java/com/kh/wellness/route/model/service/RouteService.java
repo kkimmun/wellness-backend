@@ -26,11 +26,13 @@ import com.kh.wellness.route.model.vo.TransitType;
 import com.kh.wellness.route.model.vo.TransportType;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.JsonNode;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class RouteService {
 
     private static final List<String> BICYCLE_TIME_ROUTE_MODES = List.of(
@@ -64,7 +66,7 @@ public class RouteService {
                 transportType
         );
         validateDistinctRoutePoints(origin, destination, waypoints);
-
+        log.info("request={}, origin={}, destination={}, waypoints={}", request.toString(), origin.toString(), destination.toString(), waypoints.toString());
         return switch (transportType) {
             case CAR -> findCarRoutes(request, origin, destination);
             case PUBLIC_TRANSIT -> findPublicTransitRoutes(request, origin, destination);

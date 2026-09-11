@@ -80,7 +80,10 @@ public class SecurityConfiguration {
 
 	            // 관리자 API - ADMIN만 접근
 	            requests.requestMatchers("/api/admin/**").hasRole("ADMIN");
-
+	            
+	            //프로메테우스
+	            requests.requestMatchers(HttpMethod.GET, "/actuator/prometheus");
+	            
 	            // 그 외 모든 API - 로그인 필요
 	            requests.anyRequest().authenticated();
 

@@ -30,10 +30,12 @@ import com.kh.wellness.route.model.dto.PlaceResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AdminCourseService {
 
     private static final int PAGE_SIZE = 10;
@@ -74,6 +76,7 @@ public class AdminCourseService {
 
     @Transactional
     public void saveCourse(AdminCourseRequest request) {
+    	log.info("request@@@@@@@@@@@@@@@{}",request);
         if (!request.isWaypointSelectionConsistent()) {
             throw new BadRequestException("중간 관광지 번호 목록과 상세 목록이 일치해야 합니다.");
         }
