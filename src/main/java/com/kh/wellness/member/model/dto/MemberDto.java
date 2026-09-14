@@ -34,9 +34,9 @@ public class MemberDto {
     private String memberPwd;
     @NotBlank(message = "닉네임은 필수 값입니다.")
     @Pattern(
-        regexp = "^\\S{2,12}$",
-        message = "닉네임은 공백 없이 2~12자여야 합니다."
-    )
+	    regexp = "^[가-힣a-zA-Z0-9]{2,12}$",
+	    message = "닉네임은 한글, 영문, 숫자만 2~12자로 입력해주세요."
+	)
     private String memberName;
     private String role;
     private String phoneNumber;

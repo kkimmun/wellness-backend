@@ -19,10 +19,10 @@ import lombok.ToString;
 public class MemberEditValidation {
 	@NotBlank
     private String memberPwd;
-    @Pattern(
-        regexp = "^.{2,12}$",
-        message = "이름은 2~12자여야 합니다."
-    )
+	@Pattern(
+	    regexp = "^[가-힣a-zA-Z0-9]{2,12}$",
+	    message = "닉네임은 한글, 영문, 숫자만 2~12자로 입력해주세요."
+	)
     @NotBlank
     private String memberName;
     @NotBlank
