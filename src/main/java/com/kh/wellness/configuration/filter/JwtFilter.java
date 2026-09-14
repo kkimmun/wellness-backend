@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -53,9 +53,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = null;
         
-        log.info("Authorization: {}",
-                request.getHeader(HttpHeaders.AUTHORIZATION));
-
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
@@ -78,7 +75,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     .authorities(resolveAuthorities(role))
                     .build();
 
-            log.info("로그인한 유저 권한 확인: {}", user.getAuthorities());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
