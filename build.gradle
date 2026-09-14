@@ -40,6 +40,8 @@ dependencies {
 	implementation 'software.amazon.awssdk:auth:2.25.0'
 	implementation 'software.amazon.awssdk:regions:2.25.0'
 	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc17'
 	annotationProcessor 'org.projectlombok:lombok'
