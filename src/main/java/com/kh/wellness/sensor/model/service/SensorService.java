@@ -50,7 +50,7 @@ public class SensorService {
         int result = sensorMapper.sensorCleanup();
 
         if(result < 1) {
-			throw new ConflictException("시간 수정에 실패하였습니다.");
+			throw new ConflictException("스케줄 삭제에 실패하였습니다.");
 		}
     }
 
