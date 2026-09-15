@@ -6,7 +6,7 @@
 
     <select id="findPlaceByNo"
             parameterType="long"
-            resultType="Place">
+            resultType="RoutePlace">
         SELECT
                 PLACE_NO,
                 PLACE_NAME,
@@ -22,7 +22,7 @@
     </select>
 
     <select id="findPlacesByQuery"
-            resultType="Place">
+            resultType="RoutePlace">
         SELECT
                 PLACE_NO,
                 PLACE_NAME,

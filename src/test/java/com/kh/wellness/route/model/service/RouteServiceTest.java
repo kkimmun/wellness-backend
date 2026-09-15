@@ -24,7 +24,7 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
-import com.kh.wellness.route.model.vo.Place;
+import com.kh.wellness.route.model.vo.RoutePlace;
 import com.kh.wellness.route.model.vo.TransportType;
 
 import tools.jackson.databind.JsonNode;
@@ -41,21 +41,21 @@ class RouteServiceTest {
 
     private RouteService routeService;
     private ObjectMapper objectMapper;
-    private Place origin;
-    private Place destination;
+    private RoutePlace origin;
+    private RoutePlace destination;
 
     @BeforeEach
     void setUp() {
         routeService = new RouteService(routeMapper, kakaoRouteClient);
         objectMapper = new ObjectMapper();
-        origin = Place.builder()
+        origin = RoutePlace.builder()
                 .placeNo(1L)
                 .placeName("김포국제공항")
                 .address("서울 강서구 하늘길 38")
                 .xAxis(126.9)
                 .yAxis(37.5)
                 .build();
-        destination = Place.builder()
+        destination = RoutePlace.builder()
                 .placeNo(10L)
                 .placeName("김포아트빌리지")
                 .address("경기 김포시 모담공원로 170")
@@ -400,13 +400,13 @@ class RouteServiceTest {
     void 도보_경유지는_입력된_순서대로_카카오_API에_전달한다() throws Exception {
         RouteSearchRequest request = request("WALK", "SHORTEST");
         request.setWaypointPlaceNos(List.of(15L, 16L));
-        Place firstWaypoint = Place.builder()
+        RoutePlace firstWaypoint = RoutePlace.builder()
                 .placeNo(15L)
                 .placeName("첫 번째 경유지")
                 .xAxis(126.93)
                 .yAxis(37.53)
                 .build();
-        Place secondWaypoint = Place.builder()
+        RoutePlace secondWaypoint = RoutePlace.builder()
                 .placeNo(16L)
                 .placeName("두 번째 경유지")
                 .xAxis(126.95)
@@ -427,7 +427,7 @@ class RouteServiceTest {
         RouteResponse response = routeService.findRoutes(request);
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<Place>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<RoutePlace>> captor = ArgumentCaptor.forClass(List.class);
         verify(kakaoRouteClient).findWalkingRoute(
                 eq(126.9),
                 eq(37.5),
@@ -437,7 +437,7 @@ class RouteServiceTest {
                 captor.capture()
         );
         assertThat(captor.getValue())
-                .extracting(Place::getXAxis)
+                .extracting(RoutePlace::getXAxis)
                 .containsExactly(126.93, 126.95);
         assertThat(response.getWaypoints())
                 .extracting(waypoint -> waypoint.getPlaceName())
@@ -461,7 +461,7 @@ class RouteServiceTest {
     void 경유지가_도착지와_같은_좌표이면_거부한다() {
         RouteSearchRequest request = request("WALK", "SHORTEST");
         request.setWaypointPlaceNos(List.of(15L));
-        Place waypoint = Place.builder()
+        RoutePlace waypoint = RoutePlace.builder()
                 .placeNo(15L)
                 .placeName("도착지와 좌표가 같은 경유지")
                 .xAxis(destination.getXAxis())
@@ -481,7 +481,7 @@ class RouteServiceTest {
     void 같은_경유지_장소번호를_중복으로_입력하면_거부한다() {
         RouteSearchRequest request = request("WALK", "SHORTEST");
         request.setWaypointPlaceNos(List.of(15L, 15L));
-        Place waypoint = Place.builder()
+        RoutePlace waypoint = RoutePlace.builder()
                 .placeNo(15L)
                 .placeName("중복 경유지")
                 .xAxis(126.93)
@@ -565,7 +565,7 @@ class RouteServiceTest {
     @Test
     void 도착장소_좌표가_없으면_외부_API를_호출하지_않는다() {
         RouteSearchRequest request = request("WALK", "SHORTEST");
-        destination = Place.builder()
+        destination = RoutePlace.builder()
                 .placeNo(10L)
                 .placeName("김포아트빌리지")
                 .address("경기 김포시 모담공원로 170")
@@ -584,7 +584,7 @@ class RouteServiceTest {
 
     @Test
     void 출발지_검색은_DB에_등록된_장소만_응답으로_변환한다() {
-        Place place = Place.builder()
+        RoutePlace place = RoutePlace.builder()
                 .placeNo(15L)
                 .placeName("김포 장릉")
                 .address("경기 김포시 장릉로 79")

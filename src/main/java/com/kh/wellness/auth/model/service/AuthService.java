@@ -14,7 +14,6 @@ import com.kh.wellness.auth.model.dto.LoginResponse;
 import com.kh.wellness.auth.model.dto.LoginResult;
 import com.kh.wellness.auth.model.dto.TokenResponse;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
-import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.exception.UnauthorizedException;
 import com.kh.wellness.token.model.service.TokenService;
 
@@ -36,7 +35,7 @@ public class AuthService {
 			auth = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(lrd.getMemberId(), lrd.getMemberPwd()));
 		} catch (AuthenticationException e) {
-			throw new NotFoundException("아이디 또는 비밀번호가 이상합니다");
+			throw new UnauthorizedException("아이디 또는 비밀번호가 잘못되었습니다.");
 		}
 
 		//인증 성공함

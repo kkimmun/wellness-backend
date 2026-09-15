@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriBuilder;
 
 import com.kh.wellness.exception.InternalServerException;
-import com.kh.wellness.route.model.vo.Place;
+import com.kh.wellness.route.model.vo.RoutePlace;
 
 import tools.jackson.databind.JsonNode;
 
@@ -81,7 +81,7 @@ public class KakaoRouteClient {
             double endX,
             double endY,
             String routeMode,
-            List<Place> waypoints) {
+            List<RoutePlace> waypoints) {
         return retrieve(kakaoMapClient.get()
                 .uri(builder -> {
                     UriBuilder uriBuilder = builder
@@ -152,13 +152,13 @@ public class KakaoRouteClient {
         return xAxis + "," + yAxis;
     }
 
-    private String joinXAxis(List<Place> waypoints) {
+    private String joinXAxis(List<RoutePlace> waypoints) {
         return waypoints.stream()
                 .map(place -> String.valueOf(place.getXAxis()))
                 .collect(Collectors.joining(","));
     }
 
-    private String joinYAxis(List<Place> waypoints) {
+    private String joinYAxis(List<RoutePlace> waypoints) {
         return waypoints.stream()
                 .map(place -> String.valueOf(place.getYAxis()))
                 .collect(Collectors.joining(","));

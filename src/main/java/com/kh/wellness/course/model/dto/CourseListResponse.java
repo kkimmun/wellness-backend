@@ -9,16 +9,16 @@ public class CourseListResponse {
 
     private Long courseNo;
     private String courseName;
-    private PlaceResponse startPlace;
-    private PlaceResponse endPlace;
+    private CoursePlaceResponse startPlace;
+    private CoursePlaceResponse endPlace;
     private String description;
 
     public static CourseListResponse from(CourseListRow row) {
         return new CourseListResponse(
                 row.getCourseNo(),
                 row.getCourseName(),
-                new PlaceResponse(row.getStartPlaceNo(), row.getStartPlaceName()),
-                new PlaceResponse(row.getEndPlaceNo(), row.getEndPlaceName()),
+                new CoursePlaceResponse(row.getStartPlaceNo(), row.getStartPlaceName()),
+                new CoursePlaceResponse(row.getEndPlaceNo(), row.getEndPlaceName()),
                 row.getDescription());
     }
 }
