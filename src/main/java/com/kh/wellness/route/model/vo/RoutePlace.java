@@ -1,33 +1,20 @@
-package com.kh.wellness.route.model.dto;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.kh.wellness.route.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceResponse {
+public class RoutePlace {
 
     private Long placeNo;
     private String placeName;
     private String address;
-
     private Double xAxis;
-
     private Double yAxis;
-
-    @JsonProperty("X_AXIS")
-    public Double getXAxis() {
-        return xAxis;
-    }
-
-    @JsonProperty("Y_AXIS")
-    public Double getYAxis() {
-        return yAxis;
-    }
 }

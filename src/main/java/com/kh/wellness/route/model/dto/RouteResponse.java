@@ -19,8 +19,8 @@ public class RouteResponse {
 
     private TransportType transportType;
     private String selectedOption;
-    private PlaceResponse origin;
-    private PlaceResponse destination;
-    private List<PlaceResponse> waypoints;
+    private RoutePlaceResponse origin;
+    private RoutePlaceResponse destination;
+    private List<RoutePlaceResponse> waypoints;
     private List<RouteResultResponse> routes;
 }

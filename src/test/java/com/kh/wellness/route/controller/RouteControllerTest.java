@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.kh.wellness.route.model.dto.OriginSearchResponse;
-import com.kh.wellness.route.model.dto.PlaceResponse;
+import com.kh.wellness.route.model.dto.RoutePlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.service.RouteService;
@@ -82,8 +82,8 @@ class RouteControllerTest {
         RouteResponse response = RouteResponse.builder()
                 .transportType(TransportType.CAR)
                 .selectedOption("MIN_DISTANCE")
-                .origin(PlaceResponse.builder().placeNo(248L).build())
-                .destination(PlaceResponse.builder().placeNo(7L).build())
+                .origin(RoutePlaceResponse.builder().placeNo(248L).build())
+                .destination(RoutePlaceResponse.builder().placeNo(7L).build())
                 .routes(List.of())
                 .build();
         when(routeService.findRoutes(any(RouteSearchRequest.class))).thenReturn(response);
@@ -109,11 +109,11 @@ class RouteControllerTest {
         RouteResponse response = RouteResponse.builder()
                 .transportType(TransportType.CAR)
                 .selectedOption("MIN_DISTANCE")
-                .origin(PlaceResponse.builder()
+                .origin(RoutePlaceResponse.builder()
                         .xAxis(126.8027)
                         .yAxis(37.5586)
                         .build())
-                .destination(PlaceResponse.builder().placeNo(7L).build())
+                .destination(RoutePlaceResponse.builder().placeNo(7L).build())
                 .routes(List.of())
                 .build();
         when(routeService.findRoutes(any(RouteSearchRequest.class))).thenReturn(response);
@@ -145,11 +145,11 @@ class RouteControllerTest {
         RouteResponse response = RouteResponse.builder()
                 .transportType(TransportType.WALK)
                 .selectedOption("SHORTEST")
-                .origin(PlaceResponse.builder().placeNo(248L).build())
-                .destination(PlaceResponse.builder().placeNo(7L).build())
+                .origin(RoutePlaceResponse.builder().placeNo(248L).build())
+                .destination(RoutePlaceResponse.builder().placeNo(7L).build())
                 .waypoints(List.of(
-                        PlaceResponse.builder().placeNo(15L).build(),
-                        PlaceResponse.builder().placeNo(16L).build()
+                        RoutePlaceResponse.builder().placeNo(15L).build(),
+                        RoutePlaceResponse.builder().placeNo(16L).build()
                 ))
                 .routes(List.of())
                 .build();

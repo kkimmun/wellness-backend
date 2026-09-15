@@ -14,12 +14,12 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.route.model.dao.RouteMapper;
 import com.kh.wellness.route.model.dto.CoordinateResponse;
 import com.kh.wellness.route.model.dto.OriginSearchResponse;
-import com.kh.wellness.route.model.dto.PlaceResponse;
+import com.kh.wellness.route.model.dto.RoutePlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteResultResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 import com.kh.wellness.route.model.dto.RouteStepResponse;
-import com.kh.wellness.route.model.vo.Place;
+import com.kh.wellness.route.model.vo.RoutePlace;
 import com.kh.wellness.route.model.vo.RouteOption;
 import com.kh.wellness.route.model.vo.TransitSortType;
 import com.kh.wellness.route.model.vo.TransitType;
@@ -45,14 +45,14 @@ public class RouteService {
 
     public RouteResponse findRoutes(RouteSearchRequest request) {
         TransportType transportType = parseTransportType(request.getTransportType());
-        Place origin = resolvePlace(
+        RoutePlace origin = resolvePlace(
                 request.getStartPlaceNo(),
                 request.getStartX(),
                 request.getStartY(),
                 "출발",
                 "현재 위치"
         );
-        Place destination = resolvePlace(
+        RoutePlace destination = resolvePlace(
                 request.getEndPlaceNo(),
                 request.getEndX(),
                 request.getEndY(),
@@ -60,7 +60,7 @@ public class RouteService {
                 "지정 도착지"
         );
 
-        List<Place> waypoints = resolveWaypoints(
+        List<RoutePlace> waypoints = resolveWaypoints(
                 request.getWaypointPlaceNos(),
                 transportType
         );
@@ -92,8 +92,8 @@ public class RouteService {
 
     private RouteResponse findCarRoutes(
             RouteSearchRequest request,
-            Place origin,
-            Place destination) {
+            RoutePlace origin,
+            RoutePlace destination) {
         RouteOption option = parseCarOption(request.getRouteOption());
         String priority = switch (option) {
             case MIN_DISTANCE -> "DISTANCE";
@@ -118,8 +118,8 @@ public class RouteService {
 
     private RouteResponse findPublicTransitRoutes(
             RouteSearchRequest request,
-            Place origin,
-            Place destination) {
+            RoutePlace origin,
+            RoutePlace destination) {
         TransitType transitType = parseOptionalTransitType(request.getTransitType());
         TransitSortType sortType = parseTransitSortType(request.getSortType());
 
@@ -147,8 +147,8 @@ public class RouteService {
 
     private RouteResponse findBicycleRoutes(
             RouteSearchRequest request,
-            Place origin,
-            Place destination) {
+            RoutePlace origin,
+            RoutePlace destination) {
         RouteOption option = parseBicycleOption(request.getRouteOption());
         RouteResultResponse route;
 
@@ -177,9 +177,9 @@ public class RouteService {
 
     private RouteResponse findWalkingRoutes(
             RouteSearchRequest request,
-            Place origin,
-            Place destination,
-            List<Place> waypoints) {
+            RoutePlace origin,
+            RoutePlace destination,
+            List<RoutePlace> waypoints) {
         RouteOption option = parseWalkOption(request.getRouteOption());
         String routeMode = switch (option) {
             case SHORTEST -> "SHORTEST";
@@ -209,8 +209,8 @@ public class RouteService {
     }
 
     private RouteResultResponse findFastestBicycleRoute(
-            Place origin,
-            Place destination) {
+            RoutePlace origin,
+            RoutePlace destination) {
         List<RouteResultResponse> candidates = new ArrayList<>();
 
         for (String routeMode : BICYCLE_TIME_ROUTE_MODES) {
@@ -380,8 +380,8 @@ public class RouteService {
     private RouteResponse buildResponse(
             TransportType transportType,
             String selectedOption,
-            Place origin,
-            Place destination,
+            RoutePlace origin,
+            RoutePlace destination,
             List<RouteResultResponse> routes) {
         return buildResponse(
                 transportType,
@@ -396,9 +396,9 @@ public class RouteService {
     private RouteResponse buildResponse(
             TransportType transportType,
             String selectedOption,
-            Place origin,
-            Place destination,
-            List<Place> waypoints,
+            RoutePlace origin,
+            RoutePlace destination,
+            List<RoutePlace> waypoints,
             List<RouteResultResponse> routes) {
         return RouteResponse.builder()
                 .transportType(transportType)
@@ -410,8 +410,8 @@ public class RouteService {
                 .build();
     }
 
-    private PlaceResponse toPlaceResponse(Place place) {
-        return PlaceResponse.builder()
+    private RoutePlaceResponse toPlaceResponse(RoutePlace place) {
+        return RoutePlaceResponse.builder()
                 .placeNo(place.getPlaceNo())
                 .placeName(place.getPlaceName())
                 .address(place.getAddress())
@@ -420,7 +420,7 @@ public class RouteService {
                 .build();
     }
 
-    private List<Place> resolveWaypoints(
+    private List<RoutePlace> resolveWaypoints(
             List<Long> waypointPlaceNos,
             TransportType transportType) {
         if (waypointPlaceNos == null || waypointPlaceNos.isEmpty()) {
@@ -433,7 +433,7 @@ public class RouteService {
             throw new BadRequestException("경유지는 최대 3개까지 설정할 수 있습니다.");
         }
 
-        List<Place> waypoints = new ArrayList<>();
+        List<RoutePlace> waypoints = new ArrayList<>();
         for (int index = 0; index < waypointPlaceNos.size(); index++) {
             Long waypointPlaceNo = waypointPlaceNos.get(index);
             if (waypointPlaceNo == null) {
@@ -452,7 +452,7 @@ public class RouteService {
         return waypoints;
     }
 
-    private Place resolvePlace(
+    private RoutePlace resolvePlace(
             Long placeNo,
             Double xAxis,
             Double yAxis,
@@ -468,7 +468,7 @@ public class RouteService {
         }
 
         if (hasPlaceNo) {
-            Place place = routeMapper.findPlaceByNo(placeNo);
+            RoutePlace place = routeMapper.findPlaceByNo(placeNo);
             if (place == null) {
                 throw new NotFoundException(type + " 장소를 찾을 수 없습니다.");
             }
@@ -488,7 +488,7 @@ public class RouteService {
             throw new BadRequestException(type + " 장소의 좌표 범위가 올바르지 않습니다.");
         }
 
-        return Place.builder()
+        return RoutePlace.builder()
                 .placeName(directPlaceName)
                 .xAxis(xAxis)
                 .yAxis(yAxis)
@@ -496,14 +496,14 @@ public class RouteService {
     }
 
     private void validateDistinctRoutePoints(
-            Place origin,
-            Place destination,
-            List<Place> waypoints) {
+            RoutePlace origin,
+            RoutePlace destination,
+            List<RoutePlace> waypoints) {
         if (samePlace(origin, destination)) {
             throw new BadRequestException("출발지와 도착지가 같습니다.");
         }
 
-        List<Place> routePoints = new ArrayList<>(waypoints.size() + 2);
+        List<RoutePlace> routePoints = new ArrayList<>(waypoints.size() + 2);
         routePoints.add(origin);
         routePoints.addAll(waypoints);
         routePoints.add(destination);
@@ -521,7 +521,7 @@ public class RouteService {
         }
     }
 
-    private boolean samePlace(Place first, Place second) {
+    private boolean samePlace(RoutePlace first, RoutePlace second) {
         if (first.getPlaceNo() != null
                 && second.getPlaceNo() != null
                 && first.getPlaceNo().equals(second.getPlaceNo())) {
@@ -532,7 +532,7 @@ public class RouteService {
                 && Double.compare(first.getYAxis(), second.getYAxis()) == 0;
     }
 
-    private void validateCoordinates(Place place, String type) {
+    private void validateCoordinates(RoutePlace place, String type) {
         if (place.getXAxis() == null || place.getYAxis() == null) {
             throw new InternalServerException(type + " 장소의 좌표 정보가 없습니다.");
         }

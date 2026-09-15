@@ -32,10 +32,10 @@ import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateResponse;
-import com.kh.wellness.admin.place.model.dto.PlaceImageResponse;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceImageResponse;
 import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseInput;
 import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseRequest;
-import com.kh.wellness.admin.place.model.vo.Place;
+import com.kh.wellness.admin.place.model.vo.AdminPlace;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
 import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 import com.kh.wellness.common.page.PageResponse;
@@ -113,7 +113,7 @@ class AdminPlaceServiceTest {
 	void getPlace_returnsDetailWithImages() {
 		AdminPlaceDetailResponse detail = new AdminPlaceDetailResponse();
 		detail.setPlaceName("김포아울렛");
-		PlaceImageResponse image = new PlaceImageResponse();
+		AdminPlaceImageResponse image = new AdminPlaceImageResponse();
 		image.setImgNo(11L);
 		when(adminPlaceMapper.selectPlaceDetail(1L)).thenReturn(detail);
 		when(adminPlaceMapper.selectPlaceImages(1L)).thenReturn(List.of(image));
@@ -179,8 +179,8 @@ class AdminPlaceServiceTest {
 		MultipartFile second = new MockMultipartFile("imageFiles", "b.jpg", "image/jpeg", "b".getBytes());
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
-		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
+		when(adminPlaceMapper.insertPlace(any(AdminPlace.class))).thenAnswer(invocation -> {
+			ReflectionTestUtils.setField(invocation.getArgument(0, AdminPlace.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(any(), eq("places")))
@@ -219,7 +219,7 @@ class AdminPlaceServiceTest {
 	void savePlace_insertPlaceFail() {
 		MultipartFile file = new MockMultipartFile("imageFiles", "a.jpg", "image/jpeg", "a".getBytes());
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
-		when(adminPlaceMapper.insertPlace(any(Place.class))).thenReturn(0);
+		when(adminPlaceMapper.insertPlace(any(AdminPlace.class))).thenReturn(0);
 
 		assertThatThrownBy(() -> adminPlaceService.savePlace(createRequest(1L, file)))
 				.isInstanceOf(InternalServerException.class);
@@ -234,8 +234,8 @@ class AdminPlaceServiceTest {
 		MultipartFile second = new MockMultipartFile("imageFiles", "b.jpg", "image/jpeg", "b".getBytes());
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
-		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
+		when(adminPlaceMapper.insertPlace(any(AdminPlace.class))).thenAnswer(invocation -> {
+			ReflectionTestUtils.setField(invocation.getArgument(0, AdminPlace.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(any(), eq("places")))
@@ -265,8 +265,8 @@ class AdminPlaceServiceTest {
 		request.setImageLicenses(List.of(newImageLicense()));
 
 		when(adminPlaceMapper.countTypeDetailByNo(1L)).thenReturn(1);
-		when(adminPlaceMapper.insertPlace(any(Place.class))).thenAnswer(invocation -> {
-			ReflectionTestUtils.setField(invocation.getArgument(0, Place.class), "placeNo", 10L);
+		when(adminPlaceMapper.insertPlace(any(AdminPlace.class))).thenAnswer(invocation -> {
+			ReflectionTestUtils.setField(invocation.getArgument(0, AdminPlace.class), "placeNo", 10L);
 			return 1;
 		});
 		when(fileService.store(file, "places"))

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Place {
+public class AdminPlace {
 
 	private Long placeNo;
 	private Long typeDetailNo;
