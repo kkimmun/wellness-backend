@@ -56,7 +56,7 @@ public class PlanController {
 
 	@PostMapping("/{planNo}/places")
 	public ResponseEntity<ApiResponse<Void>> addPlaces(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@PathVariable Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
+			@PathVariable("planNo") Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
 
 		Long memberNo = userDetails.getMemberNo();
 
@@ -67,7 +67,7 @@ public class PlanController {
 
 	@PutMapping("/{planNo}/places")
 	public ResponseEntity<ApiResponse<Void>> editPlaces(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@PathVariable Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
+			@PathVariable("planNo") Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
 
 		Long memberNo = userDetails.getMemberNo();
 
@@ -78,7 +78,7 @@ public class PlanController {
 
 	@DeleteMapping("/{planNo}")
 	public ResponseEntity<ApiResponse<Void>> deletePlan(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@PathVariable Long planNo) {
+			@PathVariable("planNo") Long planNo) {
 
 		Long memberNo = userDetails.getMemberNo();
 
