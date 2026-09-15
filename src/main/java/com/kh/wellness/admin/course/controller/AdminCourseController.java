@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.wellness.admin.course.model.dto.AdminCourseDetailResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseListResponse;
 import com.kh.wellness.admin.course.model.dto.AdminCourseRequest;
+import com.kh.wellness.admin.course.model.dto.CourseNosRequest;
 import com.kh.wellness.admin.course.model.dto.CourseStatusRequest;
 import com.kh.wellness.admin.course.model.service.AdminCourseService;
 import com.kh.wellness.common.api.ApiResponse;
@@ -64,6 +65,12 @@ public class AdminCourseController {
 	public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable(name="courseNo") Long courseNo) {
 		adminCourseService.deleteCourse(courseNo);
 		return ResponseEntity.ok(ApiResponse.success("고정 코스 삭제 성공", null));
+	}
+
+	@DeleteMapping
+	public ResponseEntity<ApiResponse<Void>> deleteCourses(@Valid @RequestBody CourseNosRequest request) {
+		int count = adminCourseService.deleteCourses(request.getCourseNos());
+		return ResponseEntity.ok(ApiResponse.success(count + "건의 고정 코스 삭제 성공", null));
 	}
 
 	@PatchMapping("/{courseNo}/status")
