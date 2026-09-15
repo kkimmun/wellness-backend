@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"DB_SID=XE",
 		"DB_USERNAME=test",
 		"DB_PASSWORD=test",
+		"spring.datasource.hikari.initialization-fail-timeout=-1",
 		"MAIL_USERNAME=test@example.com",
 		"MAIL_PASSWORD=test-password",
 		"AWS_ACCESS_KEY=test-access-key",
