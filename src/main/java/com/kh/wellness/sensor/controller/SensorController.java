@@ -16,6 +16,7 @@ import com.kh.wellness.sensor.model.dto.SensorRequestDto;
 import com.kh.wellness.sensor.model.dto.SensorResponseDto;
 import com.kh.wellness.sensor.model.service.SensorService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -36,7 +37,7 @@ public class SensorController {
 	
 	// 단말에서 받는 정보 DB 저장
 	@PostMapping("/response")
-	public ResponseEntity<ApiResponse<SensorResponseDto>> insertSensorData(@RequestBody SensorRequestDto sensor){
+	public ResponseEntity<ApiResponse<SensorResponseDto>> insertSensorData(@Valid @RequestBody SensorRequestDto sensor){
 		
 		sensorService.insertSensorData(sensor);
 		
