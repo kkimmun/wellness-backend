@@ -107,6 +107,7 @@ public class SecurityConfiguration {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(
+				"http://localhost:5173",
 			    "https://gimpo-wellness.com"));
 		configuration.setAllowedMethods(Arrays.asList(
 				"POST",
