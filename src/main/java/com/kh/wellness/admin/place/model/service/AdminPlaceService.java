@@ -17,7 +17,7 @@ import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateResponse;
 import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseInput;
 import com.kh.wellness.admin.place.model.dto.PlaceImageLicenseRequest;
-import com.kh.wellness.admin.place.model.vo.Place;
+import com.kh.wellness.admin.place.model.vo.AdminPlace;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
 import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 import com.kh.wellness.common.page.PageResponse;
@@ -79,7 +79,7 @@ public class AdminPlaceService {
 			throw new BadRequestException("존재하지 않는 분류입니다.");
 		}
 
-		Place place = Place.builder()
+		AdminPlace place = AdminPlace.builder()
 				.typeDetailNo(request.getTypeDetailNo())
 				.placeName(request.getPlaceName().trim())
 				.placeDescription(normalizeDescription(request.getPlaceDescription()))

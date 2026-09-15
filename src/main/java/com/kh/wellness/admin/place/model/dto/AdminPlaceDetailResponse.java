@@ -20,5 +20,5 @@ public class AdminPlaceDetailResponse {
 	private String addr;
 	private Double xAxis;
 	private Double yAxis;
-	private List<PlaceImageResponse> placeImages;
+	private List<AdminPlaceImageResponse> placeImages;
 }

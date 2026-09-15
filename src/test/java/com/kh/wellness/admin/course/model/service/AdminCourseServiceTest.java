@@ -43,7 +43,7 @@ import com.kh.wellness.course.model.service.CourseService;
 import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.exception.NotFoundException;
-import com.kh.wellness.route.model.dto.PlaceResponse;
+import com.kh.wellness.route.model.dto.RoutePlaceResponse;
 import com.kh.wellness.route.model.dto.RouteResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
@@ -251,7 +251,7 @@ class AdminCourseServiceTest {
     private RouteResponse routeResponse(List<Long> waypointPlaceNos) {
         return RouteResponse.builder()
                 .waypoints(waypointPlaceNos.stream()
-                        .map(placeNo -> PlaceResponse.builder().placeNo(placeNo).build())
+                        .map(placeNo -> RoutePlaceResponse.builder().placeNo(placeNo).build())
                         .toList())
                 .build();
     }

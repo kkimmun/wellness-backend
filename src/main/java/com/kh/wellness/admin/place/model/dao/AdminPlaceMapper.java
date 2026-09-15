@@ -8,8 +8,8 @@ import org.apache.ibatis.annotations.Param;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceDetailResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceListResponse;
 import com.kh.wellness.admin.place.model.dto.AdminPlaceUpdateRequest;
-import com.kh.wellness.admin.place.model.dto.PlaceImageResponse;
-import com.kh.wellness.admin.place.model.vo.Place;
+import com.kh.wellness.admin.place.model.dto.AdminPlaceImageResponse;
+import com.kh.wellness.admin.place.model.vo.AdminPlace;
 import com.kh.wellness.admin.place.model.vo.PlaceImg;
 import com.kh.wellness.admin.place.model.vo.PlaceLicense;
 
@@ -22,11 +22,11 @@ public interface AdminPlaceMapper {
 
 	AdminPlaceDetailResponse selectPlaceDetail(Long placeNo);
 
-	List<PlaceImageResponse> selectPlaceImages(Long placeNo);
+	List<AdminPlaceImageResponse> selectPlaceImages(Long placeNo);
 
 	int countTypeDetailByNo(Long typeDetailNo);
 
-	int insertPlace(Place place);
+	int insertPlace(AdminPlace place);
 
 	int insertPlaceImg(PlaceImg placeImg);
 

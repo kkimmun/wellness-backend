@@ -5,13 +5,13 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kh.wellness.route.model.vo.Place;
+import com.kh.wellness.route.model.vo.RoutePlace;
 
 @Mapper
 public interface RouteMapper {
 
-    Place findPlaceByNo(Long placeNo);
+    RoutePlace findPlaceByNo(Long placeNo);
 
-    List<Place> findPlacesByQuery(@Param("query") String query);
+    List<RoutePlace> findPlacesByQuery(@Param("query") String query);
 
 }

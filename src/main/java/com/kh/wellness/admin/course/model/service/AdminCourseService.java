@@ -26,7 +26,7 @@ import com.kh.wellness.exception.BadRequestException;
 import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.exception.InternalServerException;
 import com.kh.wellness.exception.NotFoundException;
-import com.kh.wellness.route.model.dto.PlaceResponse;
+import com.kh.wellness.route.model.dto.RoutePlaceResponse;
 import com.kh.wellness.route.model.dto.RouteSearchRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -248,7 +248,7 @@ public class AdminCourseService {
         routeRequest.setRouteOption("SHORTEST");
 
         return courseService.getRecommendedRoute(routeRequest).getWaypoints().stream()
-                .map(PlaceResponse::getPlaceNo)
+                .map(RoutePlaceResponse::getPlaceNo)
                 .toList();
     }
 

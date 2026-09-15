@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class PlaceResponse {
+public class CoursePlaceResponse {
 
     private Long placeNo;
     private String placeName;

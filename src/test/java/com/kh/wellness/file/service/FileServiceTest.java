@@ -38,10 +38,15 @@ class FileServiceTest {
         ReflectionTestUtils.setField(fileService, "region", "ap-northeast-2");
     }
 
+    private static final byte[] PNG_MAGIC_BYTES =
+            { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0 };
+    private static final byte[] JPEG_MAGIC_BYTES =
+            { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
     @Test
     void imageIsStoredInRequestedS3Directory() {
         MockMultipartFile image = new MockMultipartFile(
-                "imageFiles", "place.png", "image/png", new byte[] { 1, 2, 3 });
+                "imageFiles", "place.png", "image/png", PNG_MAGIC_BYTES);
 
         FileSaveResult result = fileService.store(image, "places");
 
@@ -66,7 +71,7 @@ class FileServiceTest {
     @Test
     void s3PermissionFailureIsReportedAsServerConfigurationError() {
         MockMultipartFile image = new MockMultipartFile(
-                "imageFiles", "place.jpg", "image/jpeg", new byte[] { 1, 2, 3 });
+                "imageFiles", "place.jpg", "image/jpeg", JPEG_MAGIC_BYTES);
         S3Exception forbidden = (S3Exception) S3Exception.builder()
                 .statusCode(403)
                 .message("Forbidden")

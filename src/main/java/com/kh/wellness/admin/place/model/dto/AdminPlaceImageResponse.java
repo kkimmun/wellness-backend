@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceImageResponse {
+public class AdminPlaceImageResponse {
 
 	private Long imgNo;
 	private Integer imgOrder;

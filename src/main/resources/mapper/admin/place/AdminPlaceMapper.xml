@@ -5,7 +5,7 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.wellness.admin.place.model.dao.AdminPlaceMapper">
 
-	<resultMap id="placeImageResponseMap" type="PlaceImageResponse">
+	<resultMap id="placeImageResponseMap" type="AdminPlaceImageResponse">
 		<id property="imgNo" column="IMG_NO" />
 		<result property="imgOrder" column="IMG_ORDER" />
 		<result property="imgPath" column="IMG_PATH" />

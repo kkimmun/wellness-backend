@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.wellness.exception.BadRequestException;
+import com.kh.wellness.exception.ConflictException;
 import com.kh.wellness.sensor.model.dao.SensorMapper;
 import com.kh.wellness.sensor.model.dto.SensorRequestDto;
 import com.kh.wellness.sensor.model.dto.SensorResponseDto;
@@ -31,6 +32,7 @@ public class SensorService {
 		return sensorInfoList;
 	}
 
+	@Transactional
 	public void insertSensorData(SensorRequestDto sensor) {
 		int result = sensorMapper.insertSensorData(sensor);
 		
@@ -47,11 +49,9 @@ public class SensorService {
 
         int result = sensorMapper.sensorCleanup();
 
-        if (result > 0) {
-            log.info("만료된 인증 이메일 정리 완료: {}건 삭제됨", result);
-        } else {
-            log.info("정리할 만료 이메일이 없습니다.");
-        }
+        if(result < 1) {
+			throw new ConflictException("시간 수정에 실패하였습니다.");
+		}
     }
 
 }
