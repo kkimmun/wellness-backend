@@ -11,14 +11,21 @@ import com.kh.wellness.course.model.dto.CourseResponse;
 import com.kh.wellness.course.model.dto.PlaceDto;
 import com.kh.wellness.course.model.dto.WaypointDto;
 import com.kh.wellness.course.model.enums.CourseTag;
+import com.kh.wellness.place.model.vo.MapPlace;
 
 class CourseMapperTest {
     @Test
     void restaurantStatementLoadsWithExistingAliasesAndGroupsTagsByPlace() throws Exception {
         Configuration configuration = new Configuration();
         for (Class<?> type : new Class<?>[] {CourseListRow.class, CourseResponse.class, PlaceDto.class,
-                WaypointDto.class, CourseTag.class}) {
+                WaypointDto.class, CourseTag.class, MapPlace.class}) {
             configuration.getTypeAliasRegistry().registerAlias(type);
+        }
+        // CourseMapper.xml의 restaurantsCommon SQL이 PlaceMapper.xml의 sql fragment를 참조하므로 함께 로드한다.
+        String placeResource = "mapper/place/PlaceMapper.xml";
+        try (var stream = getClass().getClassLoader().getResourceAsStream(placeResource)) {
+            assertThat(stream).isNotNull();
+            new XMLMapperBuilder(stream, configuration, placeResource, configuration.getSqlFragments()).parse();
         }
         String resource = "mapper/course/CourseMapper.xml";
         try (var stream = getClass().getClassLoader().getResourceAsStream(resource)) {

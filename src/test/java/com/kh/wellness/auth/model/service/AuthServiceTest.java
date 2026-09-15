@@ -26,7 +26,6 @@ import com.kh.wellness.auth.model.dto.LoginRequestDto;
 import com.kh.wellness.auth.model.dto.LoginResult;
 import com.kh.wellness.auth.model.dto.TokenResponse;
 import com.kh.wellness.auth.model.vo.CustomUserDetails;
-import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.exception.UnauthorizedException;
 import com.kh.wellness.token.model.service.TokenService;
 
@@ -79,15 +78,15 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("인증에 실패하면 NotFoundException 을 던지고 토큰을 발급하지 않는다")
+	@DisplayName("인증에 실패하면 UnauthorizedException 을 던지고 토큰을 발급하지 않는다")
 	void login_authenticationFailure() {
 		LoginRequestDto request = new LoginRequestDto("test@wellness.com", "wrongPwd");
 		when(authenticationManager.authenticate(any()))
 				.thenThrow(new BadCredentialsException("bad credentials"));
 
 		assertThatThrownBy(() -> authService.login(request))
-				.isInstanceOf(NotFoundException.class)
-				.hasMessage("아이디 또는 비밀번호가 이상합니다");
+				.isInstanceOf(UnauthorizedException.class)
+				.hasMessage("아이디 또는 비밀번호가 잘못되었습니다.");
 
 		verify(tokenService, never()).getTokens(any());
 	}
