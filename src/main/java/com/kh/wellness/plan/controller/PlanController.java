@@ -22,6 +22,7 @@ import com.kh.wellness.plan.model.dto.PlanCreateResponseDto;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
 import com.kh.wellness.plan.model.dto.PlanResponseDto;
+import com.kh.wellness.plan.model.dto.SavedPlanResponseDto;
 import com.kh.wellness.plan.model.service.PlanService;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,24 @@ public class PlanController {
 		List<PlanResponseDto> plans = planService.findPlans(memberNo);
 
 		return ResponseEntity.status(200).body(ApiResponse.success("조회 성공", plans));
+	}
+
+	@GetMapping("/{planNo:\\d+}")
+	public ResponseEntity<ApiResponse<SavedPlanResponseDto>> findPlan(
+			@AuthenticationPrincipal CustomUserDetails userDetails,
+			@PathVariable("planNo") Long planNo) {
+		return ResponseEntity.ok(ApiResponse.success(
+				"조회 성공",
+				planService.findPlan(userDetails.getMemberNo(), planNo)));
+	}
+
+	@PutMapping("/{planNo}")
+	public ResponseEntity<ApiResponse<Void>> updatePlan(
+			@AuthenticationPrincipal CustomUserDetails userDetails,
+			@PathVariable("planNo") Long planNo,
+			@RequestBody PlanCreateRequestDto request) {
+		planService.updatePlan(userDetails.getMemberNo(), planNo, request);
+		return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", null));
 	}
 
 	@PostMapping("/{planNo}/places")

@@ -34,21 +34,77 @@
 	WHERE
 		PLAN_NO = #{planNo}
 </select>
-<select id = "findPlansByMember" resultType="Plan">
+<select id = "findPlansByMember" resultType="PlanResponseDto">
 	SELECT
-		PLAN_NO,
-		MEMBER_NO,
-		PLAN_NAME,
-		X_AXIS,
-		Y_AXIS,
-		CREATE_DATE
+		P.PLAN_NO,
+		P.MEMBER_NO,
+		P.PLAN_NAME,
+		P.X_AXIS,
+		P.Y_AXIS,
+		P.CREATE_DATE,
+		COUNT(PS.PLACE_NO) AS PLACE_COUNT
 	FROM
-		PLAN
+		PLAN P
+	LEFT JOIN PLAN_SESSION PS
+		ON P.PLAN_NO = PS.PLAN_NO
 	WHERE
-		MEMBER_NO = #{memberNo}
+		P.MEMBER_NO = #{memberNo}
+	GROUP BY
+		P.PLAN_NO,
+		P.MEMBER_NO,
+		P.PLAN_NAME,
+		P.X_AXIS,
+		P.Y_AXIS,
+		P.CREATE_DATE
 	ORDER BY
-		CREATE_DATE DESC
+		P.CREATE_DATE DESC
 </select>
+<select id="findPlacesByPlanNo" resultType="PlanPlaceResponseDto">
+	SELECT
+		PS.PLACE_NO,
+		PS.PLACE_ORDER,
+		P.PLACE_NAME,
+		P.PLACE_DESCRIPTION,
+		P.ADDR,
+		P.ADDR_DETAIL,
+		P.X_AXIS,
+		P.Y_AXIS,
+		T.TYPE_NO,
+		P.TYPE_DETAIL_NO,
+		PI.IMG_NO,
+		PI.IMG_PATH
+	FROM PLAN_SESSION PS
+	JOIN PLACE P
+		ON PS.PLACE_NO = P.PLACE_NO
+	LEFT JOIN TYPE_DETAIL TD
+		ON P.TYPE_DETAIL_NO = TD.TYPE_DETAIL_NO
+	LEFT JOIN TYPE T
+		ON TD.TYPE_NO = T.TYPE_NO
+	LEFT JOIN (
+		SELECT PLACE_NO, IMG_NO, IMG_PATH
+		FROM (
+			SELECT
+				PLACE_NO,
+				IMG_NO,
+				IMG_PATH,
+				ROW_NUMBER() OVER (PARTITION BY PLACE_NO ORDER BY IMG_ORDER, IMG_NO) AS RN
+			FROM PLACE_IMG
+			WHERE DEL_YN = 'N'
+		)
+		WHERE RN = 1
+	) PI
+		ON P.PLACE_NO = PI.PLACE_NO
+	WHERE PS.PLAN_NO = #{planNo}
+	ORDER BY PS.PLACE_ORDER
+</select>
+<update id="updatePlan">
+	UPDATE PLAN
+	SET
+		PLAN_NAME = #{planName},
+		X_AXIS = #{xAxis},
+		Y_AXIS = #{yAxis}
+	WHERE PLAN_NO = #{planNo}
+</update>
 <delete id = "deletePlan">
 	DELETE
 		FROM

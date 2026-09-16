@@ -26,6 +26,9 @@ import com.kh.wellness.exception.NotFoundException;
 import com.kh.wellness.plan.model.dao.PlanMapper;
 import com.kh.wellness.plan.model.dto.PlanCreateRequestDto;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
+import com.kh.wellness.plan.model.dto.PlanPlaceResponseDto;
+import com.kh.wellness.plan.model.dto.PlanResponseDto;
+import com.kh.wellness.plan.model.dto.SavedPlanResponseDto;
 import com.kh.wellness.plan.model.vo.Plan;
 import com.kh.wellness.plan.model.vo.PlanSession;
 
@@ -61,6 +64,14 @@ class PlanServiceTest {
 
         assertThatThrownBy(() -> planService.createPlan(100L, new PlanCreateRequestDto(null, null, null)))
                 .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void findPlans는_Mapper가_조회한_목록_응답을_반환한다() {
+        PlanResponseDto plan = new PlanResponseDto(10L, "김포 여행", 126.6, 37.6, null, 2);
+        when(planMapper.findPlansByMember(100L)).thenReturn(List.of(plan));
+
+        assertThat(planService.findPlans(100L)).containsExactly(plan);
     }
 
     @Test
@@ -114,18 +125,55 @@ class PlanServiceTest {
     }
 
     @Test
-    void editPlaces는_기존_계획을_삭제하지_않고_요청한_장소를_저장한다() {
+    void editPlaces는_기존_장소를_삭제하고_요청한_장소를_순서대로_저장한다() {
         when(planMapper.findPlanForAuth(10L)).thenReturn(ownedPlan(10L, 100L));
         when(planMapper.insertPlanSession(any(PlanSession.class))).thenReturn(1);
 
         planService.editPlaces(100L, 10L, List.of(requestDto(11L), requestDto(22L)));
 
-        verify(planMapper, never()).deletePlanSessions(any());
+        verify(planMapper).deletePlanSessions(10L);
         ArgumentCaptor<PlanSession> captor = ArgumentCaptor.forClass(PlanSession.class);
         verify(planMapper, times(2)).insertPlanSession(captor.capture());
         assertThat(captor.getAllValues())
                 .extracting(PlanSession::getPlanNo, PlanSession::getPlaceNo, PlanSession::getPlaceOrder)
                 .containsExactly(tuple(10L, 11L, 1), tuple(10L, 22L, 2));
+    }
+
+    @Test
+    void findPlan은_본인_계획의_헤더와_장소를_반환한다() {
+        Plan plan = Plan.builder()
+                .planNo(10L)
+                .memberNo(100L)
+                .planName("김포 여행")
+                .xAxis(126.6)
+                .yAxis(37.6)
+                .build();
+        PlanPlaceResponseDto place = new PlanPlaceResponseDto(
+                11L, 1, "장소", "설명", "주소", null,
+                126.61, 37.61, 1L, 46L, null, null);
+        when(planMapper.findPlanForAuth(10L)).thenReturn(plan);
+        when(planMapper.findPlacesByPlanNo(10L)).thenReturn(List.of(place));
+
+        SavedPlanResponseDto result = planService.findPlan(100L, 10L);
+
+        assertThat(result.getPlanNo()).isEqualTo(10L);
+        assertThat(result.getPlanName()).isEqualTo("김포 여행");
+        assertThat(result.getPlaces()).containsExactly(place);
+    }
+
+    @Test
+    void updatePlan은_본인_계획의_이름과_시작좌표를_수정한다() {
+        when(planMapper.findPlanForAuth(10L)).thenReturn(ownedPlan(10L, 100L));
+        when(planMapper.updatePlan(any(Plan.class))).thenReturn(1);
+
+        planService.updatePlan(100L, 10L, new PlanCreateRequestDto("수정 계획", 126.7, 37.7));
+
+        ArgumentCaptor<Plan> captor = ArgumentCaptor.forClass(Plan.class);
+        verify(planMapper).updatePlan(captor.capture());
+        assertThat(captor.getValue().getPlanNo()).isEqualTo(10L);
+        assertThat(captor.getValue().getPlanName()).isEqualTo("수정 계획");
+        assertThat(captor.getValue().getXAxis()).isEqualTo(126.7);
+        assertThat(captor.getValue().getYAxis()).isEqualTo(37.7);
     }
 
     @Test

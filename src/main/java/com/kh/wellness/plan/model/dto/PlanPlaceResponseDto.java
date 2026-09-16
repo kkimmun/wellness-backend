@@ -13,5 +13,13 @@ public class PlanPlaceResponseDto {
 	private Long placeNo;
 	private Integer placeOrder;
 	private String placeName;
-
+	private String placeDescription;
+	private String addr;
+	private String addrDetail;
+	private Double xAxis;
+	private Double yAxis;
+	private Long typeNo;
+	private Long typeDetailNo;
+	private Long imgNo;
+	private String imgPath;
 }
