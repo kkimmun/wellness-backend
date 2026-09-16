@@ -28,7 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"mybatis.configuration.jdbc-type-for-null=VARCHAR",
 		"mybatis.configuration.map-underscore-to-camel-case=true",
 		"mybatis.mapper-locations=classpath:mapper/**/*.xml",
-		"mybatis.type-aliases-package=com.kh.wellness.member.model.vo,com.kh.wellness.member.model.dto,com.kh.wellness.token.model.vo,com.kh.wellness.admin.place.model.dto,com.kh.wellness.admin.course.model.dto,com.kh.wellness.course.model.dto,com.kh.wellness.course.model.enums,com.kh.wellness.route.model.vo,com.kh.wellness.place.model.vo,com.kh.wellness.plan.model.dto,com.kh.wellness.review.model.vo,com.kh.wellness.review.model.dto,com.kh.wellness.sensor.model.dto"
+		"mybatis.type-aliases-package=com.kh.wellness.member.model.vo,com.kh.wellness.member.model.dto,com.kh.wellness.token.model.vo,com.kh.wellness.admin.place.model.dto,com.kh.wellness.admin.course.model.dto,com.kh.wellness.course.model.dto,com.kh.wellness.course.model.enums,com.kh.wellness.route.model.vo,com.kh.wellness.place.model.vo,com.kh.wellness.plan.model.dto,com.kh.wellness.plan.model.vo,com.kh.wellness.review.model.vo,com.kh.wellness.review.model.dto,com.kh.wellness.sensor.model.dto"
 })
 class WellnessApplicationTests {
 
