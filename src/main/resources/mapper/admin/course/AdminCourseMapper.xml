@@ -158,6 +158,31 @@
         WHERE COURSE_NO = #{_parameter}
     </delete>
 
+    <select id="countCoursesByNos" resultType="int">
+        SELECT COUNT(*)
+        FROM COURSE
+        WHERE COURSE_NO IN
+        <foreach collection="courseNos" item="courseNo" open="(" separator="," close=")">
+            #{courseNo}
+        </foreach>
+    </select>
+
+    <delete id="deleteCourseWaypointsByCourseNos">
+        DELETE FROM COURSE_WAYPOINT
+        WHERE COURSE_NO IN
+        <foreach collection="courseNos" item="courseNo" open="(" separator="," close=")">
+            #{courseNo}
+        </foreach>
+    </delete>
+
+    <delete id="deleteCourses">
+        DELETE FROM COURSE
+        WHERE COURSE_NO IN
+        <foreach collection="courseNos" item="courseNo" open="(" separator="," close=")">
+            #{courseNo}
+        </foreach>
+    </delete>
+
     <update id="updateCourseStatus">
         UPDATE COURSE
         SET ACTIVE = #{active}

@@ -302,6 +302,34 @@ class AdminCourseServiceTest {
     }
 
     @Test
+    void deleteCoursesDeletesDistinctCoursesInSingleBatch() {
+        List<Long> distinctCourseNos = List.of(101L, 102L);
+        when(adminCourseMapper.countCoursesByNos(distinctCourseNos)).thenReturn(2);
+        when(adminCourseMapper.deleteCourses(distinctCourseNos)).thenReturn(2);
+
+        int deleted = adminCourseService.deleteCourses(List.of(101L, 102L, 101L));
+
+        assertThat(deleted).isEqualTo(2);
+        InOrder order = inOrder(adminCourseMapper);
+        order.verify(adminCourseMapper).countCoursesByNos(distinctCourseNos);
+        order.verify(adminCourseMapper).deleteCourseWaypointsByCourseNos(distinctCourseNos);
+        order.verify(adminCourseMapper).deleteCourses(distinctCourseNos);
+    }
+
+    @Test
+    void deleteCoursesRejectsRequestWhenAnyCourseDoesNotExist() {
+        List<Long> courseNos = List.of(101L, 999L);
+        when(adminCourseMapper.countCoursesByNos(courseNos)).thenReturn(1);
+
+        assertThatThrownBy(() -> adminCourseService.deleteCourses(courseNos))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("삭제할 고정 코스를 찾을 수 없습니다.");
+
+        verify(adminCourseMapper, never()).deleteCourseWaypointsByCourseNos(anyList());
+        verify(adminCourseMapper, never()).deleteCourses(anyList());
+    }
+
+    @Test
     void updateCourseStatusRejectsValueOtherThanYOrN() {
         assertThatThrownBy(() -> adminCourseService.updateCourseStatus(101L, "ACTIVE"))
                 .isInstanceOf(BadRequestException.class)

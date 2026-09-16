@@ -136,6 +136,23 @@ public class AdminCourseService {
     }
 
     @Transactional
+    public int deleteCourses(List<Long> courseNos) {
+        List<Long> distinctCourseNos = courseNos.stream().distinct().toList();
+        distinctCourseNos.forEach(this::validateCourseNo);
+
+        if (adminCourseMapper.countCoursesByNos(distinctCourseNos) != distinctCourseNos.size()) {
+            throw new NotFoundException("삭제할 고정 코스를 찾을 수 없습니다.");
+        }
+
+        adminCourseMapper.deleteCourseWaypointsByCourseNos(distinctCourseNos);
+        int result = adminCourseMapper.deleteCourses(distinctCourseNos);
+        if (result != distinctCourseNos.size()) {
+            throw new InternalServerException("고정 코스 일괄 삭제 중 오류가 발생했습니다.");
+        }
+        return result;
+    }
+
+    @Transactional
     public void updateCourseStatus(Long courseNo, String active) {
         validateCourseNo(courseNo);
         if (active == null || active.isBlank()) {

@@ -41,5 +41,11 @@ public interface AdminCourseMapper {
 
 	int deleteCourse(Long courseNo);
 
+	int countCoursesByNos(@Param("courseNos") List<Long> courseNos);
+
+	int deleteCourseWaypointsByCourseNos(@Param("courseNos") List<Long> courseNos);
+
+	int deleteCourses(@Param("courseNos") List<Long> courseNos);
+
 	int updateCourseStatus(@Param("courseNo") Long courseNo, @Param("active") String active);
 }

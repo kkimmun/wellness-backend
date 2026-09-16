@@ -92,20 +92,20 @@ public class CourseService {
 		PlaceDto endPlace = placeService.selectByPlaceNo(request.getEndPlaceNo());
 
 		List<String> placeNames = places.stream()
-				.map(PlaceDto::getPlaceName)
-				.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+										.map(PlaceDto::getPlaceName)
+										.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 		placeNames.add(endPlace.getPlaceName());
 		CourseContent content = ollamaClient.generateCourseContent(placeNames, request.getTags());
 
 		return CourseResponse.builder()
-				.courseName(content.getCourseName())
-				.description(content.getDescription())
-				.endPlace(endPlace.getPlaceNo())
-				.endPlaceImg(endPlace.getImageUrl())
-				.places(places)
-				.build();
+							 .courseName(content.getCourseName())
+							 .description(content.getDescription())
+							 .endPlace(endPlace.getPlaceNo())
+							 .endPlaceImg(endPlace.getImageUrl())
+							 .places(places)
+							 .build();
 	}
-
+	
     public RouteResponse getRecommendedRoute(RouteSearchRequest request) {
         List<Long> waypointPlaceNos = validateAndCompressSelectedPlaces(request);
         List<List<Long>> waypointOrders = new ArrayList<>();
