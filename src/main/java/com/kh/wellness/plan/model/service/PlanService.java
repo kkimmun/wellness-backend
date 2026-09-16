@@ -62,7 +62,7 @@ public class PlanService {
 	public void editPlaces(Long memberNo, Long planNo, List<PlanPlaceRequestDto> planRequest) {
 
 		requireOwnedPlan(memberNo, planNo);
-		// planMapper.deletePlanSessions(planNo);
+		planMapper.deletePlanSessions(planNo);
 
 		savePlaces(planNo, planRequest);
 	}
