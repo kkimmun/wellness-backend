@@ -4,27 +4,79 @@
 
 <mapper namespace="com.kh.wellness.plan.model.dao.PlanMapper">
 
-<insert id = "savePlan">
-	INSERT 
-		INTO 
-			PLAN_SESSION 
+<insert id = "insertPlan" useGeneratedKeys="true" keyProperty="planNo" keyColumn="PLAN_NO">
+	INSERT
+		INTO
+			PLAN
 			(
 		    	MEMBER_NO,
-		    	PLACE_NO,
-		    	PLACE_ORDER
-		) VALUES 
+		    	PLAN_NAME,
+		    	X_AXIS,
+		    	Y_AXIS
+		) VALUES
 			(
 		    	#{memberNo},
+		   		#{planName},
+		    	#{xAxis},
+		    	#{yAxis}
+		)
+</insert>
+<select id = "findPlanForAuth" resultType="Plan">
+	SELECT
+		PLAN_NO,
+		MEMBER_NO,
+		PLAN_NAME,
+		X_AXIS,
+		Y_AXIS,
+		CREATE_DATE
+	FROM
+		PLAN
+	WHERE
+		PLAN_NO = #{planNo}
+</select>
+<select id = "findPlansByMember" resultType="Plan">
+	SELECT
+		PLAN_NO,
+		MEMBER_NO,
+		PLAN_NAME,
+		X_AXIS,
+		Y_AXIS,
+		CREATE_DATE
+	FROM
+		PLAN
+	WHERE
+		MEMBER_NO = #{memberNo}
+	ORDER BY
+		CREATE_DATE DESC
+</select>
+<delete id = "deletePlan">
+	DELETE
+		FROM
+			PLAN
+		WHERE
+			PLAN_NO = #{planNo}
+</delete>
+<insert id = "insertPlanSession">
+	INSERT
+		INTO
+			PLAN_SESSION
+			(
+		    	PLAN_NO,
+		    	PLACE_NO,
+		    	PLACE_ORDER
+		) VALUES
+			(
+		    	#{planNo},
 		   		#{placeNo},
 		    	#{placeOrder}
 		)
 </insert>
-<delete id = "deletePlan">
+<delete id = "deletePlanSessions">
 	DELETE
 		FROM
 			PLAN_SESSION
 		WHERE
-			MEMBER_NO = #{memberNo}
+			PLAN_NO = #{planNo}
 </delete>
 <select id = "findNearbyPlaces" resultType="PlanDetailResponse">
 	SELECT *
