@@ -71,6 +71,8 @@
 		P.Y_AXIS,
 		T.TYPE_NO,
 		P.TYPE_DETAIL_NO,
+		T.TYPE AS TYPE,
+		TD.TYPE_DETAIL_CONTENT AS TYPE_DETAIL,
 		PI.IMG_NO,
 		PI.IMG_PATH
 	FROM PLAN_SESSION PS
@@ -127,6 +129,15 @@
 		    	#{placeOrder}
 		)
 </insert>
+<select id="countAvailablePlaces" resultType="int">
+	SELECT COUNT(*)
+	FROM PLACE
+	WHERE DEL_YN = 'N'
+	AND PLACE_NO IN
+	<foreach collection="placeNos" item="placeNo" open="(" separator="," close=")">
+		#{placeNo}
+	</foreach>
+</select>
 <delete id = "deletePlanSessions">
 	DELETE
 		FROM

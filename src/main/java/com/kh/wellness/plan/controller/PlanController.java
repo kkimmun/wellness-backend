@@ -20,11 +20,11 @@ import com.kh.wellness.common.api.ApiResponse;
 import com.kh.wellness.plan.model.dto.PlanCreateRequestDto;
 import com.kh.wellness.plan.model.dto.PlanCreateResponseDto;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
-import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
 import com.kh.wellness.plan.model.dto.PlanResponseDto;
 import com.kh.wellness.plan.model.dto.SavedPlanResponseDto;
 import com.kh.wellness.plan.model.service.PlanService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -35,7 +35,7 @@ public class PlanController {
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<PlanCreateResponseDto>> createPlan(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@RequestBody PlanCreateRequestDto request) {
+			@Valid @RequestBody PlanCreateRequestDto request) {
 
 		Long memberNo = userDetails.getMemberNo();
 
@@ -68,31 +68,9 @@ public class PlanController {
 	public ResponseEntity<ApiResponse<Void>> updatePlan(
 			@AuthenticationPrincipal CustomUserDetails userDetails,
 			@PathVariable("planNo") Long planNo,
-			@RequestBody PlanCreateRequestDto request) {
+			@Valid @RequestBody PlanCreateRequestDto request) {
 		planService.updatePlan(userDetails.getMemberNo(), planNo, request);
 		return ResponseEntity.ok(ApiResponse.success("요청에 성공하였습니다.", null));
-	}
-
-	@PostMapping("/{planNo}/places")
-	public ResponseEntity<ApiResponse<Void>> addPlaces(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@PathVariable("planNo") Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
-
-		Long memberNo = userDetails.getMemberNo();
-
-		planService.addPlaces(memberNo, planNo, planRequest);
-
-		return ResponseEntity.status(200).body(ApiResponse.success("요청에 성공하였습니다.", null));
-	}
-
-	@PutMapping("/{planNo}/places")
-	public ResponseEntity<ApiResponse<Void>> editPlaces(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@PathVariable("planNo") Long planNo, @RequestBody List<PlanPlaceRequestDto> planRequest) {
-
-		Long memberNo = userDetails.getMemberNo();
-
-		planService.editPlaces(memberNo, planNo, planRequest);
-
-		return ResponseEntity.status(200).body(ApiResponse.success("요청에 성공하였습니다.", null));
 	}
 
 	@DeleteMapping("/{planNo}")

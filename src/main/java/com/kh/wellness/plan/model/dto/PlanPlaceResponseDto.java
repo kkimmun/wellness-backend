@@ -20,6 +20,8 @@ public class PlanPlaceResponseDto {
 	private Double yAxis;
 	private Long typeNo;
 	private Long typeDetailNo;
+	private String type;
+	private String typeDetail;
 	private Long imgNo;
 	private String imgPath;
 }
