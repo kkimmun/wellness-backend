@@ -20,6 +20,10 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	mockitoAgent
+}
+
 ext {
 	set('springAiVersion', "2.0.1")
 }
@@ -39,7 +43,6 @@ dependencies {
 	implementation 'software.amazon.awssdk:s3:2.25.0'
 	implementation 'software.amazon.awssdk:auth:2.25.0'
 	implementation 'software.amazon.awssdk:regions:2.25.0'
-	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 	compileOnly 'org.projectlombok:lombok'
@@ -51,6 +54,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:4.0.1'
+	mockitoAgent('org.mockito:mockito-core') {
+		transitive = false
+	}
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
@@ -68,4 +74,5 @@ tasks.named('bootJar') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}", '-Xshare:off'
 }

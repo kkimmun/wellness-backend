@@ -196,10 +196,12 @@
 	                    ORDER BY IMG_NO
 	                ) AS RN
 	            FROM PLACE_IMG
+	            WHERE DEL_YN = 'N'
 	        )
 	        WHERE RN = 1
 	    ) PI
 	        ON P.PLACE_NO = PI.PLACE_NO
+	    WHERE P.DEL_YN = 'N'
 		)
 		WHERE DISTANCE &lt;=
 	        CASE TYPE_NO
