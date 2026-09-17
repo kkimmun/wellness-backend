@@ -13,6 +13,7 @@ import com.kh.wellness.plan.model.dto.PlanCreateRequestDto;
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
 import com.kh.wellness.plan.model.dto.PlanPlaceRequestDto;
 import com.kh.wellness.plan.model.dto.PlanResponseDto;
+import com.kh.wellness.plan.model.dto.SavedPlanResponseDto;
 import com.kh.wellness.plan.model.vo.Plan;
 import com.kh.wellness.plan.model.vo.PlanSession;
 
@@ -44,10 +45,33 @@ public class PlanService {
 	}
 
 	public List<PlanResponseDto> findPlans(Long memberNo) {
+		return planMapper.findPlansByMember(memberNo);
+	}
 
-		return planMapper.findPlansByMember(memberNo).stream()
-				.map(this::toPlanResponseDto)
-				.toList();
+	public SavedPlanResponseDto findPlan(Long memberNo, Long planNo) {
+		Plan plan = requireOwnedPlan(memberNo, planNo);
+		return new SavedPlanResponseDto(
+				plan.getPlanNo(),
+				plan.getPlanName(),
+				plan.getXAxis(),
+				plan.getYAxis(),
+				plan.getCreateDate(),
+				planMapper.findPlacesByPlanNo(planNo));
+	}
+
+	@Transactional
+	public void updatePlan(Long memberNo, Long planNo, PlanCreateRequestDto request) {
+		requireOwnedPlan(memberNo, planNo);
+		Plan plan = Plan.builder()
+				.planNo(planNo)
+				.memberNo(memberNo)
+				.planName(request.getPlanName())
+				.xAxis(request.getXAxis())
+				.yAxis(request.getYAxis())
+				.build();
+		if (planMapper.updatePlan(plan) == 0) {
+			throw new BadRequestException("플랜 수정에 실패하였습니다.");
+		}
 	}
 
 	@Transactional
@@ -62,7 +86,7 @@ public class PlanService {
 	public void editPlaces(Long memberNo, Long planNo, List<PlanPlaceRequestDto> planRequest) {
 
 		requireOwnedPlan(memberNo, planNo);
-		// planMapper.deletePlanSessions(planNo);
+		planMapper.deletePlanSessions(planNo);
 
 		savePlaces(planNo, planRequest);
 	}
@@ -110,15 +134,6 @@ public class PlanService {
 		}
 
 		return plan;
-	}
-
-	private PlanResponseDto toPlanResponseDto(Plan plan) {
-		return new PlanResponseDto(
-				plan.getPlanNo(),
-				plan.getPlanName(),
-				plan.getXAxis(),
-				plan.getYAxis(),
-				plan.getCreateDate());
 	}
 
 }

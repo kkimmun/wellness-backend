@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kh.wellness.plan.model.dto.PlanDetailResponse;
+import com.kh.wellness.plan.model.dto.PlanPlaceResponseDto;
+import com.kh.wellness.plan.model.dto.PlanResponseDto;
 import com.kh.wellness.plan.model.vo.Plan;
 import com.kh.wellness.plan.model.vo.PlanSession;
 
@@ -16,7 +18,11 @@ public interface PlanMapper {
 
 	Plan findPlanForAuth(Long planNo);
 
-	List<Plan> findPlansByMember(Long memberNo);
+	List<PlanResponseDto> findPlansByMember(Long memberNo);
+
+	List<PlanPlaceResponseDto> findPlacesByPlanNo(Long planNo);
+
+	int updatePlan(Plan plan);
 
 	int deletePlan(Long planNo);
 
