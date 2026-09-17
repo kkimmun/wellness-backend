@@ -211,7 +211,7 @@ AI 응답은 정해진 스키마로 검증하며, 장소 선정과 경로 결정
 | --- | --- | --- |
 | **김선겸** | 이동수단별 경로 조회, 현재 위치 기반 계획, 선호 장소·태그 기반 여행 코스 추천 | <a href="https://github.com/kkimmun"><img src="https://img.shields.io/badge/GitHub-kkimmun-FF6B6B?style=flat-square&logo=github&logoColor=white" alt="kkimmun GitHub" /></a> |
 | **윤성현** | 이메일 중복 확인, 인증 코드 발송·만료 검증, 데이터·배포 환경 | <a href="https://github.com/koyong3941-cell"><img src="https://img.shields.io/badge/GitHub-koyong3941--cell-F5A623?style=flat-square&logo=github&logoColor=white" alt="koyong3941-cell GitHub" /></a> |
-| **이다산** | 고정 코스, 순례길 후보 추천·경로 비교, AI 코스 소개 | <a href="https://github.com/ham-zi"><img src="https://img.shields.io/badge/GitHub-ham--zi-00C853?style=flat-square&logo=github&logoColor=white" alt="ham-zi GitHub" /></a> |
+| **이다산** | 고정 코스, 순례길 후보 추천·경로 비교, 이미지 라이선스 관리 | <a href="https://github.com/ham-zi"><img src="https://img.shields.io/badge/GitHub-ham--zi-00C853?style=flat-square&logo=github&logoColor=white" alt="ham-zi GitHub" /></a> |
 | **정주미** | 장소 목록·상세 조회 API, 분류·태그 기반 장소 조회 | <a href="https://github.com/peony639-lab"><img src="https://img.shields.io/badge/GitHub-peony639--lab-8E44EC?style=flat-square&logo=github&logoColor=white" alt="peony639-lab GitHub" /></a> |
 
 ---
