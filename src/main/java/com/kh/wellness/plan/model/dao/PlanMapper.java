@@ -28,6 +28,8 @@ public interface PlanMapper {
 
 	int insertPlanSession(PlanSession planSession);
 
+	int countAvailablePlaces(@Param("placeNos") List<Long> placeNos);
+
 	void deletePlanSessions(Long planNo);
 
 	List<PlanDetailResponse> findNearbyPlaces(@Param("memberNo") Long memberNo, @Param("xAxis")  Double xAxis,
