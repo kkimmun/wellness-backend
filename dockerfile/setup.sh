@@ -82,3 +82,6 @@ echo "Ollama 및 gemma3:1b 준비 완료"
 sudo docker exec ollama ollama list
 
 echo "SSH 재접속 후 sudo 없이 docker 명령을 사용할 수 있습니다."
+
+# 애플리케이션 로그 디렉터리 생성
+mkdir -p ~/app/logs
