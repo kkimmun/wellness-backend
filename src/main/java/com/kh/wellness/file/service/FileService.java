@@ -59,7 +59,7 @@ public class FileService {
         }
     }
 	
-	// 파일 확장자 추출 (
+	// 파일 확장자 추출 
 	private String getExtension(MultipartFile file) {
 		String originalName = file.getOriginalFilename();
 		if (originalName == null || !originalName.contains(".")) {
@@ -74,13 +74,13 @@ public class FileService {
 	        return false;
 	    }
 
-	    // 1) MIME 체크
+	    // 1 MIME 체크
 	    String contentType = file.getContentType();
 	    if (contentType == null || !contentType.startsWith("image/")) {
 	        return false;
 	    }
 
-	    // 2) 확장자 체크
+	    // 2 확장자 체크
 	    String extension = getExtension(file).toLowerCase();
 	    boolean extOk = extension.equals(".jpg") || extension.equals(".jpeg")
 	            || extension.equals(".png") || extension.equals(".gif")
@@ -89,7 +89,7 @@ public class FileService {
 	        return false;
 	    }
 
-	    // 3) 매직 넘버 검사
+	    // 3 매직 넘버 검사
 	    try (InputStream is = file.getInputStream()) {
 	        byte[] head = is.readNBytes(12);
 	        if (head.length < 12) {
