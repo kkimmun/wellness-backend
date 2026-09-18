@@ -1,7 +1,5 @@
 package com.kh.wellness.member.model.service;
 
-import java.io.IOException;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -145,21 +143,7 @@ public class MemberProfileService {
     private void validatePhoto(MultipartFile file) {
         if (file == null || file.isEmpty() || file.getSize() > 1024 * 1024)
             throw new BadRequestException("프로필 사진은 1MB 이하의 이미지로 선택해주세요.");
-        if (!Set.of("image/jpeg", "image/png", "image/gif", "image/webp").contains(String.valueOf(file.getContentType())))
-            throw new BadRequestException("JPG, PNG, GIF, WEBP 이미지 파일만 사용할 수 있습니다.");
-        try (var stream = file.getInputStream()) {
-            byte[] bytes = stream.readNBytes(12);
-            String type = file.getContentType();
-            boolean valid = switch (type) {
-                case "image/jpeg" -> bytes.length >= 3 && (bytes[0] & 255) == 255 && (bytes[1] & 255) == 216 && (bytes[2] & 255) == 255;
-                case "image/png" -> bytes.length >= 8 && java.util.Arrays.equals(java.util.Arrays.copyOf(bytes, 8), new byte[]{(byte)137,80,78,71,13,10,26,10});
-                case "image/gif" -> bytes.length >= 6 && (new String(bytes, 0, 6, java.nio.charset.StandardCharsets.US_ASCII).matches("GIF8[79]a"));
-                case "image/webp" -> bytes.length >= 12 && new String(bytes, 0, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("RIFF") && new String(bytes, 8, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("WEBP");
-                default -> false;
-            };
-            if (!valid) throw new BadRequestException("이미지 파일 형식을 확인해주세요.");
-        } catch (IOException error) {
-            throw new BadRequestException("이미지 파일을 읽을 수 없습니다.");
-        }
+        if (!fileService.isImageFile(file))
+            throw new BadRequestException("이미지 파일 형식을 확인해주세요.");
     }
 }

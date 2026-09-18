@@ -69,7 +69,7 @@ public class FileService {
 	}
 
 	// 이미지 파일인지 검증
-	private boolean isImageFile(MultipartFile file) {
+	public boolean isImageFile(MultipartFile file) {
 	    if (file == null || file.isEmpty()) {
 	        return false;
 	    }
