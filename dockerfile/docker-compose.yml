@@ -1,6 +1,6 @@
 services:
   web:
-    image: nginx:1.31.4
+    image: nginx:latest
     ports:
       - "80:80"
     volumes:
@@ -16,10 +16,11 @@ services:
         max-file: "3"
 
   api:
-    image: eclipse-temurin:21.0.12_8-jre-alpine
+    image: eclipse-temurin:21-jre-alpine
     volumes:
       - ./backend/wellness.jar:/wellness.jar
       - ./backend/application-dev.yml:/config/application-dev.yml
+      - ./logs:/app/logs
     working_dir: /
     command:
       - java
