@@ -38,10 +38,8 @@ public class AuthService {
 			throw new UnauthorizedException("아이디 또는 비밀번호가 잘못되었습니다.");
 		}
 
-		//인증 성공함
 		CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-		// 토큰 발급
-			
+
 			Map<String, String> tokens = tokenService.getTokens(user);
 			
 		    LoginResponse userInfo = LoginResponse.builder()

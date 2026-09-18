@@ -46,6 +46,7 @@ class MemberProfilePhotoTransactionTest {
         var old = new MemberProfileResponse();
         old.setImgPath(BASE_URL); old.setSaveName(OLD_NAME);
         when(mapper.findProfileForUpdate(7L)).thenReturn(old);
+        when(files.isImageFile(image)).thenReturn(true);
         when(files.store(image, "profile")).thenReturn(new FileSaveResult("new.png", "https://example.com/profile/"));
     }
 

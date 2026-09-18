@@ -72,15 +72,17 @@ class MemberProfileServiceTest {
         verifyNoInteractions(tokens);
     }
     @Test void invalidImageNeverReachesStorage() {
+        when(files.isImageFile(any())).thenReturn(false);
         assertThatThrownBy(() -> service.updatePhoto(7L, new MockMultipartFile("imageFile", "x.png", "image/png", "not image".getBytes()))).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> service.updatePhoto(7L, new MockMultipartFile("imageFile", "x.svg", "image/svg+xml", "<svg/>".getBytes()))).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> service.updatePhoto(7L, new MockMultipartFile("imageFile", "x.png", "image/png", new byte[5 * 1024 * 1024 + 1]))).isInstanceOf(BadRequestException.class);
-        verifyNoInteractions(files);
+        verify(files, never()).store(any(), any());
     }
     @Test void profilePhotoUsesMemberColumns() {
         var profile = new MemberProfileResponse(); when(mapper.findProfile(7L)).thenReturn(profile);
         when(mapper.findProfileForUpdate(7L)).thenReturn(profile);
         var image = new MockMultipartFile("imageFile", "x.png", "image/png", new byte[]{(byte)137,80,78,71,13,10,26,10});
+        when(files.isImageFile(image)).thenReturn(true);
         when(files.store(image, "profile")).thenReturn(new FileSaveResult("saved.png", "https://example.com/profile/"));
         when(mapper.updatePhoto(7L, "x.png", "saved.png", "https://example.com/profile/")).thenReturn(1);
         assertThat(service.updatePhoto(7L, image)).isSameAs(profile);

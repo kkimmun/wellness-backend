@@ -162,7 +162,6 @@ public class MemberService {
 	
 	private void removeDuplicateImages(Long memberNo) {
 		List<MemberImgDto> list = memberImgMapper.memberImgCount(memberNo);
-		//기존 /*list.size() > 1*/
 		if( list.size() > 1){
 			imageDupleDelete(memberNo, list);
 		}
