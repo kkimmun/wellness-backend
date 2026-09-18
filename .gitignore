@@ -15,6 +15,8 @@ src/main/resources/application.properties
 src/main/resources/application-*.properties
 src/main/resources/application-prod.yml
 
+dockerfile/my-wellness-dev.pem
+
 .apt_generated/
 .classpath
 .factorypath
@@ -23,6 +25,7 @@ src/main/resources/application-prod.yml
 .springBeans
 .sts4-cache/
 .env
+.pem
 
 bin/
 !**/src/main/**/bin/
