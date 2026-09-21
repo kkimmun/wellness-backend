@@ -19,7 +19,6 @@ src/main/resources/application-prod.yml
 dockerfile/backend/application-dev.yml
 dockerfile/my-wellness-dev.pem
 dockerfile/monitoring/wellness-monitoring-token
-dockerfile/monitoring/prometheus.yml
 dockerfile/.env
 
 
