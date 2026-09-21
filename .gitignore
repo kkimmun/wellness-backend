@@ -15,7 +15,12 @@ src/main/resources/application.properties
 src/main/resources/application-*.properties
 src/main/resources/application-prod.yml
 
+
+dockerfile/backend/application-dev.yml
 dockerfile/my-wellness-dev.pem
+dockerfile/monitoring/wellness-monitoring-token
+dockerfile/.env
+
 
 .apt_generated/
 .classpath
