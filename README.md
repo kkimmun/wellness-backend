@@ -49,6 +49,8 @@ Gimpo Wellness는 김포의 관광지·음식점·체험 시설을 한곳에서 
   <img src="https://img.shields.io/badge/AWS_S3-183844?style=flat-square&logo=amazons3&logoColor=569A31" alt="AWS S3" />
   <img src="https://img.shields.io/badge/Docker-183844?style=flat-square&logo=docker&logoColor=2496ED" alt="Docker" />
   <img src="https://img.shields.io/badge/GitHub_Actions-183844?style=flat-square&logo=githubactions&logoColor=2088FF" alt="GitHub Actions" />
+  <img src="https://img.shields.io/badge/Prometheus-183844?style=flat-square&logo=prometheus&logoColor=E6522C" alt="Prometheus" />
+  <img src="https://img.shields.io/badge/Grafana_Cloud-183844?style=flat-square&logo=grafana&logoColor=F46800" alt="Grafana Cloud" />
   <img src="https://img.shields.io/badge/Kakao_Mobility-183844?style=flat-square&logo=kakao&logoColor=FFCD00" alt="Kakao Mobility" />
   <img src="https://img.shields.io/badge/Ollama-183844?style=flat-square&logo=ollama&logoColor=white" alt="Ollama" />
 </p>
@@ -85,20 +87,30 @@ Gimpo Wellness는 김포의 관광지·음식점·체험 시설을 한곳에서 
 시작 위치, 방문 장소 수, 선호 장소와 태그를 입력받아 3~10곳의 여행 코스를 생성합니다.  
 Beam Search로 선호도와 이동 거리를 함께 비교해 조건에 맞는 방문 순서를 선택합니다.
 
-### 순례길 코스
+<p align="center">
+  <img src="docs/images/travel-recommendation-flow.png" alt="여행 코스 추천 흐름: 조건 입력, 후보 장소 조회, 추천 점수 평가, 방문 순서 탐색, 추천 코스 반환" width="1000" />
+</p>
+
+### 순례길 코스 및 소개 생성
 
 사찰 또는 김포성당을 목적지로 하는 순례길 코스를 조회합니다.  
 정해진 방문 순서를 제공하고, 기준 경로 주변의 관광지를 최대 3개 경유지로 추가해 이동 거리가 짧은 방문 순서를 계산합니다.
 
-### 코스 소개 생성
-
 추천 로직이 방문 장소와 순서를 확정한 뒤 Ollama로 코스명과 소개 문구를 생성합니다.  
 AI 응답은 정해진 스키마로 검증하며, 장소 선정과 경로 결정은 서버의 추천 로직이 담당합니다.
+
+<p align="center">
+  <img src="docs/images/pilgrimage-description-flow.png" alt="순례길 코스 및 소개 생성 흐름: 순례길 선택, 경유지 선택, 방문 순서 확정, 코스 소개 생성, 결과 검증 및 반환" width="1000" />
+</p>
 
 ### 회원·이메일 인증
 
 회원가입 전 이메일 중복 여부를 확인하고 5자리 인증 코드를 발송해 3분 이내 입력을 검증합니다.  
 로그인 후 발급한 JWT와 Spring Security를 사용해 사용자와 관리자 권한을 구분합니다.
+
+<p align="center">
+  <img src="docs/images/email-signup-flow.png" alt="회원가입 및 이메일 인증 흐름: 이메일 확인, 인증 코드 발송, 인증 코드 검증, 가입 정보 확인, 회원가입 완료" width="1000" />
+</p>
 
 ### 리뷰·이미지
 
@@ -109,6 +121,40 @@ AI 응답은 정해진 스키마로 검증하며, 장소 선정과 경로 결정
 
 입력 오류, 권한 오류, 리소스 없음, 외부 API 실패를 예외 유형별로 구분합니다.  
 전역 예외 처리기를 통해 상태 코드와 오류 메시지를 일관된 응답 구조로 반환합니다.
+
+---
+
+## 핵심 사용자 흐름
+
+장소 탐색부터 이동 경로 확인, 여행 코스 계획, 방문 후 기록까지를 하나의 사용자 흐름으로 연결했습니다.
+
+<p align="center">
+  <img src="docs/images/user-flow.png" alt="Gimpo Wellness 핵심 사용자 흐름도" width="1000" />
+</p>
+
+---
+
+## 주요 API
+
+전체 API 중 서비스의 핵심 사용자 흐름을 구성하는 대표 API입니다.
+
+| 영역 | Method | Endpoint | 설명 |
+| --- | --- | --- | --- |
+| 인증 | `POST` | `/api/auth/login` | 로그인 및 JWT 발급 |
+| 인증 | `POST` | `/api/auth/refresh` | Access Token 갱신 |
+| 이메일 인증 | `POST` | `/api/mail/auth` | 이메일 인증 코드 발송 |
+| 이메일 인증 | `POST` | `/api/mail/auth/verification` | 인증 코드 검증 |
+| 장소 탐색 | `GET` | `/api/places` | 장소 목록 조회와 유형·태그 필터링 |
+| 장소 탐색 | `GET` | `/api/places/{placeNo}/detail` | 장소 상세 정보 조회 |
+| 지도 | `GET` | `/api/places/pins` | 지도 마커용 장소 정보 조회 |
+| 길찾기 | `GET` | `/api/routes` | 이동수단별 경로, 거리, 소요 시간 조회 |
+| 여행 계획 | `POST` | `/api/plans` | 사용자 여행 계획 생성 |
+| 여행 계획 | `GET` | `/api/plans/nearby` | 현재 위치 주변 여행 계획 조회 |
+| 여행 코스 추천 | `POST` | `/api/course-recommendations` | 선호 장소·태그·거리 기반 코스 추천 |
+| 고정 코스 | `GET` | `/api/courses` | 여행·순례길 코스 목록 조회 |
+| 코스 부가 기능 | `POST` | `/api/courses/restaurants` | 코스 주변 음식점 추천 |
+| 리뷰 | `POST` | `/api/places/{placeNo}/reviews` | 장소 리뷰 등록 |
+| 북마크 | `POST` | `/api/places/{placeNo}/bookmarks` | 장소 북마크 등록 |
 
 ---
 
@@ -127,6 +173,16 @@ AI 응답은 정해진 스키마로 검증하며, 장소 선정과 경로 결정
 <p align="center">
   <img src="docs/images/deployment-architecture.png" alt="Gimpo Wellness 운영 아키텍처" width="900" />
 </p>
+
+### 모니터링
+
+Spring Boot Actuator가 `/actuator/prometheus` 엔드포인트로 애플리케이션 메트릭을 제공합니다. Prometheus는 백엔드와 cAdvisor의 메트릭을 15초 간격으로 수집하고, 최근 15일간 로컬에 보관합니다. 수집된 메트릭은 Grafana Cloud로 전송해 서비스와 컨테이너 상태를 확인할 수 있도록 구성했습니다.
+
+<p align="center">
+  <img src="docs/images/grafana-monitoring.png" alt="Grafana 대시보드의 기능별 요청 수, 평균 응답시간, 인기 기능 및 오류율" width="900" />
+</p>
+
+<p align="center">API 요청량·평균 응답시간·오류율 모니터링 화면 (2026.09.15 캡처)</p>
 
 ---
 
