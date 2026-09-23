@@ -1,27 +1,40 @@
+# Gradle build output
 .gradle/
 build/
-
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 !gradlew
 !gradlew.bat
 
-src/main/resources/application.yml
-src/main/resources/prometheus.yml
-src/main/resources/application.yaml
-src/main/resources/application-*.yml
-src/main/resources/application-*.yaml
-src/main/resources/application.properties
-src/main/resources/application-*.properties
-src/main/resources/application-prod.yml
+# Local Spring configuration
+/src/main/resources/application.yml
+/src/main/resources/application.yaml
+/src/main/resources/application-*.yml
+/src/main/resources/application-*.yaml
+/src/main/resources/application.properties
+/src/main/resources/application-*.properties
+/src/main/resources/prometheus.yml
 
+# Docker deployment output and local configuration
+/dockerfile/backend/*.jar
+/dockerfile/dist/
+/dockerfile/backend/application.yml
+/dockerfile/backend/application.yaml
+/dockerfile/backend/application-*.yml
+/dockerfile/backend/application-*.yaml
+/dockerfile/backend/application.properties
+/dockerfile/backend/application-*.properties
+/dockerfile/monitoring/wellness-monitoring-token
 
-dockerfile/backend/application-dev.yml
-dockerfile/my-wellness-dev.pem
-dockerfile/monitoring/wellness-monitoring-token
-dockerfile/.env
+# Environment files and private keys (keep example templates)
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
 
-
+# Eclipse / Spring Tool Suite
 .apt_generated/
 .classpath
 .factorypath
@@ -29,36 +42,35 @@ dockerfile/.env
 .settings/
 .springBeans
 .sts4-cache/
-.env
-.pem
-
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+# IntelliJ / VS Code
 .idea/
 *.iws
 *.iml
 *.ipr
-*.md
-
 out/
 .vscode/
 
+# Local documentation (existing project policy)
+*.md
+
+# Logs and temporary files
 *.log
 logs/
 *.tmp
 *.bak
+*~
 
+# OS files
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 *.lnk
-
 .DS_Store
 ._*
-
-*~
 .directory

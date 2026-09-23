@@ -17,6 +17,8 @@ services:
 
   api:
     image: eclipse-temurin:21-jre-alpine
+    ports:
+      - "8080:8080"
     volumes:
       - ./backend/wellness.jar:/wellness.jar
       - ./backend/application-dev.yml:/config/application-dev.yml
@@ -49,8 +51,7 @@ services:
 
       JWT_SECRET: ${JWT_SECRET}
 
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
       KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
     restart: always
