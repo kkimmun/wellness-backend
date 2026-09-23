@@ -193,6 +193,10 @@ Spring Boot Actuator가 `/actuator/prometheus` 엔드포인트로 애플리케�
   <img src="docs/images/erd.png" alt="Gimpo Wellness ERD" width="900" />
 </p>
 
+<p align="center">
+  <a href="https://www.erdcloud.com/d/nuFXK4RudwwMYqnzi">ERD Cloud에서 원본 보기</a>
+</p>
+
 ---
 
 ## 테스트 및 품질 검증
