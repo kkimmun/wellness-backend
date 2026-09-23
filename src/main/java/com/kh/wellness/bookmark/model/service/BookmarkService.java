@@ -19,10 +19,6 @@ public class BookmarkService {
 
 	private final BookmarkMapper bookmarkMapper;
 
-	/**
-	 * 현재 회원의 장소 북마크를 토글한다.
-	 * 이미 북마크한 장소면 취소하고, 아니면 등록한다.
-	 */
 	@Transactional
 	public BookmarkToggleResponse toggleBookmark(Long memberNo, Long placeNo) {
 		requireLogin(memberNo);
@@ -52,9 +48,6 @@ public class BookmarkService {
 				.build();
 	}
 
-	/**
-	 * 현재 회원의 장소 북마크 여부를 조회한다.
-	 */
 	@Transactional(readOnly = true)
 	public BookmarkStatusResponse getBookmarkStatus(Long memberNo, Long placeNo) {
 		requireLogin(memberNo);
